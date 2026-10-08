@@ -144,6 +144,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 @media(min-width:901px){.actions{grid-template-columns:repeat(3,minmax(0,1fr));}}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#111;color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;z-index:9999;max-width:90vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s;}
 .toast.show{opacity:1;}
+.cf-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;}
+.cf-box{background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:20px;width:100%;max-width:340px;box-shadow:0 10px 30px rgba(0,0,0,.6);}
+.cf-msg{font-size:15px;font-weight:700;line-height:1.6;white-space:pre-line;margin-bottom:16px;color:var(--text);}
+.cf-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cf-btns .btn{justify-content:center;min-height:46px;touch-action:manipulation;}
+.cf-btns .btn.cf-yes{background:#e5484d;border-color:#e5484d;color:#fff;}
 .btn{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
 .btn:active{border-color:var(--accent2);}
 .btn-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
@@ -351,12 +357,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 <!-- SETTINGS TAB -->
 <div id="tab-settings" class="tab-panel">
   <div class="card">
-    <div class="card-title"><span class="bar"></span>単価・店舗情報設定</div>
-    <div class="sg"><h3>店舗情報</h3>
+    <div class="card-title"><span class="bar"></span>単価・会社情報設定</div>
+    <div class="sg"><h3>会社情報</h3>
       <div class="fgrid">
-        <div class="field"><label>店舗名</label><input id="s-shopName" oninput="updateSettings()"></div>
-        <div class="field"><label>電話番号</label><input id="s-shopTel" placeholder="078-000-0000" oninput="updateSettings()"></div>
-        <div class="field span2"><label>所在地</label><input id="s-shopAddress" oninput="updateSettings()"></div>
+        <div class="field"><label>会社名</label><input id="s-shopName" readonly style="opacity:.75"></div>
+        <div class="field"><label>電話番号</label><input id="s-shopTel" readonly style="opacity:.75"></div>
+        <div class="field span2"><label>所在地</label><input id="s-shopAddress" readonly style="opacity:.75"></div>
         <div class="field span2"><label>登録番号（インボイス）</label><input id="s-shopRegNo" oninput="updateSettings()"></div>
       </div>
     </div>
@@ -435,7 +441,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 <script>
 // ─── State ───────────────────────────────────────────────
 const DEF_SETTINGS = {
-  shopName:'株式会社AUTO REPAIR KOBE', shopAddress:'', shopTel:'', shopRegNo:'',
+  shopName:'株式会社AUTO REPAIR KOBE', shopAddress:'〒657-0864　神戸市灘区新在家南町4丁目11-10', shopTel:'078-881-6678', shopRegNo:'',
   laborRateDomestic:9800, laborRateImport:12000,
   quarterPanelExtraHours:2.1, noQuarterPanelExtraHours:1.2,
   expenseRate:5, taxRate:10,
@@ -1149,9 +1155,8 @@ function setPayKind(btn){
   customer[btn.dataset.pk]=true; btn.classList.add('on');
 }
 function updateSettings(){
-  settings.shopName=document.getElementById('s-shopName').value;
-  settings.shopAddress=document.getElementById('s-shopAddress').value;
-  settings.shopTel=document.getElementById('s-shopTel').value;
+  settings.shopName=SHOP_NAME; // 固定
+  settings.shopAddress=SHOP_ADDRESS; settings.shopTel=SHOP_TEL; // 固定
   settings.shopRegNo=document.getElementById('s-shopRegNo').value;
   settings.laborRateDomestic=+document.getElementById('s-domestic').value||0;
   settings.laborRateImport=+document.getElementById('s-import').value||0;
@@ -1339,6 +1344,7 @@ function buildLineText(){
   lines.push(L,`💴 合計金額　${fmt(t.grand)}（税込）`,L);
   if(customer.note) lines.push(`📝 ${customer.note}`);
   lines.push(`🏢 ${settings.shopName||''}`);
+  if(settings.shopAddress) lines.push(`📍 ${settings.shopAddress}`);
   if(settings.shopTel) lines.push(`📞 ${settings.shopTel}`);
   return lines.filter(l=>l!=='').join('\n');
 }
@@ -1385,7 +1391,7 @@ function lineShare(){
 async function dlFile(){
   const t2=calcTotals();
   const rows=items.map(it=>{const b=calcRow(it);return`<tr><td>${esc(it.part)||'-'}</td><td>${esc(it.type)}</td><td>${esc(b.desc)||'-'}</td><td style="text-align:center">${it.qty}</td><td style="text-align:right">${fmt(b.amount)}</td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center">項目がありません</td></tr>';
-  const html=`<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>御見積書</title><style>@page{size:A4;margin:8mm;}body{font-family:'Hiragino Sans',sans-serif;color:#111;padding:8mm;font-size:11px;}table{width:100%;border-collapse:collapse;margin-top:8px;}th,td{border:1px solid #333;padding:4px 6px;font-size:10px;text-align:left;vertical-align:top;}th{background:#eee;}.ti{text-align:center;font-size:18px;font-weight:900;letter-spacing:.3em;margin-bottom:10px;}.top{display:flex;justify-content:space-between;margin-bottom:8px;gap:16px;flex-wrap:wrap;}.tots td{border:none;padding:2px 0;font-size:11px;}.grd td{border-top:2px solid #333;padding-top:4px;font-size:14px;font-weight:900;}</style></head><body><div class="ti">御 見 積 書</div><div class="top"><div><div><b>${esc(customer.name)||'お客様'}</b> 様</div><div>車種：${esc(customer.car)||'-'}（${esc(customer.carType)}）</div><div>登録番号：${esc(customer.plate)||'-'}</div><div>車体色：${esc(customer.color)||'-'}</div><div>ボディコーティング：${customer.bodyCoat?'あり':'なし'}</div><div>代車：${esc(loanerSummary())}</div><div>支払区分：${esc(paySummary())}</div></div><div style="text-align:right"><div>見積日：${esc(customer.date)}</div><div><b>${esc(settings.shopName)}</b></div>${settings.shopTel?`<div>TEL：${esc(settings.shopTel)}</div>`:''}</div></div><table><thead><tr><th style="width:15%">部位</th><th style="width:11%">作業区分</th><th>内容</th><th style="width:6%">数量</th><th style="width:13%">金額</th></tr></thead><tbody>${rows}</tbody></table><table class="tots" style="width:240px;margin-left:auto;margin-top:8px;"><tr><td>作業小計</td><td style="text-align:right">${fmt(t2.sub)}</td></tr>${customer.noExpense?'':`<tr><td>諸経費（${settings.expenseRate}%）</td><td style="text-align:right">${fmt(t2.exp)}</td></tr>`}${t2.cutPre>0?`<tr><td>端数調整（税抜）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPre)}</td></tr>`:''}<tr><td>消費税（${settings.taxRate}%）</td><td style="text-align:right">${fmt(t2.tax)}</td></tr>${t2.cutPost>0?`<tr><td>端数調整（税込）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPost)}</td></tr>`:''}${t2.disc10>0?`<tr><td>10%値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.disc10)}</td></tr>`:''}${t2.discFree>0?`<tr><td>自由値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.discFree)}</td></tr>`:''}<tr class="grd"><td>合計金額（税込）</td><td style="text-align:right">${fmt(t2.grand)}</td></tr></table>${customer.note?`<div style="margin-top:10px;font-size:10px;">${esc(customer.note)}</div>`:''}</body></html>`;
+  const html=`<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>御見積書</title><style>@page{size:A4;margin:8mm;}body{font-family:'Hiragino Sans',sans-serif;color:#111;padding:8mm;font-size:11px;}table{width:100%;border-collapse:collapse;margin-top:8px;}th,td{border:1px solid #333;padding:4px 6px;font-size:10px;text-align:left;vertical-align:top;}th{background:#eee;}.ti{text-align:center;font-size:18px;font-weight:900;letter-spacing:.3em;margin-bottom:10px;}.top{display:flex;justify-content:space-between;margin-bottom:8px;gap:16px;flex-wrap:wrap;}.tots td{border:none;padding:2px 0;font-size:11px;}.grd td{border-top:2px solid #333;padding-top:4px;font-size:14px;font-weight:900;}</style></head><body><div class="ti">御 見 積 書</div><div class="top"><div><div><b>${esc(customer.name)||'お客様'}</b> 様</div><div>車種：${esc(customer.car)||'-'}（${esc(customer.carType)}）</div><div>登録番号：${esc(customer.plate)||'-'}</div><div>車体色：${esc(customer.color)||'-'}</div><div>ボディコーティング：${customer.bodyCoat?'あり':'なし'}</div><div>代車：${esc(loanerSummary())}</div><div>支払区分：${esc(paySummary())}</div></div><div style="text-align:right"><div>見積日：${esc(customer.date)}</div><div><b>${esc(settings.shopName)}</b></div>${settings.shopAddress?`<div>${esc(settings.shopAddress)}</div>`:''}${settings.shopTel?`<div>TEL：${esc(settings.shopTel)}</div>`:''}</div></div><table><thead><tr><th style="width:15%">部位</th><th style="width:11%">作業区分</th><th>内容</th><th style="width:6%">数量</th><th style="width:13%">金額</th></tr></thead><tbody>${rows}</tbody></table><table class="tots" style="width:240px;margin-left:auto;margin-top:8px;"><tr><td>作業小計</td><td style="text-align:right">${fmt(t2.sub)}</td></tr>${customer.noExpense?'':`<tr><td>諸経費（${settings.expenseRate}%）</td><td style="text-align:right">${fmt(t2.exp)}</td></tr>`}${t2.cutPre>0?`<tr><td>端数調整（税抜）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPre)}</td></tr>`:''}<tr><td>消費税（${settings.taxRate}%）</td><td style="text-align:right">${fmt(t2.tax)}</td></tr>${t2.cutPost>0?`<tr><td>端数調整（税込）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPost)}</td></tr>`:''}${t2.disc10>0?`<tr><td>10%値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.disc10)}</td></tr>`:''}${t2.discFree>0?`<tr><td>自由値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.discFree)}</td></tr>`:''}<tr class="grd"><td>合計金額（税込）</td><td style="text-align:right">${fmt(t2.grand)}</td></tr></table>${customer.note?`<div style="margin-top:10px;font-size:10px;">${esc(customer.note)}</div>`:''}</body></html>`;
   const safe=(customer.car||'estimate').replace(/[\\/:*?"<>|]/g,'');
   const fname=`見積書_${safe}_${customer.date||todayStr()}.html`;
   const blob=new Blob([html],{type:'text/html'});
@@ -1438,11 +1444,27 @@ function loadEst(h){
   document.getElementById('tab-create').classList.add('active');
   render();
 }
-function deleteEst(id){
-  if(!confirm('この見積りを削除しますか？'))return;
-  history=history.filter(h=>h.id!==id);
+// 画面内の確認ダイアログ（iPhoneのホーム画面アプリでは標準のconfirmが出ないことがあるため）
+function askConfirm(msg,okLabel='削除する'){
+  return new Promise(res=>{
+    const ov=document.createElement('div');ov.className='cf-ov';
+    ov.innerHTML=`<div class="cf-box"><div class="cf-msg"></div><div class="cf-btns"><button type="button" class="btn cf-no">キャンセル</button><button type="button" class="btn cf-yes"></button></div></div>`;
+    ov.querySelector('.cf-msg').textContent=msg; ov.querySelector('.cf-yes').textContent=okLabel;
+    const close=v=>{ov.remove();res(v);};
+    ov.querySelector('.cf-no').addEventListener('click',()=>close(false));
+    ov.querySelector('.cf-yes').addEventListener('click',()=>close(true));
+    ov.addEventListener('click',e=>{if(e.target===ov)close(false);});
+    document.body.appendChild(ov);
+  });
+}
+async function deleteEst(id){
+  const h=history.find(x=>x.id===id);
+  const name=h?`${h.customer.name||'（名前未入力）'} ／ ${h.customer.car||'車種未入力'}`:'';
+  if(!await askConfirm(`この見積りを削除しますか？\n${name}`))return;
+  history=history.filter(x=>x.id!==id);
   try{localStorage.setItem('est-history',JSON.stringify(history));}catch(e){}
   renderHistory();
+  toast('削除しました');
 }
 function renderHistory(){
   const list=document.getElementById('history-list');
@@ -1460,7 +1482,7 @@ function renderHistory(){
       <div class="hist-total">${fmt(h.totals.grand)}</div>
       <div class="hist-actions">
         <button class="btn">呼び出す</button>
-        <button class="btn" style="color:var(--muted)">✕</button>
+        <button class="btn" style="color:var(--muted);min-width:46px;min-height:46px;justify-content:center;touch-action:manipulation" aria-label="削除">✕</button>
       </div>`;
     div.querySelectorAll('.btn')[0].addEventListener('click',()=>loadEst(h));
     div.querySelectorAll('.btn')[1].addEventListener('click',()=>deleteEst(h.id));
@@ -1515,11 +1537,13 @@ if('serviceWorker' in navigator){
 }
 
 // ─── Init ─────────────────────────────────────────────────
+const SHOP_NAME='株式会社AUTO REPAIR KOBE', SHOP_TEL='078-881-6678', SHOP_ADDRESS='〒657-0864　神戸市灘区新在家南町4丁目11-10';
 try{const s=localStorage.getItem('est-settings');if(s)settings={...DEF_SETTINGS,...JSON.parse(s)};}catch(e){}
 // 旧既定値1.5を保存済みの場合はブロードリーフ値1.7へ移行（1回のみ）
 // 3コートパール・カラークリアーの材料費率を旧既定38%→43%へ移行（1回のみ）
 if(!settings.migMat43){ if(+settings.matRate3Pearl===38) settings.matRate3Pearl=43; if(+settings.matRateColorClear===38) settings.matRateColorClear=43; settings.migMat43=true; try{localStorage.setItem('est-settings',JSON.stringify(settings));}catch(e){} }
 if(!settings.migBase17){ if(+settings.baseHoursGloss===1.5) settings.baseHoursGloss=1.7; settings.migBase17=true; try{localStorage.setItem('est-settings',JSON.stringify(settings));}catch(e){} }
+settings.shopName=SHOP_NAME; settings.shopTel=SHOP_TEL; settings.shopAddress=SHOP_ADDRESS; // 会社名・電話番号・所在地は固定
 try{const h=localStorage.getItem('est-history');if(h)history=JSON.parse(h);}catch(e){}
 fillCustForm();
 fillSettingsForm();
