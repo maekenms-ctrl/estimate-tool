@@ -66,15 +66,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .panel-map{
   display:grid;
   grid-template-columns:28px 1fr 1.3fr 1fr 28px;
-  grid-template-rows:42px 58px 80px 80px 80px 58px 42px;
+  grid-template-rows:46px 58px 80px 80px 80px 58px 46px;
   grid-template-areas:
-    "fbumper fbumper fbumper fbumper fbumper"
+    "lhead lhead fbumper rhead rhead"
     "hood hood hood hood hood"
     "lfender lfender roof rfender rfender"
     "lsill lfdoor roof rfdoor rsill"
     "lsill lrdoor roof rrdoor rsill"
     "lqpanel lqpanel trunk rqpanel rqpanel"
-    "rbumper rbumper rbumper rbumper rbumper";
+    "ltail ltail rbumper rtail rtail";
   gap:5px;max-width:320px;margin:0 auto;
 }
 .panel-btn{
@@ -461,6 +461,11 @@ const PANEL_PARTS = [
   {area:'rbumper', name:'リアバンパー',         label:'リア\nバンパー',        dm2:0,   ph:{}},
   {area:'lsill',   name:'左サイドシル',         label:'左サイドシル',          dm2:25,  ph:{}},
   {area:'rsill',   name:'右サイドシル',         label:'右サイドシル',          dm2:25,  ph:{}},
+  // 灯火類：脱着のみ（付属品脱着0.3hを初期入力）
+  {area:'lhead',   name:'左ヘッドライト',       label:'左ヘッド\nライト',        dm2:0, ph:{}, detach:0.3},
+  {area:'rhead',   name:'右ヘッドライト',       label:'右ヘッド\nライト',        dm2:0, ph:{}, detach:0.3},
+  {area:'ltail',   name:'左テールライト',       label:'左テール\nライト',        dm2:0, ph:{}, detach:0.3},
+  {area:'rtail',   name:'右テールライト',       label:'右テール\nライト',        dm2:0, ph:{}, detach:0.3},
 ];
 // ─── ボディ形状別 面積テーブル (dm²) ───────────────────────────
 // ブロードリーフ実測値（PANEL_PARTSと同じ並び）。バンパーはnull＝手入力
@@ -486,7 +491,7 @@ const BODY_SHAPE_DM2 = {
 const PANEL_PH_MAP = {};
 PANEL_PARTS.forEach(p=>{ PANEL_PH_MAP[p.name]=p.ph||{}; });
 
-const WORK_TYPES = ['鈑金','塗装','鈑金+塗装','部品交換','調整・取付','その他'];
+const WORK_TYPES = ['鈑金','塗装','鈑金+塗装','部品交換','脱着','調整・取付','その他'];
 // 2コートソリッド加算：部位ごとの係数を合計し0.1h単位に切り上げ（ブロードリーフ実測13パターンで一致確認）
 const TWO_COAT_COEF = {hood:0.11, lsill:0.11, rsill:0.11, roof:0.30};
 const TWO_COAT_DEFAULT = 0.10;
@@ -1033,6 +1038,7 @@ function buildPanelMap(){
         const it=newItem(p.name,isQ,dm2);
         it.panelArea=p.area;
         if(p.area.endsWith('bumper')) it.paintWork='手入力';
+        if(p.detach){ it.type='脱着'; it.paintWork='手入力'; it.paintHours=0; it.accessoryHours=p.detach; }
         applyPaintWork(it);
         items.push(it);
       }
@@ -1225,30 +1231,54 @@ function buildText(){
   return lines.filter(l=>l!=='').join('\n');
 }
 
-// LINE用：お客様向けの簡潔な文面（箇所と合計金額のみ）
+// LINE用：お客様向けの簡潔な文面（箇所・塗装区分・諸経費・消費税・合計）
+const SHAPE_READING = {
+  'コンパクト':'コンパクト（小型車）',
+  'SサイズSD':'Sセダン',
+  'MサイズSD':'Mセダン',
+  'LサイズSD':'Lセダン',
+  '2DCP':'2DCP（ツードアクーペ）',
+  'MサイズSUV':'MSUV',
+  'LサイズSUV':'LSUV',
+  'TR':'TR（ティーアール／トラック）',
+  'SサイズMV':'SMV（Sミニバン）',
+  'MサイズMV':'MMV（Mミニバン）',
+  'LサイズMV':'LMV（Lミニバン）',
+  '軽自動車':'軽自動車（けいじどうしゃ）',
+};
 function buildLineText(){
   const t=calcTotals();
-  const L='────────────';
-  const parts=items.map(it=>it.part).filter(Boolean);
-  const car=[customer.car,customer.plate].filter(Boolean).join('｜');
+  const L='━━━━━━━━━━━━';
+  const pw=w=>w==='取替'?'取替':(w&&w.startsWith('修正'))?w:'';
   const lines=[
-    `【御見積】${customer.name?customer.name+' 様':''}`,
-    car,
-    customer.date?`見積日 ${customer.date.replace(/-/g,'/')}`:'',
-    '',
-    '■ 作業箇所',
-    ...(parts.length?parts.map(p=>`・${p}`):['・（未入力）']),
-    items.some(it=>(+it.paintHours||0)>0)?`（塗装：${customer.paintType||'グロス'}）`:'',
-    '',
+    '🚗 御 見 積 書',
     L,
-    `合計金額　${fmt(t.grand)}（税込）`,
+    customer.name?`👤 ${customer.name} 様`:'',
+    customer.car?`🚙 ${customer.car}`:'',
+    customer.plate?`🔢 ${customer.plate}`:'',
+    `🚘 車格：${SHAPE_READING[currentBodyShape]||currentBodyShape}`,
+    customer.color?`🎨 車体色：${customer.color}`:'',
+    items.some(it=>(+it.paintHours||0)>0)?`🖌 塗装：${customer.paintType||'グロス'}`:'',
+    customer.date?`📅 見積日：${customer.date.replace(/-/g,'/')}`:'',
     L,
+    '🔧 作業箇所',
   ];
-  const disc=(t.disc10||0)+(t.discFree||0);
-  if(disc>0) lines.push(`※お値引き ${fmt(disc)} 適用済み`);
-  if(customer.note) lines.push(`※${customer.note}`);
-  lines.push('',settings.shopName||'',settings.shopTel?`TEL ${settings.shopTel}`:'');
-  return lines.filter((l,i,arr)=>!(l===''&&(i===0||arr[i-1]===''))).join('\n').replace(/\n+$/,'');
+  if(!items.length) lines.push('・（未入力）');
+  items.forEach(it=>{
+    const w=(+it.paintHours||0)>0?pw(it.paintWork):((+it.accessoryHours||0)>0&&it.type==='脱着'?'脱着':'');
+    lines.push(`・${it.part||'-'}${w?`［${w}］`:''}`);
+  });
+  lines.push(L,
+    `📋 作業小計　${fmt(t.sub)}`,
+    `🧾 諸経費（${settings.expenseRate}%）　${fmt(t.exp)}`,
+    `🏛 消費税（${settings.taxRate}%）　${fmt(t.tax)}`);
+  if(t.disc10>0) lines.push(`🎁 10%お値引き　－${fmt(t.disc10)}`);
+  if(t.discFree>0) lines.push(`🎁 お値引き　－${fmt(t.discFree)}`);
+  lines.push(L,`💰 合計金額　${fmt(t.grand)}（税込）`,L);
+  if(customer.note) lines.push(`📝 ${customer.note}`);
+  lines.push(`🏢 ${settings.shopName||''}`);
+  if(settings.shopTel) lines.push(`📞 ${settings.shopTel}`);
+  return lines.filter(l=>l!=='').join('\n');
 }
 
 async function copyText(){
@@ -1284,7 +1314,11 @@ function lineShare(){
   const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   if(isIOS)setTimeout(()=>{if(document.visibilityState!=='hidden')window.location.href=`https://line.me/R/msg/text/?${encoded}`;},1500);
-  showMsg('print-msg','LINEアプリを起動しています…',5000);
+  // 送信後は履歴に自動保存してから入力をリセット（LINE起動の後に実行）
+  if(items.length||customer.name||customer.car){
+    try{saveEst();}catch(e){}
+    setTimeout(()=>{resetEst(true);showMsg('print-msg','LINEに送信しました。履歴に保存して入力をリセットしました。',6000);},300);
+  } else showMsg('print-msg','LINEアプリを起動しています…',5000);
 }
 async function dlFile(){
   const t2=calcTotals();
@@ -1374,9 +1408,9 @@ function saveSettings(){
   try{localStorage.setItem('est-settings',JSON.stringify(settings));showMsg('settings-msg','設定を保存しました');}
   catch(e){showMsg('settings-msg','保存に失敗しました');}
 }
-function resetEst(){
+function resetEst(skipConfirm){
   if(!items.length&&!customer.name&&!customer.car)return;
-  if(!confirm('現在の見積りをクリアして新規作成しますか？'))return;
+  if(!skipConfirm&&!confirm('現在の見積りをクリアして新規作成しますか？'))return;
   customer=newCust(); items=[];
   fillCustForm();
   setCarType('国産車');
