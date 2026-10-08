@@ -104,6 +104,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .row-del{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;padding:4px;width:30px;}
 .row-del:active{color:var(--accent);}
 .qcheck{display:flex;align-items:center;justify-content:center;}
+.item-cell.nopaint{visibility:hidden;}
+@media(max-width:700px){.item-cell.nopaint{display:none;}}
 .qcheck input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;}
 .row-desc{grid-column:1/-1;font-size:11px;color:var(--muted);padding:1px 4px 0;min-width:0;}
 
@@ -699,18 +701,19 @@ function renderItems(){
 
   items.forEach(it => {
     const {amount, desc} = calcRow(it);
+    const noPaint = ['lhead','rhead','ltail','rtail'].includes(it.panelArea);
     const div = document.createElement('div');
     div.className = 'item-row';
     div.innerHTML = `
       <div class="item-cell col-part"><span class="cell-label">部位</span><input value="${esc(it.part)}" placeholder="部位名" data-id="${it.id}" data-f="part"></div>
       <div class="item-cell"><span class="cell-label">作業区分</span><select data-id="${it.id}" data-f="type">${WORK_TYPES.map(t=>`<option${t===it.type?' selected':''}>${t}</option>`).join('')}</select></div>
       <div class="item-cell"><span class="cell-label">鈑金(h)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.panelHours||''}" placeholder="0" data-id="${it.id}" data-f="panelHours"></div>
-      <div class="item-cell"><span class="cell-label">塗装(h)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.paintHours||''}" placeholder="0" data-id="${it.id}" data-f="paintHours"></div>
-      <div class="item-cell qcheck"><span class="cell-label">クォーター</span><input type="checkbox" ${it.includesQuarterPanel?'checked':''} data-id="${it.id}" data-f="includesQuarterPanel"></div>
-      <div class="item-cell qcheck"><span class="cell-label">2トーン</span><input type="checkbox" ${it.twoTone?'checked':''} data-id="${it.id}" data-f="twoTone"></div>
-      <div class="item-cell"><span class="cell-label">塗装区分</span><select data-id="${it.id}" data-f="paintWork">${PAINT_WORK_TYPES.map(t=>`<option${t===(it.paintWork||'取替')?' selected':''}>${t}</option>`).join('')}</select></div>
+      ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">塗装(h)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.paintHours||''}" placeholder="0" data-id="${it.id}" data-f="paintHours"></div>`}
+      ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell qcheck"><span class="cell-label">クォーター</span><input type="checkbox" ${it.includesQuarterPanel?'checked':''} data-id="${it.id}" data-f="includesQuarterPanel"></div>`}
+      ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell qcheck"><span class="cell-label">2トーン</span><input type="checkbox" ${it.twoTone?'checked':''} data-id="${it.id}" data-f="twoTone"></div>`}
+      ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">塗装区分</span><select data-id="${it.id}" data-f="paintWork">${PAINT_WORK_TYPES.map(t=>`<option${t===(it.paintWork||'取替')?' selected':''}>${t}</option>`).join('')}</select></div>`}
       <div class="item-cell"><span class="cell-label">付属品(h)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.accessoryHours||''}" placeholder="0" data-id="${it.id}" data-f="accessoryHours"></div>
-      <div class="item-cell"><span class="cell-label">面積(dm²)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.paintArea||''}" placeholder="0" data-id="${it.id}" data-f="paintArea" style="background:var(--accent-soft);border-color:var(--accent)"></div>
+      ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">面積(dm²)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.paintArea||''}" placeholder="0" data-id="${it.id}" data-f="paintArea" style="background:var(--accent-soft);border-color:var(--accent)"></div>`}
       <div class="item-cell"><span class="cell-label">部品代(¥)</span><input type="text" inputmode="numeric" pattern="[0-9]*" value="${it.partsCost||''}" placeholder="0" data-id="${it.id}" data-f="partsCost"></div>
       <div class="item-cell"><span class="cell-label">数量</span><input type="text" inputmode="numeric" pattern="[0-9]*" value="${it.qty||''}" placeholder="1" data-id="${it.id}" data-f="qty"></div>
       <div class="item-cell col-amt"><span class="cell-label">金額</span><div class="row-amount">${fmt(amount)}</div></div>
