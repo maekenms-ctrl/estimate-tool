@@ -136,16 +136,21 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .tline.grand .val{font-size:24px;font-weight:900;color:var(--accent);}
 .disc-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--surface3);margin-top:4px;}
 .disc-row label{font-size:12px;color:var(--muted);}
+.selbtn.rbtn{padding:6px 12px;font-size:12px;}
 
 /* Actions */
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;position:relative;z-index:2;}
+.actions .btn{justify-content:center;min-height:46px;touch-action:manipulation;-webkit-tap-highlight-color:rgba(228,255,26,.35);-webkit-user-select:none;user-select:none;}
+@media(min-width:901px){.actions{grid-template-columns:repeat(3,minmax(0,1fr));}}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#111;color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;z-index:9999;max-width:90vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s;}
+.toast.show{opacity:1;}
 .btn{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
 .btn:active{border-color:var(--accent2);}
 .btn-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
 .btn-line{background:#06c755;border-color:#06c755;color:#fff;}
 .btn-add{background:transparent;border:1px dashed var(--border);color:var(--muted);width:100%;justify-content:center;margin-top:8px;}
 .btn-add:active{border-color:var(--accent2);color:var(--accent2);}
-.msg{font-size:12px;color:var(--positive);margin-top:8px;min-height:18px;}
+.msg{display:none;}
 
 /* History */
 .hist-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
@@ -223,7 +228,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div class="field"><label>お客様名</label><input id="c-name" placeholder="山田 太郎" oninput="updateCust()"></div>
         <div class="field"><label>車種</label><input id="c-car" placeholder="プリウス" oninput="updateCust()"></div>
         <div class="field span2"><label>登録番号</label><input id="c-plate" placeholder="品川 300 あ 12-34" oninput="updateCust()"></div>
-        <div class="field"><label>車体色</label><input id="c-color" placeholder="パールホワイト" oninput="updateCust()"></div>
+        <div class="field"><label>車体色（カラー番号）</label><input id="c-color" placeholder="例：070" oninput="updateCust()"></div>
         <div class="field"><label>塗装タイプ（全部位一括）</label><select id="c-ptype" onchange="setPaintTypeAll(this.value)"></select></div>
         <div class="field span2"><label>見積日</label><input type="date" id="c-date" oninput="updateCust()"></div>
         <div class="field span2"><label>担当者</label><input id="c-staff" placeholder="担当者名" oninput="updateCust()"></div>
@@ -297,8 +302,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div class="tline" style="border-top:1px solid var(--surface3);font-weight:700"><span>＝ 塗装料金</span><span class="val" id="t-paint-total">¥0</span></div>
         </div>
         <div class="tline" style="border-top:1px solid var(--surface3);margin-top:4px;padding-top:6px;font-weight:700"><span>合計小計</span><span class="val" id="t-sub">¥0</span></div>
-        <div class="tline"><span id="t-exp-label">諸経費（5%）</span><span class="val" id="t-exp">¥0</span></div>
+        <div class="tline" style="align-items:center"><span style="display:flex;align-items:center;gap:8px"><span id="t-exp-label">諸経費（5%）</span><button type="button" class="selbtn rbtn" id="btn-noexp" onclick="toggleRound('noExpense')">諸経費なし</button></span><span class="val" id="t-exp">¥0</span></div>
+        <div class="disc-row">
+          <button type="button" class="selbtn rbtn" id="btn-round-pre" onclick="toggleRound('roundPre')">税抜 端数カット（000）</button>
+          <span class="val" id="t-cutpre" style="color:var(--muted)">－¥0</span>
+        </div>
         <div class="tline"><span id="t-tax-label">消費税（10%）</span><span class="val" id="t-tax">¥0</span></div>
+        <div class="disc-row">
+          <button type="button" class="selbtn rbtn" id="btn-round-post" onclick="toggleRound('roundPost')">税込 端数カット（000）</button>
+          <span class="val" id="t-cutpost" style="color:var(--muted)">－¥0</span>
+        </div>
         <div class="disc-row">
           <label><input type="checkbox" id="disc10" onchange="recalc()" style="margin-right:6px;accent-color:var(--accent)">10%値引き</label>
           <span class="val" id="t-disc10" style="color:var(--muted)">－¥0</span>
@@ -313,7 +326,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <div class="actions">
         <button class="btn btn-primary" onclick="saveEst()">💾 履歴に保存</button>
         <button class="btn btn-line" onclick="lineShare()">💬 LINEで送る</button>
-        <button class="btn" onclick="dlFile()">🖨 見積書を共有・保存</button>
+        <button class="btn" onclick="dlFile()">🖨 見積書を保存</button>
         <button class="btn" onclick="copyRich()">📋 見た目付きコピー</button>
         <button class="btn" onclick="copyText()">📄 テキストコピー</button>
         <button class="btn" onclick="resetEst()">🔄 新規見積り</button>
@@ -428,8 +441,8 @@ const DEF_SETTINGS = {
   matRateGloss:38,        // グロス
   matRateMetallic:38,     // メタリック
   matRate2Pearl:38,       // 2コートパール
-  matRate3Pearl:38,       // 3コートパール
-  matRateColorClear:38,   // カラークリアー
+  matRate3Pearl:43,       // 3コートパール
+  matRateColorClear:43,   // カラークリアー
   // 加算基礎数値(h) = 塗装タイプ・パネル枚数別（ブロードリーフ準拠）
   // ソリッド: 枚数問わず固定
   baseHoursGloss:1.7,   // ブロードリーフ：グロス1〜5枚とも1.70
@@ -507,7 +520,7 @@ function twoCoatHours(list){
 }
 const PAINT_TYPES = ['グロス','メタリック','2コートパール','3コートパール','カラークリアー'];
 // 塗装区分（自研センター指数区分）
-const PAINT_WORK_TYPES = ['取替','修正1/1','修正1/2','修正1/3','手入力'];
+const PAINT_WORK_TYPES = ['取替','修正1/1','修正1/2','修正1/3','ボカシ','手入力'];
 
 function genId(){ return `i-${Date.now()}-${++idSeq}`; }
 function todayStr(){ return new Date().toISOString().slice(0,10); }
@@ -517,7 +530,7 @@ function fmt(n){ return '¥'+Math.round(n||0).toLocaleString('ja-JP'); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function newCust(){
   return {name:'',car:'',plate:'',color:'',date:todayStr(),staff:'',note:'',carType:'国産車',
-    bodyShape:'コンパクト', paintType:'グロス', cond2cs:true, condBooth:true,
+    bodyShape:'コンパクト', paintType:'グロス', cond2cs:false, condBooth:true, roundPre:false, roundPost:false, noExpense:false,
     loanerCar:null,loanerNormal:false,loanerKei:false,loanerHeightLimit:false,loanerRider:false,
     paySelf:false,payVehicle:false,payProperty:false};
 }
@@ -532,7 +545,7 @@ function applyPaintWork(it){
   const shapeTable = BODY_SHAPE_PH[currentBodyShape]||BODY_SHAPE_PH['コンパクト'];
   const panelRow = shapeTable[it.part];
   if(!panelRow) return;
-  const idx = {'取替':0,'修正1/1':1,'修正1/2':2,'修正1/3':3}[it.paintWork];
+  const idx = {'取替':0,'修正1/1':1,'修正1/2':2,'修正1/3':3,'ボカシ':3}[it.paintWork]; // ボカシは修正1/3と同じ
   if(idx!=null) it.paintHours = panelRow[idx];
 }
 // 塗装タイプ→材料費率キー
@@ -628,7 +641,7 @@ function calcBaseAmount(){
   const panelsAll = Object.values(typeCount).reduce((a,b)=>a+b,0);
   addLine(`加算基礎数値(${maxType} ${totalPanels}枚)`, baseH);
   // 塗装条件（ブロードリーフの「塗装条件」と同じ）：グロス＝ソリッド塗膜に2コートソリッド加算
-  if(customer.cond2cs!==false && typeCount['グロス']){
+  if(customer.cond2cs===true && typeCount['グロス']){
     const gl = items.filter(it=>(+it.paintHours||0)>0 && it.paintType==='グロス');
     addLine(`2コートソリッド加算(${gl.length}枚)`, twoCoatHours(gl));
   }
@@ -654,13 +667,21 @@ function calcTotals(){
   const paintMat   = rows.reduce((s,r)=>s+r.paintMat,0) + base.mat;
   const paint = {index:paintIndex, labor:paintLabor, mat:paintMat, total:paintLabor+paintMat};
   const sub = itemSub + base.labor + base.mat;
-  const exp = sub*((+settings.expenseRate||0)/100);
-  const taxBase = sub+exp;
+  const exp = customer.noExpense ? 0 : sub*((+settings.expenseRate||0)/100);
+  const taxBase0 = Math.round(sub+exp);
+  // 消費税前の端数カット：税抜金額の下3桁を000に
+  const cutPre = customer.roundPre ? taxBase0 % 1000 : 0;
+  const taxBase = taxBase0 - cutPre;
   const tax = taxBase*((+settings.taxRate||0)/100);
   const before = taxBase+tax;
-  const disc10 = document.getElementById('disc10').checked ? Math.round(before*.1):0;
+  const grand0 = Math.round(before);
+  // 消費税加算後の端数カット：税込合計の下3桁を000に
+  const cutPost = customer.roundPost ? ((grand0 % 1000)+1000)%1000 : 0;
+  // 「10%値引き」＝消費税分の値引き
+  const disc10 = document.getElementById('disc10').checked ? Math.round(tax):0;
+  // 自由値引きは一番最後
   const discFree = Math.round(+document.getElementById('disc-free').value||0);
-  return {sub, itemSub, base, paint, exp, tax, before, disc10, discFree, grand:before-disc10-discFree};
+  return {sub, itemSub, base, paint, exp, taxBase, cutPre, tax, before, disc10, discFree, cutPost, grand:grand0-cutPost-disc10-discFree};
 }
 
 // ─── Render ───────────────────────────────────────────────
@@ -671,7 +692,7 @@ function render(){
 }
 
 function recalc(){
-  document.getElementById('cond-2cs').checked = customer.cond2cs!==false;
+  document.getElementById('cond-2cs').checked = customer.cond2cs===true;
   document.getElementById('cond-booth').checked = customer.condBooth!==false;
   const t = calcTotals();
   document.getElementById('t-item-sub').textContent = fmt(t.itemSub);
@@ -694,6 +715,12 @@ function recalc(){
   document.getElementById('t-exp').textContent  = fmt(t.exp);
   document.getElementById('t-tax-label').textContent = `消費税（${settings.taxRate}%）`;
   document.getElementById('t-tax').textContent  = fmt(t.tax);
+  document.getElementById('btn-round-pre').classList.toggle('on',!!customer.roundPre);
+  document.getElementById('btn-round-post').classList.toggle('on',!!customer.roundPost);
+  document.getElementById('btn-noexp').classList.toggle('on',!!customer.noExpense);
+  document.getElementById('t-exp').style.textDecoration=customer.noExpense?'line-through':'';
+  const cp=document.getElementById('t-cutpre'); cp.textContent=t.cutPre>0?`－${fmt(t.cutPre)}`:'－¥0'; cp.style.color=t.cutPre>0?'var(--accent)':'var(--muted)';
+  const cq=document.getElementById('t-cutpost'); cq.textContent=t.cutPost>0?`－${fmt(t.cutPost)}`:'－¥0'; cq.style.color=t.cutPost>0?'var(--accent)':'var(--muted)';
   document.getElementById('t-disc10').textContent = t.disc10>0?`－${fmt(t.disc10)}`:'－¥0';
   document.getElementById('t-disc10').style.color = t.disc10>0?'var(--accent)':'var(--muted)';
   document.getElementById('t-discfree').textContent = t.discFree>0?`－${fmt(t.discFree)}`:'－¥0';
@@ -991,7 +1018,7 @@ const BODY_SHAPE_PH = {
 const BODY_SHAPE_LABELS = {
   'コンパクト':'コンパクトカー（ヤリス等）',
   'SサイズSD':'Sサイズ セダン（プリウス等）',
-  'MサイズSD':'Mサイズ セダン（レクサスIS等）',
+  'MサイズSD':'Mサイズ セダン（レクサスES等）',
   'LサイズSD':'Lサイズ セダン（レクサスLS等）',
   '2DCP':'2ドアクーペ（86等）',
   'LサイズSUV':'LサイズSUV（ランクル等）',
@@ -1101,6 +1128,7 @@ function setCarType(t){
   document.getElementById('rate-hint').textContent=`適用工賃：${fmt(rate)}／時間`;
   render();
 }
+function toggleRound(k){ customer[k]=!customer[k]; recalc(); }
 function setLoaner(v){
   customer.loanerCar=v;
   document.getElementById('lb-yes').classList.toggle('on',v===true);
@@ -1206,8 +1234,16 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 // ─── Actions ──────────────────────────────────────────────
 function addItem(){ items.push(newItem()); render(); }
 
+function toast(msg,ms=3000){
+  let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';t.className='toast';document.body.appendChild(t);}
+  t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),ms);
+}
+window.addEventListener('error',e=>toast('エラー：'+(e.message||'不明'),6000));
+window.addEventListener('unhandledrejection',e=>toast('エラー：'+((e.reason&&e.reason.message)||e.reason||'不明'),6000));
 function showMsg(id,msg,ms=3500){
   const el=document.getElementById(id);
+  if(msg) toast(msg,Math.min(ms,4000));
   el.textContent=msg;
   setTimeout(()=>el.textContent='',ms);
 }
@@ -1240,7 +1276,10 @@ function buildText(){
   if(!items.length) lines.push('（項目なし）');
   else items.forEach(it=>{const b=calcRow(it);lines.push(`・${it.part||'-'}（${it.type}） 数量${it.qty}　${fmt(b.amount)}`);if(b.desc)lines.push(`    ${b.desc}`);});
   const t=calcTotals();
-  lines.push(D,`作業小計　${fmt(t.sub)}`,`諸経費（${settings.expenseRate}%）　${fmt(t.exp)}`,`消費税（${settings.taxRate}%）　${fmt(t.tax)}`);
+  lines.push(D,`作業小計　${fmt(t.sub)}`,customer.noExpense?'':`諸経費（${settings.expenseRate}%）　${fmt(t.exp)}`);
+  if(t.cutPre>0)lines.push(`端数調整（税抜）　－${fmt(t.cutPre)}`);
+  lines.push(`消費税（${settings.taxRate}%）　${fmt(t.tax)}`);
+  if(t.cutPost>0)lines.push(`端数調整（税込）　－${fmt(t.cutPost)}`);
   if(t.disc10>0)lines.push(`10%値引き　－${fmt(t.disc10)}`);
   if(t.discFree>0)lines.push(`自由値引き　－${fmt(t.discFree)}`);
   lines.push(D,`💰 合計金額（税込）：${fmt(t.grand)}`,D);
@@ -1266,7 +1305,7 @@ const SHAPE_READING = {
 function buildLineText(){
   const t=calcTotals();
   const L='━━━━━━━━━━━━';
-  const pw=w=>w==='取替'?'取替':(w&&w.startsWith('修正'))?w:'';
+  const pw=w=>(w==='取替'||w==='ボカシ')?w:(w&&w.startsWith('修正'))?w:'';
   const lines=[
     '🚗 御 見 積 書',
     L,
@@ -1287,8 +1326,10 @@ function buildLineText(){
   });
   lines.push(L,
     `📋 作業小計　${fmt(t.sub)}`,
-    `🧾 諸経費（${settings.expenseRate}%）　${fmt(t.exp)}`,
-    `🏛 消費税（${settings.taxRate}%）　${fmt(t.tax)}`);
+    customer.noExpense?'':`🧾 諸経費（${settings.expenseRate}%）　${fmt(t.exp)}`);
+  if(t.cutPre>0) lines.push(`✂️ 端数調整（税抜）　－${fmt(t.cutPre)}`);
+  lines.push(`🏛 消費税（${settings.taxRate}%）　${fmt(t.tax)}`);
+  if(t.cutPost>0) lines.push(`✂️ 端数調整（税込）　－${fmt(t.cutPost)}`);
   if(t.disc10>0) lines.push(`🎁 10%お値引き　－${fmt(t.disc10)}`);
   if(t.discFree>0) lines.push(`🎁 お値引き　－${fmt(t.discFree)}`);
   lines.push(L,`💰 合計金額　${fmt(t.grand)}（税込）`,L);
@@ -1314,7 +1355,7 @@ async function copyRich(){
   const t=buildText();
   const t2=calcTotals();
   const rows=items.map(it=>{const b=calcRow(it);return`<tr><td style="border:1px solid #d7dde6;padding:5px 8px;font-size:11px;">${esc(it.part)||'-'}</td><td style="border:1px solid #d7dde6;padding:5px 8px;font-size:11px;">${esc(it.type)}</td><td style="border:1px solid #d7dde6;padding:5px 8px;font-size:11px;">${esc(b.desc)||'-'}</td><td style="border:1px solid #d7dde6;padding:5px 8px;font-size:11px;text-align:center;">${it.qty}</td><td style="border:1px solid #d7dde6;padding:5px 8px;font-size:11px;text-align:right;">${fmt(b.amount)}</td></tr>`;}).join('')||'<tr><td colspan="5" style="padding:8px;text-align:center;">項目がありません</td></tr>';
-  const html=`<div style="font-family:'Hiragino Sans',sans-serif;color:#1f2733;font-size:12px;max-width:680px;"><div style="border-bottom:4px solid #2f6feb;padding-bottom:8px;margin-bottom:8px;"><div style="font-size:18px;font-weight:900;letter-spacing:6px;">御 見 積 書</div></div><table style="width:100%;border-collapse:collapse;background:#f4f6f9;border:1px solid #e4e9f0;margin-bottom:10px;"><tr><td style="padding:10px;line-height:1.8;vertical-align:top;"><b>${esc(customer.name)||'お客様'}</b> 様<br>車種：${esc(customer.car)||'-'}（${esc(customer.carType)}）<br>登録番号：${esc(customer.plate)||'-'}<br>車体色：${esc(customer.color)||'-'}</td><td style="padding:10px;line-height:1.8;vertical-align:top;text-align:right;">見積日：${esc(customer.date)}<br><b>${esc(settings.shopName)}</b>${settings.shopTel?`<br>TEL：${esc(settings.shopTel)}`:''}</td></tr></table><table style="width:100%;border-collapse:collapse;"><tr><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:15%;">部位</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:10%;">作業</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;">内容</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:6%;">数量</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:13%;">金額</th></tr>${rows}</table><table style="width:240px;margin-left:auto;border-collapse:collapse;background:#f4f6f9;border:1px solid #e4e9f0;margin-top:8px;"><tr><td style="padding:5px 10px;color:#7c8696;">作業小計</td><td style="padding:5px 10px;text-align:right;">${fmt(t2.sub)}</td></tr><tr><td style="padding:5px 10px;color:#7c8696;">諸経費</td><td style="padding:5px 10px;text-align:right;">${fmt(t2.exp)}</td></tr><tr><td style="padding:5px 10px;color:#7c8696;">消費税</td><td style="padding:5px 10px;text-align:right;">${fmt(t2.tax)}</td></tr><tr><td style="padding:8px 10px;border-top:1px solid #e4e9f0;font-weight:700;">合計金額（税込）</td><td style="padding:8px 10px;border-top:1px solid #e4e9f0;font-size:17px;font-weight:900;color:#2f6feb;text-align:right;">${fmt(t2.grand)}</td></tr></table></div>`;
+  const html=`<div style="font-family:'Hiragino Sans',sans-serif;color:#1f2733;font-size:12px;max-width:680px;"><div style="border-bottom:4px solid #2f6feb;padding-bottom:8px;margin-bottom:8px;"><div style="font-size:18px;font-weight:900;letter-spacing:6px;">御 見 積 書</div></div><table style="width:100%;border-collapse:collapse;background:#f4f6f9;border:1px solid #e4e9f0;margin-bottom:10px;"><tr><td style="padding:10px;line-height:1.8;vertical-align:top;"><b>${esc(customer.name)||'お客様'}</b> 様<br>車種：${esc(customer.car)||'-'}（${esc(customer.carType)}）<br>登録番号：${esc(customer.plate)||'-'}<br>車体色：${esc(customer.color)||'-'}</td><td style="padding:10px;line-height:1.8;vertical-align:top;text-align:right;">見積日：${esc(customer.date)}<br><b>${esc(settings.shopName)}</b>${settings.shopTel?`<br>TEL：${esc(settings.shopTel)}`:''}</td></tr></table><table style="width:100%;border-collapse:collapse;"><tr><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:15%;">部位</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:10%;">作業</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;">内容</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:6%;">数量</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:13%;">金額</th></tr>${rows}</table><table style="width:240px;margin-left:auto;border-collapse:collapse;background:#f4f6f9;border:1px solid #e4e9f0;margin-top:8px;"><tr><td style="padding:5px 10px;color:#7c8696;">作業小計</td><td style="padding:5px 10px;text-align:right;">${fmt(t2.sub)}</td></tr>${customer.noExpense?'':`<tr><td style="padding:5px 10px;color:#7c8696;">諸経費</td><td style="padding:5px 10px;text-align:right;">${fmt(t2.exp)}</td></tr>`}<tr><td style="padding:5px 10px;color:#7c8696;">消費税</td><td style="padding:5px 10px;text-align:right;">${fmt(t2.tax)}</td></tr>${t2.cutPre>0?`<tr><td style="padding:5px 10px;color:#7c8696;">端数調整（税抜）</td><td style="padding:5px 10px;text-align:right;color:#c00;">－${fmt(t2.cutPre)}</td></tr>`:''}${t2.cutPost>0?`<tr><td style="padding:5px 10px;color:#7c8696;">端数調整（税込）</td><td style="padding:5px 10px;text-align:right;color:#c00;">－${fmt(t2.cutPost)}</td></tr>`:''}${t2.disc10>0?`<tr><td style="padding:5px 10px;color:#7c8696;">10%値引き</td><td style="padding:5px 10px;text-align:right;color:#c00;">－${fmt(t2.disc10)}</td></tr>`:''}${t2.discFree>0?`<tr><td style="padding:5px 10px;color:#7c8696;">自由値引き</td><td style="padding:5px 10px;text-align:right;color:#c00;">－${fmt(t2.discFree)}</td></tr>`:''}<tr><td style="padding:8px 10px;border-top:1px solid #e4e9f0;font-weight:700;">合計金額（税込）</td><td style="padding:8px 10px;border-top:1px solid #e4e9f0;font-size:17px;font-weight:900;color:#2f6feb;text-align:right;">${fmt(t2.grand)}</td></tr></table></div>`;
 
   // iOS: try file share
   try{
@@ -1340,7 +1381,7 @@ function lineShare(){
 async function dlFile(){
   const t2=calcTotals();
   const rows=items.map(it=>{const b=calcRow(it);return`<tr><td>${esc(it.part)||'-'}</td><td>${esc(it.type)}</td><td>${esc(b.desc)||'-'}</td><td style="text-align:center">${it.qty}</td><td style="text-align:right">${fmt(b.amount)}</td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center">項目がありません</td></tr>';
-  const html=`<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>御見積書</title><style>@page{size:A4;margin:8mm;}body{font-family:'Hiragino Sans',sans-serif;color:#111;padding:8mm;font-size:11px;}table{width:100%;border-collapse:collapse;margin-top:8px;}th,td{border:1px solid #333;padding:4px 6px;font-size:10px;text-align:left;vertical-align:top;}th{background:#eee;}.ti{text-align:center;font-size:18px;font-weight:900;letter-spacing:.3em;margin-bottom:10px;}.top{display:flex;justify-content:space-between;margin-bottom:8px;gap:16px;flex-wrap:wrap;}.tots td{border:none;padding:2px 0;font-size:11px;}.grd td{border-top:2px solid #333;padding-top:4px;font-size:14px;font-weight:900;}</style></head><body><div class="ti">御 見 積 書</div><div class="top"><div><div><b>${esc(customer.name)||'お客様'}</b> 様</div><div>車種：${esc(customer.car)||'-'}（${esc(customer.carType)}）</div><div>登録番号：${esc(customer.plate)||'-'}</div><div>車体色：${esc(customer.color)||'-'}</div><div>代車：${esc(loanerSummary())}</div><div>支払区分：${esc(paySummary())}</div></div><div style="text-align:right"><div>見積日：${esc(customer.date)}</div><div><b>${esc(settings.shopName)}</b></div>${settings.shopTel?`<div>TEL：${esc(settings.shopTel)}</div>`:''}</div></div><table><thead><tr><th style="width:15%">部位</th><th style="width:11%">作業区分</th><th>内容</th><th style="width:6%">数量</th><th style="width:13%">金額</th></tr></thead><tbody>${rows}</tbody></table><table class="tots" style="width:240px;margin-left:auto;margin-top:8px;"><tr><td>作業小計</td><td style="text-align:right">${fmt(t2.sub)}</td></tr><tr><td>諸経費（${settings.expenseRate}%）</td><td style="text-align:right">${fmt(t2.exp)}</td></tr><tr><td>消費税（${settings.taxRate}%）</td><td style="text-align:right">${fmt(t2.tax)}</td></tr>${t2.disc10>0?`<tr><td>10%値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.disc10)}</td></tr>`:''} ${t2.discFree>0?`<tr><td>自由値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.discFree)}</td></tr>`:''}<tr class="grd"><td>合計金額（税込）</td><td style="text-align:right">${fmt(t2.grand)}</td></tr></table>${customer.note?`<div style="margin-top:10px;font-size:10px;">${esc(customer.note)}</div>`:''}</body></html>`;
+  const html=`<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>御見積書</title><style>@page{size:A4;margin:8mm;}body{font-family:'Hiragino Sans',sans-serif;color:#111;padding:8mm;font-size:11px;}table{width:100%;border-collapse:collapse;margin-top:8px;}th,td{border:1px solid #333;padding:4px 6px;font-size:10px;text-align:left;vertical-align:top;}th{background:#eee;}.ti{text-align:center;font-size:18px;font-weight:900;letter-spacing:.3em;margin-bottom:10px;}.top{display:flex;justify-content:space-between;margin-bottom:8px;gap:16px;flex-wrap:wrap;}.tots td{border:none;padding:2px 0;font-size:11px;}.grd td{border-top:2px solid #333;padding-top:4px;font-size:14px;font-weight:900;}</style></head><body><div class="ti">御 見 積 書</div><div class="top"><div><div><b>${esc(customer.name)||'お客様'}</b> 様</div><div>車種：${esc(customer.car)||'-'}（${esc(customer.carType)}）</div><div>登録番号：${esc(customer.plate)||'-'}</div><div>車体色：${esc(customer.color)||'-'}</div><div>代車：${esc(loanerSummary())}</div><div>支払区分：${esc(paySummary())}</div></div><div style="text-align:right"><div>見積日：${esc(customer.date)}</div><div><b>${esc(settings.shopName)}</b></div>${settings.shopTel?`<div>TEL：${esc(settings.shopTel)}</div>`:''}</div></div><table><thead><tr><th style="width:15%">部位</th><th style="width:11%">作業区分</th><th>内容</th><th style="width:6%">数量</th><th style="width:13%">金額</th></tr></thead><tbody>${rows}</tbody></table><table class="tots" style="width:240px;margin-left:auto;margin-top:8px;"><tr><td>作業小計</td><td style="text-align:right">${fmt(t2.sub)}</td></tr>${customer.noExpense?'':`<tr><td>諸経費（${settings.expenseRate}%）</td><td style="text-align:right">${fmt(t2.exp)}</td></tr>`}${t2.cutPre>0?`<tr><td>端数調整（税抜）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPre)}</td></tr>`:''}<tr><td>消費税（${settings.taxRate}%）</td><td style="text-align:right">${fmt(t2.tax)}</td></tr>${t2.cutPost>0?`<tr><td>端数調整（税込）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPost)}</td></tr>`:''}${t2.disc10>0?`<tr><td>10%値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.disc10)}</td></tr>`:''}${t2.discFree>0?`<tr><td>自由値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.discFree)}</td></tr>`:''}<tr class="grd"><td>合計金額（税込）</td><td style="text-align:right">${fmt(t2.grand)}</td></tr></table>${customer.note?`<div style="margin-top:10px;font-size:10px;">${esc(customer.note)}</div>`:''}</body></html>`;
   const safe=(customer.car||'estimate').replace(/[\\/:*?"<>|]/g,'');
   const fname=`見積書_${safe}_${customer.date||todayStr()}.html`;
   const blob=new Blob([html],{type:'text/html'});
@@ -1425,9 +1466,14 @@ function saveSettings(){
   try{localStorage.setItem('est-settings',JSON.stringify(settings));showMsg('settings-msg','設定を保存しました');}
   catch(e){showMsg('settings-msg','保存に失敗しました');}
 }
+let _resetArmed=0;
 function resetEst(skipConfirm){
-  if(!items.length&&!customer.name&&!customer.car)return;
-  if(!skipConfirm&&!confirm('現在の見積りをクリアして新規作成しますか？'))return;
+  // 確認：ダイアログはiPhoneのアプリ表示で出ないことがあるため「2回押し」で確認
+  if(!skipConfirm){
+    const now=Date.now();
+    if(now-_resetArmed>3000){ _resetArmed=now; toast('もう一度押すと、すべて初期状態に戻します',3000); return; }
+    _resetArmed=0;
+  }
   customer=newCust(); items=[];
   fillCustForm();
   setCarType('国産車');
@@ -1437,7 +1483,11 @@ function resetEst(skipConfirm){
   document.querySelectorAll('[data-lk],[data-pk]').forEach(b=>b.classList.remove('on'));
   document.getElementById('lb-yes').classList.remove('on');
   document.getElementById('lb-no').classList.remove('on');
+  // ボディ形状・塗装タイプも初期値（コンパクト／グロス）へ
+  const sb=document.querySelector('[data-shape="コンパクト"]'); if(sb) setBodyShape(sb);
+  const ps=document.getElementById('c-ptype'); if(ps) ps.value='グロス';
   render();
+  if(!skipConfirm){ window.scrollTo({top:0,behavior:'smooth'}); toast('すべて初期状態に戻しました'); }
 }
 
 // ─── PWA icon（ARKロゴ）──────────────────────────────────
@@ -1461,6 +1511,8 @@ if('serviceWorker' in navigator){
 // ─── Init ─────────────────────────────────────────────────
 try{const s=localStorage.getItem('est-settings');if(s)settings={...DEF_SETTINGS,...JSON.parse(s)};}catch(e){}
 // 旧既定値1.5を保存済みの場合はブロードリーフ値1.7へ移行（1回のみ）
+// 3コートパール・カラークリアーの材料費率を旧既定38%→43%へ移行（1回のみ）
+if(!settings.migMat43){ if(+settings.matRate3Pearl===38) settings.matRate3Pearl=43; if(+settings.matRateColorClear===38) settings.matRateColorClear=43; settings.migMat43=true; try{localStorage.setItem('est-settings',JSON.stringify(settings));}catch(e){} }
 if(!settings.migBase17){ if(+settings.baseHoursGloss===1.5) settings.baseHoursGloss=1.7; settings.migBase17=true; try{localStorage.setItem('est-settings',JSON.stringify(settings));}catch(e){} }
 try{const h=localStorage.getItem('est-history');if(h)history=JSON.parse(h);}catch(e){}
 fillCustForm();
