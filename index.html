@@ -292,6 +292,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <span style="font-size:11px;color:var(--muted)">塗装条件</span>
           <label style="font-size:13px"><input type="checkbox" id="cond-2cs" onchange="customer.cond2cs=this.checked;recalc()" style="margin-right:5px;accent-color:var(--accent)">2コートソリッド</label>
           <label style="font-size:13px"><input type="checkbox" id="cond-booth" onchange="customer.condBooth=this.checked;recalc()" style="margin-right:5px;accent-color:var(--accent)">ブース加算</label>
+          <span style="font-size:11px;color:var(--muted);margin-left:auto">ボディコーティング</span>
+          <label style="font-size:13px"><input type="checkbox" id="cond-coat" onchange="customer.bodyCoat=this.checked;recalc()" style="margin-right:5px;accent-color:var(--accent)">あり</label>
         </div>
         <div class="tline"><span>作業小計（パネル）</span><span class="val" id="t-item-sub">¥0</span></div>
         <div class="tline" id="t-base-row" style="display:none"><span id="t-base-label" style="font-size:11px;color:var(--accent2)">加算基礎数値</span><span class="val" id="t-base">¥0</span></div>
@@ -367,7 +369,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="sg"><h3>材料費率（%）</h3>
       <div class="sg-note">材料代 ＝ 塗装工賃 × 材料費率（各100円未満切り上げ）／塗装料金 ＝ 塗装工賃 ＋ 材料代（ブロードリーフ準拠）</div>
       <div class="fgrid">
-        <div class="field"><label>グロス</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-matGloss" oninput="updateSettings()"></div>
+        <div class="field"><label>ソリッド</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-matGloss" oninput="updateSettings()"></div>
         <div class="field"><label>メタリック</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-matMetallic" oninput="updateSettings()"></div>
         <div class="field"><label>2コートパール</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-mat2Pearl" oninput="updateSettings()"></div>
         <div class="field"><label>3コートパール</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-mat3Pearl" oninput="updateSettings()"></div>
@@ -377,7 +379,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="sg"><h3>加算基礎数値（h）</h3>
       <div class="sg-note">塗装準備・調色・ぼかし作業の時間。塗装タイプ・パネル枚数別に設定（ブロードリーフ準拠）</div>
       <div class="fgrid">
-        <div class="field span2"><label>グロス・2コートソリッド（枚数問わず固定）</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-baseGloss" oninput="updateSettings()"></div>
+        <div class="field span2"><label>ソリッド・2コートソリッド（枚数問わず固定）</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-baseGloss" oninput="updateSettings()"></div>
         <div class="field"><label>2トーン 1枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-tt1" oninput="updateSettings()"></div>
         <div class="field"><label>2トーン 2枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-tt2" oninput="updateSettings()"></div>
         <div class="field"><label>2トーン 3枚以上</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-tt3" oninput="updateSettings()"></div>
@@ -438,14 +440,14 @@ const DEF_SETTINGS = {
   quarterPanelExtraHours:2.1, noQuarterPanelExtraHours:1.2,
   expenseRate:5, taxRate:10,
   // 材料費率(%) = 塗装工賃 × 材料費率 （ブロードリーフ準拠）
-  matRateGloss:38,        // グロス
+  matRateGloss:38,        // ソリッド
   matRateMetallic:38,     // メタリック
   matRate2Pearl:38,       // 2コートパール
   matRate3Pearl:43,       // 3コートパール
   matRateColorClear:43,   // カラークリアー
   // 加算基礎数値(h) = 塗装タイプ・パネル枚数別（ブロードリーフ準拠）
   // ソリッド: 枚数問わず固定
-  baseHoursGloss:1.7,   // ブロードリーフ：グロス1〜5枚とも1.70
+  baseHoursGloss:1.7,   // ブロードリーフ：ソリッド1〜5枚とも1.70
   twoTone1:1.1, twoTone2:1.2, twoTone3:1.3, // 2トーン加算：1枚目1.1／2枚目+0.1／3枚目+0.1／以降増加なし
   boothHours:0.5,        // ブース加算（塗装がある見積りに1回）
   baseHoursMetallic1:2.8, baseHoursMetallic2:2.9, baseHoursMetallic3:3.0, baseHoursMetallic4:3.1, baseHoursMetallic5:3.1,
@@ -518,7 +520,7 @@ function twoCoatHours(list){
   const sum = list.reduce((a,it)=>a+(TWO_COAT_COEF[it.panelArea]??TWO_COAT_DEFAULT),0);
   return Math.ceil(Math.round(sum*100)/10 - 1e-9)/10;
 }
-const PAINT_TYPES = ['グロス','メタリック','2コートパール','3コートパール','カラークリアー'];
+const PAINT_TYPES = ['ソリッド','メタリック','2コートパール','3コートパール','カラークリアー'];
 // 塗装区分（自研センター指数区分）
 const PAINT_WORK_TYPES = ['取替','修正1/1','修正1/2','修正1/3','ボカシ','手入力'];
 
@@ -530,12 +532,12 @@ function fmt(n){ return '¥'+Math.round(n||0).toLocaleString('ja-JP'); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function newCust(){
   return {name:'',car:'',plate:'',color:'',date:todayStr(),staff:'',note:'',carType:'国産車',
-    bodyShape:'コンパクト', paintType:'グロス', cond2cs:false, condBooth:true, roundPre:false, roundPost:false, noExpense:false,
+    bodyShape:'コンパクト', paintType:'ソリッド', cond2cs:false, condBooth:true, bodyCoat:false, roundPre:false, roundPost:false, noExpense:false,
     loanerCar:null,loanerNormal:false,loanerKei:false,loanerHeightLimit:false,loanerRider:false,
     paySelf:false,payVehicle:false,payProperty:false};
 }
 function newItem(part='',isQ=false,dm2=0){
-  return {id:genId(),part,type:'鈑金+塗装',panelHours:0,paintHours:0,paintType:(typeof customer!=='undefined'&&customer.paintType)||'グロス',
+  return {id:genId(),part,type:'鈑金+塗装',panelHours:0,paintHours:0,paintType:(typeof customer!=='undefined'&&customer.paintType)||'ソリッド',
     paintWork:'取替',includesQuarterPanel:isQ,twoTone:false,accessoryHours:0,paintArea:dm2,partsCost:0,qty:1,note:'',
     panelArea:null}; // パネルマップ経由の場合はp.areaをセット
 }
@@ -560,7 +562,7 @@ function matRateKey(paintType){
 // 加算基礎数値を取得（塗装タイプ・パネル枚数から）
 function getBaseHours(paintType, panelCount){
   const n = Math.min(panelCount, 5);
-  if(paintType==='グロス') return +settings.baseHoursGloss||1.7;
+  if(paintType==='ソリッド') return +settings.baseHoursGloss||1.7;
   const suffix = n.toString();
   if(paintType==='メタリック') return +settings[`baseHoursMetallic${suffix}`]||2.8;
   if(paintType==='2コートパール') return +settings[`baseHours2Pearl${suffix}`]||3.0;
@@ -625,7 +627,7 @@ function calcBaseAmount(){
     }
   });
   // 最も多い塗装タイプ（または最初のもの）で加算基礎数値を決定
-  let maxType='グロス', maxCount=0;
+  let maxType='ソリッド', maxCount=0;
   Object.entries(typeCount).forEach(([t,c])=>{ if(c>maxCount){maxType=t;maxCount=c;} });
   const totalPanels = maxCount;
   if(!totalPanels) return {hours:0, labor:0, mat:0, lines:[], desc:''};
@@ -640,9 +642,9 @@ function calcBaseAmount(){
   };
   const panelsAll = Object.values(typeCount).reduce((a,b)=>a+b,0);
   addLine(`加算基礎数値(${maxType} ${totalPanels}枚)`, baseH);
-  // 塗装条件（ブロードリーフの「塗装条件」と同じ）：グロス＝ソリッド塗膜に2コートソリッド加算
-  if(customer.cond2cs===true && typeCount['グロス']){
-    const gl = items.filter(it=>(+it.paintHours||0)>0 && it.paintType==='グロス');
+  // 塗装条件（ブロードリーフの「塗装条件」と同じ）：ソリッド＝ソリッド塗膜に2コートソリッド加算
+  if(customer.cond2cs===true && typeCount['ソリッド']){
+    const gl = items.filter(it=>(+it.paintHours||0)>0 && it.paintType==='ソリッド');
     addLine(`2コートソリッド加算(${gl.length}枚)`, twoCoatHours(gl));
   }
   const tt = items.filter(it=>it.twoTone && (+it.paintHours||0)>0).length;
@@ -693,6 +695,7 @@ function render(){
 
 function recalc(){
   document.getElementById('cond-2cs').checked = customer.cond2cs===true;
+  document.getElementById('cond-coat').checked = customer.bodyCoat===true;
   document.getElementById('cond-booth').checked = customer.condBooth!==false;
   const t = calcTotals();
   document.getElementById('t-item-sub').textContent = fmt(t.itemSub);
@@ -1111,7 +1114,7 @@ function setPaintTypeAll(t){
 function fillCustForm(){
   const ps=document.getElementById('c-ptype');
   if(!ps.options.length) ps.innerHTML=PAINT_TYPES.map(t=>`<option>${t}</option>`).join('');
-  ps.value=customer.paintType||'グロス';
+  ps.value=customer.paintType||'ソリッド';
   document.getElementById('c-name').value=customer.name||'';
   document.getElementById('c-car').value=customer.car||'';
   document.getElementById('c-plate').value=customer.plate||'';
@@ -1271,7 +1274,7 @@ function buildText(){
     `🏢 ${settings.shopName}`,settings.shopAddress||'',settings.shopTel?`TEL：${settings.shopTel}`:'',D,
     `📅 見積日：${customer.date}`,`👤 お客様：${customer.name||'-'} 様`,
     `🚙 車種：${customer.car||'-'}（${customer.carType}）`,`🔢 登録番号：${customer.plate||'-'}`,
-    `🎨 車体色：${customer.color||'-'}`,customer.staff?`👨‍🔧 担当：${customer.staff}`:'',
+    `🎨 車体色：${customer.color||'-'}`,`🛡 ボディコーティング：${customer.bodyCoat?'あり':'なし'}`,customer.staff?`👨‍🔧 担当：${customer.staff}`:'',
     `🚐 代車：${loanerSummary()}`,`💳 支払区分：${paySummary()}`,D,'🔧 作業項目'];
   if(!items.length) lines.push('（項目なし）');
   else items.forEach(it=>{const b=calcRow(it);lines.push(`・${it.part||'-'}（${it.type}） 数量${it.qty}　${fmt(b.amount)}`);if(b.desc)lines.push(`    ${b.desc}`);});
@@ -1313,8 +1316,9 @@ function buildLineText(){
     customer.car?`🚙 ${customer.car}`:'',
     customer.plate?`🔢 ${customer.plate}`:'',
     `🚘 車格：${SHAPE_READING[currentBodyShape]||currentBodyShape}`,
-    customer.color?`🎨 車体色：${customer.color}`:'',
-    items.some(it=>(+it.paintHours||0)>0)?`🖌 塗装：${customer.paintType||'グロス'}`:'',
+    customer.color?`🏷 車体色：${customer.color}`:'',
+    `💎 ボディコーティング：${customer.bodyCoat?'あり':'なし'}`,
+    items.some(it=>(+it.paintHours||0)>0)?`🎨 塗装：${customer.paintType||'ソリッド'}`:'',
     customer.date?`📅 見積日：${customer.date.replace(/-/g,'/')}`:'',
     L,
     '🔧 作業箇所',
@@ -1330,9 +1334,9 @@ function buildLineText(){
   if(t.cutPre>0) lines.push(`✂️ 端数調整（税抜）　－${fmt(t.cutPre)}`);
   lines.push(`🏛 消費税（${settings.taxRate}%）　${fmt(t.tax)}`);
   if(t.cutPost>0) lines.push(`✂️ 端数調整（税込）　－${fmt(t.cutPost)}`);
-  if(t.disc10>0) lines.push(`🎁 10%お値引き　－${fmt(t.disc10)}`);
-  if(t.discFree>0) lines.push(`🎁 お値引き　－${fmt(t.discFree)}`);
-  lines.push(L,`💰 合計金額　${fmt(t.grand)}（税込）`,L);
+  if(t.disc10>0) lines.push(`💰 10%お値引き　－${fmt(t.disc10)}`);
+  if(t.discFree>0) lines.push(`💰 お値引き　－${fmt(t.discFree)}`);
+  lines.push(L,`💴 合計金額　${fmt(t.grand)}（税込）`,L);
   if(customer.note) lines.push(`📝 ${customer.note}`);
   lines.push(`🏢 ${settings.shopName||''}`);
   if(settings.shopTel) lines.push(`📞 ${settings.shopTel}`);
@@ -1381,7 +1385,7 @@ function lineShare(){
 async function dlFile(){
   const t2=calcTotals();
   const rows=items.map(it=>{const b=calcRow(it);return`<tr><td>${esc(it.part)||'-'}</td><td>${esc(it.type)}</td><td>${esc(b.desc)||'-'}</td><td style="text-align:center">${it.qty}</td><td style="text-align:right">${fmt(b.amount)}</td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center">項目がありません</td></tr>';
-  const html=`<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>御見積書</title><style>@page{size:A4;margin:8mm;}body{font-family:'Hiragino Sans',sans-serif;color:#111;padding:8mm;font-size:11px;}table{width:100%;border-collapse:collapse;margin-top:8px;}th,td{border:1px solid #333;padding:4px 6px;font-size:10px;text-align:left;vertical-align:top;}th{background:#eee;}.ti{text-align:center;font-size:18px;font-weight:900;letter-spacing:.3em;margin-bottom:10px;}.top{display:flex;justify-content:space-between;margin-bottom:8px;gap:16px;flex-wrap:wrap;}.tots td{border:none;padding:2px 0;font-size:11px;}.grd td{border-top:2px solid #333;padding-top:4px;font-size:14px;font-weight:900;}</style></head><body><div class="ti">御 見 積 書</div><div class="top"><div><div><b>${esc(customer.name)||'お客様'}</b> 様</div><div>車種：${esc(customer.car)||'-'}（${esc(customer.carType)}）</div><div>登録番号：${esc(customer.plate)||'-'}</div><div>車体色：${esc(customer.color)||'-'}</div><div>代車：${esc(loanerSummary())}</div><div>支払区分：${esc(paySummary())}</div></div><div style="text-align:right"><div>見積日：${esc(customer.date)}</div><div><b>${esc(settings.shopName)}</b></div>${settings.shopTel?`<div>TEL：${esc(settings.shopTel)}</div>`:''}</div></div><table><thead><tr><th style="width:15%">部位</th><th style="width:11%">作業区分</th><th>内容</th><th style="width:6%">数量</th><th style="width:13%">金額</th></tr></thead><tbody>${rows}</tbody></table><table class="tots" style="width:240px;margin-left:auto;margin-top:8px;"><tr><td>作業小計</td><td style="text-align:right">${fmt(t2.sub)}</td></tr>${customer.noExpense?'':`<tr><td>諸経費（${settings.expenseRate}%）</td><td style="text-align:right">${fmt(t2.exp)}</td></tr>`}${t2.cutPre>0?`<tr><td>端数調整（税抜）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPre)}</td></tr>`:''}<tr><td>消費税（${settings.taxRate}%）</td><td style="text-align:right">${fmt(t2.tax)}</td></tr>${t2.cutPost>0?`<tr><td>端数調整（税込）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPost)}</td></tr>`:''}${t2.disc10>0?`<tr><td>10%値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.disc10)}</td></tr>`:''}${t2.discFree>0?`<tr><td>自由値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.discFree)}</td></tr>`:''}<tr class="grd"><td>合計金額（税込）</td><td style="text-align:right">${fmt(t2.grand)}</td></tr></table>${customer.note?`<div style="margin-top:10px;font-size:10px;">${esc(customer.note)}</div>`:''}</body></html>`;
+  const html=`<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>御見積書</title><style>@page{size:A4;margin:8mm;}body{font-family:'Hiragino Sans',sans-serif;color:#111;padding:8mm;font-size:11px;}table{width:100%;border-collapse:collapse;margin-top:8px;}th,td{border:1px solid #333;padding:4px 6px;font-size:10px;text-align:left;vertical-align:top;}th{background:#eee;}.ti{text-align:center;font-size:18px;font-weight:900;letter-spacing:.3em;margin-bottom:10px;}.top{display:flex;justify-content:space-between;margin-bottom:8px;gap:16px;flex-wrap:wrap;}.tots td{border:none;padding:2px 0;font-size:11px;}.grd td{border-top:2px solid #333;padding-top:4px;font-size:14px;font-weight:900;}</style></head><body><div class="ti">御 見 積 書</div><div class="top"><div><div><b>${esc(customer.name)||'お客様'}</b> 様</div><div>車種：${esc(customer.car)||'-'}（${esc(customer.carType)}）</div><div>登録番号：${esc(customer.plate)||'-'}</div><div>車体色：${esc(customer.color)||'-'}</div><div>ボディコーティング：${customer.bodyCoat?'あり':'なし'}</div><div>代車：${esc(loanerSummary())}</div><div>支払区分：${esc(paySummary())}</div></div><div style="text-align:right"><div>見積日：${esc(customer.date)}</div><div><b>${esc(settings.shopName)}</b></div>${settings.shopTel?`<div>TEL：${esc(settings.shopTel)}</div>`:''}</div></div><table><thead><tr><th style="width:15%">部位</th><th style="width:11%">作業区分</th><th>内容</th><th style="width:6%">数量</th><th style="width:13%">金額</th></tr></thead><tbody>${rows}</tbody></table><table class="tots" style="width:240px;margin-left:auto;margin-top:8px;"><tr><td>作業小計</td><td style="text-align:right">${fmt(t2.sub)}</td></tr>${customer.noExpense?'':`<tr><td>諸経費（${settings.expenseRate}%）</td><td style="text-align:right">${fmt(t2.exp)}</td></tr>`}${t2.cutPre>0?`<tr><td>端数調整（税抜）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPre)}</td></tr>`:''}<tr><td>消費税（${settings.taxRate}%）</td><td style="text-align:right">${fmt(t2.tax)}</td></tr>${t2.cutPost>0?`<tr><td>端数調整（税込）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPost)}</td></tr>`:''}${t2.disc10>0?`<tr><td>10%値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.disc10)}</td></tr>`:''}${t2.discFree>0?`<tr><td>自由値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.discFree)}</td></tr>`:''}<tr class="grd"><td>合計金額（税込）</td><td style="text-align:right">${fmt(t2.grand)}</td></tr></table>${customer.note?`<div style="margin-top:10px;font-size:10px;">${esc(customer.note)}</div>`:''}</body></html>`;
   const safe=(customer.car||'estimate').replace(/[\\/:*?"<>|]/g,'');
   const fname=`見積書_${safe}_${customer.date||todayStr()}.html`;
   const blob=new Blob([html],{type:'text/html'});
@@ -1403,7 +1407,9 @@ function saveEst(){
 }
 function loadEst(h){
   customer={...newCust(),...h.customer};
-  if(!h.customer.paintType && h.items && h.items[0]) customer.paintType=h.items[0].paintType||'グロス';
+  (h.items||[]).forEach(it=>{ if(it.paintType==='グロス') it.paintType='ソリッド'; });
+  if(!h.customer.paintType && h.items && h.items[0]) customer.paintType=h.items[0].paintType||'ソリッド';
+  if(customer.paintType==='グロス') customer.paintType='ソリッド';
   // ボディ形状を復元
   currentBodyShape = customer.bodyShape||'コンパクト';
   const shapeBtn = document.querySelector(`[data-shape="${currentBodyShape}"]`);
@@ -1483,9 +1489,9 @@ function resetEst(skipConfirm){
   document.querySelectorAll('[data-lk],[data-pk]').forEach(b=>b.classList.remove('on'));
   document.getElementById('lb-yes').classList.remove('on');
   document.getElementById('lb-no').classList.remove('on');
-  // ボディ形状・塗装タイプも初期値（コンパクト／グロス）へ
+  // ボディ形状・塗装タイプも初期値（コンパクト／ソリッド）へ
   const sb=document.querySelector('[data-shape="コンパクト"]'); if(sb) setBodyShape(sb);
-  const ps=document.getElementById('c-ptype'); if(ps) ps.value='グロス';
+  const ps=document.getElementById('c-ptype'); if(ps) ps.value='ソリッド';
   render();
   if(!skipConfirm){ window.scrollTo({top:0,behavior:'smooth'}); toast('すべて初期状態に戻しました'); }
 }
