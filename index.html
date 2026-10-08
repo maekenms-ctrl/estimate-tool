@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>鈑金・塗装 見積りツール</title>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -30,8 +30,9 @@ body{padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-i
 .tabs{display:flex;gap:6px;flex-wrap:wrap;}
 .tab-btn{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 13px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;transition:all .15s;}
 .tab-btn.active{background:var(--accent);border-color:var(--accent);color:var(--on-accent);}
-.layout{display:grid;grid-template-columns:1.1fr 1.5fr;gap:16px;align-items:start;}
-@media(max-width:900px){.layout{grid-template-columns:1fr;}}
+.layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.5fr);gap:16px;align-items:start;}
+@media(max-width:900px){.layout{grid-template-columns:minmax(0,1fr);}}
+.layout>*{min-width:0;}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
 .card-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:12px;text-transform:uppercase;display:flex;align-items:center;gap:8px;}
 .bar{display:inline-block;width:3px;height:14px;background:var(--accent);border-radius:2px;flex-shrink:0;}
@@ -45,6 +46,10 @@ body{padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-i
 .field input,.field select,.field textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 10px;font-size:16px;font-family:inherit;}
 .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent2);}
 .field input[type=date]{-webkit-appearance:none;appearance:none;}
+/* 全数値入力のスピンボタン非表示（スペース節約） */
+input[type=number]{-moz-appearance:textfield;appearance:textfield;}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+/* inputmode=decimal でiOSの数字キーボードを表示 */
 
 /* Buttons */
 .check-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
@@ -60,34 +65,40 @@ body{padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-i
 .panel-wrap{overflow:hidden;}
 .panel-map{
   display:grid;
-  grid-template-columns:1fr 1.3fr 1fr;
+  grid-template-columns:28px 1fr 1.3fr 1fr 28px;
   grid-template-rows:42px 58px 80px 80px 80px 58px 42px;
   grid-template-areas:
-    "fbumper fbumper fbumper"
-    "hood hood hood"
-    "lfender roof rfender"
-    "lfdoor roof rfdoor"
-    "lrdoor roof rrdoor"
-    "lqpanel trunk rqpanel"
-    "rbumper rbumper rbumper";
+    "fbumper fbumper fbumper fbumper fbumper"
+    "hood hood hood hood hood"
+    "lfender lfender roof rfender rfender"
+    "lsill lfdoor roof rfdoor rsill"
+    "lsill lrdoor roof rrdoor rsill"
+    "lqpanel lqpanel trunk rqpanel rqpanel"
+    "rbumper rbumper rbumper rbumper rbumper";
   gap:5px;max-width:320px;margin:0 auto;
 }
 .panel-btn{
-  position:relative;border:1px solid var(--border);background:var(--surface2);color:var(--text);
+  position:relative;border:2px solid var(--border);background:var(--surface2);color:var(--muted);
   border-radius:8px;cursor:pointer;font-family:inherit;font-size:10px;line-height:1.3;
   white-space:pre-line;display:flex;align-items:center;justify-content:center;
-  text-align:center;padding:2px;transition:all .12s;min-width:0;
+  text-align:center;padding:2px;transition:all .15s;min-width:0;font-weight:600;
 }
-.panel-btn:active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);}
-.panel-badge{position:absolute;top:-6px;right:-6px;background:var(--accent);color:var(--on-accent);border-radius:999px;min-width:17px;height:17px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px;}
+.panel-btn:active{filter:brightness(1.1);}
+.panel-btn.sill{writing-mode:vertical-rl;white-space:nowrap;letter-spacing:.1em;padding:2px 0;}
+.panel-btn.selected{
+  border-color:var(--accent);background:var(--accent);color:var(--on-accent);
+  box-shadow:0 0 0 2px var(--accent-soft);
+}
 .map-hint{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;}
 
 /* Item rows */
 .items-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.items-header{display:grid;grid-template-columns:minmax(90px,1.2fr) minmax(80px,.9fr) 52px 52px minmax(90px,1fr) 54px 52px 80px 46px 90px 30px;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700;padding:0 4px 8px;border-bottom:1px solid var(--border);margin-bottom:6px;min-width:740px;}
-.item-row{display:grid;grid-template-columns:minmax(90px,1.2fr) minmax(80px,.9fr) 52px 52px minmax(90px,1fr) 54px 52px 80px 46px 90px 30px;gap:5px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--surface3);min-width:740px;}
+.items-header{display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(90px,.9fr) 68px 68px 58px 58px minmax(80px,.8fr) 68px 68px 90px 52px 90px 30px;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700;padding:0 4px 8px;border-bottom:1px solid var(--border);margin-bottom:6px;min-width:920px;}
+.item-row{display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(90px,.9fr) 68px 68px 58px 58px minmax(80px,.8fr) 68px 68px 90px 52px 90px 30px;gap:5px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--surface3);min-width:920px;}
 .item-row:last-child{border-bottom:none;}
-.item-row input,.item-row select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px;font-size:15px;font-family:inherit;}
+.item-row input,.item-row select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 4px;font-size:15px;font-family:inherit;min-width:0;}
+.item-row input[type=number]{-moz-appearance:textfield;appearance:textfield;}
+.item-row input[type=number]::-webkit-inner-spin-button,.item-row input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
 .item-row input:focus,.item-row select:focus{outline:none;border-color:var(--accent2);}
 .row-amount{font-family:monospace;font-weight:700;text-align:right;font-size:13px;white-space:nowrap;}
 .row-del{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;padding:4px;width:30px;}
@@ -151,8 +162,9 @@ body{padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-i
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
 .tab-panel-layout{display:none;}
-.tab-panel-layout.active{display:grid;grid-template-columns:1.1fr 1.5fr;gap:16px;align-items:start;}
-@media(max-width:900px){.tab-panel-layout.active{grid-template-columns:1fr;}}
+.tab-panel-layout.active{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.5fr);gap:16px;align-items:start;}
+@media(max-width:900px){.tab-panel-layout.active{grid-template-columns:minmax(0,1fr);}}
+.tab-panel-layout>*{min-width:0;}
 </style>
 </head>
 <body>
@@ -184,10 +196,29 @@ body{padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-i
           </div>
           <div class="rate-hint" id="rate-hint">適用工賃：¥9,800／時間</div>
         </div>
+        <div class="field span2">
+          <label>ボディ形状（塗り数値の基準）</label>
+          <div class="check-group" id="body-shape-group">
+            <button class="selbtn on" data-shape="コンパクト" onclick="setBodyShape(this)">コンパクト</button>
+            <button class="selbtn" data-shape="SサイズSD" onclick="setBodyShape(this)">Sセダン</button>
+            <button class="selbtn" data-shape="MサイズSD" onclick="setBodyShape(this)">Mセダン</button>
+            <button class="selbtn" data-shape="LサイズSD" onclick="setBodyShape(this)">Lセダン</button>
+            <button class="selbtn" data-shape="2DCP" onclick="setBodyShape(this)">2DCP</button>
+            <button class="selbtn" data-shape="MサイズSUV" onclick="setBodyShape(this)">MSUV</button>
+            <button class="selbtn" data-shape="LサイズSUV" onclick="setBodyShape(this)">LSUV</button>
+            <button class="selbtn" data-shape="TR" onclick="setBodyShape(this)">TR</button>
+            <button class="selbtn" data-shape="SサイズMV" onclick="setBodyShape(this)">SMV</button>
+            <button class="selbtn" data-shape="MサイズMV" onclick="setBodyShape(this)">MMV</button>
+            <button class="selbtn" data-shape="LサイズMV" onclick="setBodyShape(this)">LMV</button>
+            <button class="selbtn" data-shape="軽自動車" onclick="setBodyShape(this)">軽自動車</button>
+          </div>
+          <div class="rate-hint" id="shape-hint" style="text-align:left;margin-top:4px;">Sサイズ セダン（プリウス等）</div>
+        </div>
         <div class="field"><label>お客様名</label><input id="c-name" placeholder="山田 太郎" oninput="updateCust()"></div>
         <div class="field"><label>車種</label><input id="c-car" placeholder="プリウス" oninput="updateCust()"></div>
-        <div class="field"><label>登録番号</label><input id="c-plate" placeholder="品川 300 あ 12-34" oninput="updateCust()"></div>
+        <div class="field span2"><label>登録番号</label><input id="c-plate" placeholder="品川 300 あ 12-34" oninput="updateCust()"></div>
         <div class="field"><label>車体色</label><input id="c-color" placeholder="パールホワイト" oninput="updateCust()"></div>
+        <div class="field"><label>塗装タイプ（全部位一括）</label><select id="c-ptype" onchange="setPaintTypeAll(this.value)"></select></div>
         <div class="field span2"><label>見積日</label><input type="date" id="c-date" oninput="updateCust()"></div>
         <div class="field span2"><label>担当者</label><input id="c-staff" placeholder="担当者名" oninput="updateCust()"></div>
         <div class="field span2">
@@ -234,8 +265,8 @@ body{padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-i
       <div class="items-scroll">
         <div class="items-header">
           <div>部位</div><div>作業区分</div><div>鈑金(h)</div><div>塗装(h)</div>
-          <div>塗装タイプ</div><div>クォーター</div><div>付属品(h)</div>
-          <div>部品代(¥)</div><div>数量</div><div>金額</div><div></div>
+          <div>クォーター</div><div>2トーン</div><div>塗装区分</div>
+          <div>付属品(h)</div><div>面積(dm²)</div><div>部品代(¥)</div><div>数量</div><div>金額</div><div></div>
         </div>
         <div id="items-list"></div>
       </div>
@@ -246,7 +277,20 @@ body{padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-i
     <div class="card">
       <div class="card-title"><span class="bar"></span>集計</div>
       <div class="totals-box">
-        <div class="tline"><span>作業小計</span><span class="val" id="t-sub">¥0</span></div>
+        <div class="tline" style="flex-wrap:wrap;gap:14px;justify-content:flex-start;padding-bottom:8px;border-bottom:1px solid var(--surface3);margin-bottom:6px">
+          <span style="font-size:11px;color:var(--muted)">塗装条件</span>
+          <label style="font-size:13px"><input type="checkbox" id="cond-2cs" onchange="customer.cond2cs=this.checked;recalc()" style="margin-right:5px;accent-color:var(--accent)">2コートソリッド</label>
+          <label style="font-size:13px"><input type="checkbox" id="cond-booth" onchange="customer.condBooth=this.checked;recalc()" style="margin-right:5px;accent-color:var(--accent)">ブース加算</label>
+        </div>
+        <div class="tline"><span>作業小計（パネル）</span><span class="val" id="t-item-sub">¥0</span></div>
+        <div class="tline" id="t-base-row" style="display:none"><span id="t-base-label" style="font-size:11px;color:var(--accent2)">加算基礎数値</span><span class="val" id="t-base">¥0</span></div>
+        <div id="t-paint-box" style="display:none;margin:6px 0;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface)">
+          <div class="tline" style="font-size:11px"><span>塗装指数</span><span class="val" id="t-paint-index">0.00</span></div>
+          <div class="tline"><span>塗装工賃</span><span class="val" id="t-paint-labor">¥0</span></div>
+          <div class="tline"><span>＋ 材料代</span><span class="val" id="t-paint-mat">¥0</span></div>
+          <div class="tline" style="border-top:1px solid var(--surface3);font-weight:700"><span>＝ 塗装料金</span><span class="val" id="t-paint-total">¥0</span></div>
+        </div>
+        <div class="tline" style="border-top:1px solid var(--surface3);margin-top:4px;padding-top:6px;font-weight:700"><span>合計小計</span><span class="val" id="t-sub">¥0</span></div>
         <div class="tline"><span id="t-exp-label">諸経費（5%）</span><span class="val" id="t-exp">¥0</span></div>
         <div class="tline"><span id="t-tax-label">消費税（10%）</span><span class="val" id="t-tax">¥0</span></div>
         <div class="disc-row">
@@ -255,7 +299,7 @@ body{padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-i
         </div>
         <div class="disc-row">
           <label style="white-space:nowrap;font-size:12px;color:var(--muted)">自由値引き（¥）</label>
-          <input type="number" id="disc-free" min="0" step="100" placeholder="0" oninput="recalc()" style="width:100px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:13px;color:var(--text);font-family:inherit;text-align:right;margin-left:8px;">
+          <input type="text" inputmode="numeric" pattern="[0-9]*" id="disc-free" placeholder="0" oninput="recalc()" style="width:110px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:13px;color:var(--text);font-family:inherit;text-align:right;margin-left:8px;">
           <span class="val" id="t-discfree" style="color:var(--muted);margin-left:8px;">－¥0</span>
         </div>
         <div class="tline grand"><span>合計金額（税込）</span><span class="val" id="t-grand">¥0</span></div>
@@ -297,28 +341,56 @@ body{padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-i
     </div>
     <div class="sg"><h3>工賃（円／時間）</h3>
       <div class="fgrid">
-        <div class="field"><label>国産車</label><input type="number" step="100" id="s-domestic" oninput="updateSettings()"></div>
-        <div class="field"><label>輸入車</label><input type="number" step="100" id="s-import" oninput="updateSettings()"></div>
+        <div class="field"><label>国産車</label><input type="text" inputmode="numeric" pattern="[0-9]*" id="s-domestic" oninput="updateSettings()"></div>
+        <div class="field"><label>輸入車</label><input type="text" inputmode="numeric" pattern="[0-9]*" id="s-import" oninput="updateSettings()"></div>
       </div>
     </div>
-    <div class="sg"><h3>塗装材料費率（%）</h3>
-      <div class="sg-note">塗料代 ＝ 塗装工賃 × 材料費率</div>
+    <div class="sg"><h3>材料費率（%）</h3>
+      <div class="sg-note">材料代 ＝ 塗装工賃 × 材料費率（各100円未満切り上げ）／塗装料金 ＝ 塗装工賃 ＋ 材料代（ブロードリーフ準拠）</div>
       <div class="fgrid">
-        <div class="field"><label>グロス・メタリック・2コートパール</label><input type="number" step="1" id="s-pctLow" oninput="updateSettings()"></div>
-        <div class="field"><label>3コートパール・カラークリアー</label><input type="number" step="1" id="s-pctHigh" oninput="updateSettings()"></div>
+        <div class="field"><label>グロス</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-matGloss" oninput="updateSettings()"></div>
+        <div class="field"><label>メタリック</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-matMetallic" oninput="updateSettings()"></div>
+        <div class="field"><label>2コートパール</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-mat2Pearl" oninput="updateSettings()"></div>
+        <div class="field"><label>3コートパール</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-mat3Pearl" oninput="updateSettings()"></div>
+        <div class="field span2"><label>カラークリアー</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-matCC" oninput="updateSettings()"></div>
+      </div>
+    </div>
+    <div class="sg"><h3>加算基礎数値（h）</h3>
+      <div class="sg-note">塗装準備・調色・ぼかし作業の時間。塗装タイプ・パネル枚数別に設定（ブロードリーフ準拠）</div>
+      <div class="fgrid">
+        <div class="field span2"><label>グロス・2コートソリッド（枚数問わず固定）</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-baseGloss" oninput="updateSettings()"></div>
+        <div class="field"><label>2トーン 1枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-tt1" oninput="updateSettings()"></div>
+        <div class="field"><label>2トーン 2枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-tt2" oninput="updateSettings()"></div>
+        <div class="field"><label>2トーン 3枚以上</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-tt3" oninput="updateSettings()"></div>
+        <div class="field"><label>ブース加算（1見積り1回）</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-booth" oninput="updateSettings()"></div>
+        <div class="field"><label>メタリック 1枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-baseM1" oninput="updateSettings()"></div>
+        <div class="field"><label>メタリック 2枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-baseM2" oninput="updateSettings()"></div>
+        <div class="field"><label>メタリック 3枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-baseM3" oninput="updateSettings()"></div>
+        <div class="field"><label>メタリック 4枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-baseM4" oninput="updateSettings()"></div>
+        <div class="field"><label>メタリック 5枚以上</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-baseM5" oninput="updateSettings()"></div>
+        <div class="field"><label>2コートパール 1枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-base2P1" oninput="updateSettings()"></div>
+        <div class="field"><label>2コートパール 2枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-base2P2" oninput="updateSettings()"></div>
+        <div class="field"><label>2コートパール 3枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-base2P3" oninput="updateSettings()"></div>
+        <div class="field"><label>2コートパール 4枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-base2P4" oninput="updateSettings()"></div>
+        <div class="field"><label>2コートパール 5枚以上</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-base2P5" oninput="updateSettings()"></div>
+        <div class="field"><label>3コートパール 1枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-base3P1" oninput="updateSettings()"></div>
+        <div class="field"><label>3コートパール 2枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-base3P2" oninput="updateSettings()"></div>
+        <div class="field"><label>3コートパール 3枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-base3P3" oninput="updateSettings()"></div>
+        <div class="field"><label>3コートパール 4枚</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-base3P4" oninput="updateSettings()"></div>
+        <div class="field"><label>3コートパール 5枚以上</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-base3P5" oninput="updateSettings()"></div>
       </div>
     </div>
     <div class="sg"><h3>カラークリアー加算工数（h）</h3>
       <div class="sg-note">バンパーは自動+0.2h。</div>
       <div class="fgrid">
-        <div class="field"><label>クォーター含む</label><input type="number" step="0.1" id="s-qEx" oninput="updateSettings()"></div>
-        <div class="field"><label>クォーター含まない</label><input type="number" step="0.1" id="s-noqEx" oninput="updateSettings()"></div>
+        <div class="field"><label>クォーター含む</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-qEx" oninput="updateSettings()"></div>
+        <div class="field"><label>クォーター含まない</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-noqEx" oninput="updateSettings()"></div>
       </div>
     </div>
     <div class="sg"><h3>諸経費・税率（%）</h3>
       <div class="fgrid">
-        <div class="field"><label>諸経費率</label><input type="number" step="0.5" id="s-expRate" oninput="updateSettings()"></div>
-        <div class="field"><label>消費税率</label><input type="number" step="0.5" id="s-taxRate" oninput="updateSettings()"></div>
+        <div class="field"><label>諸経費率</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-expRate" oninput="updateSettings()"></div>
+        <div class="field"><label>消費税率</label><input type="text" inputmode="decimal" pattern="[0-9.]*" id="s-taxRate" oninput="updateSettings()"></div>
       </div>
     </div>
     <div class="actions">
@@ -344,9 +416,23 @@ body{padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-i
 const DEF_SETTINGS = {
   shopName:'株式会社AUTO REPAIR KOBE', shopAddress:'', shopTel:'', shopRegNo:'',
   laborRateDomestic:9800, laborRateImport:12000,
-  paintMaterialPercentLow:38, paintMaterialPercentHigh:42,
   quarterPanelExtraHours:2.1, noQuarterPanelExtraHours:1.2,
   expenseRate:5, taxRate:10,
+  // 材料費率(%) = 塗装工賃 × 材料費率 （ブロードリーフ準拠）
+  matRateGloss:38,        // グロス
+  matRateMetallic:38,     // メタリック
+  matRate2Pearl:38,       // 2コートパール
+  matRate3Pearl:38,       // 3コートパール
+  matRateColorClear:38,   // カラークリアー
+  // 加算基礎数値(h) = 塗装タイプ・パネル枚数別（ブロードリーフ準拠）
+  // ソリッド: 枚数問わず固定
+  baseHoursGloss:1.7,   // ブロードリーフ：グロス1〜5枚とも1.70
+  twoTone1:1.1, twoTone2:1.2, twoTone3:1.3, // 2トーン加算：1枚目1.1／2枚目+0.1／3枚目+0.1／以降増加なし
+  boothHours:0.5,        // ブース加算（塗装がある見積りに1回）
+  baseHoursMetallic1:2.8, baseHoursMetallic2:2.9, baseHoursMetallic3:3.0, baseHoursMetallic4:3.1, baseHoursMetallic5:3.1,
+  baseHours2Pearl1:3.0, baseHours2Pearl2:3.1, baseHours2Pearl3:3.2, baseHours2Pearl4:3.3, baseHours2Pearl5:3.4,
+  baseHours3Pearl1:4.0, baseHours3Pearl2:4.2, baseHours3Pearl3:4.4, baseHours3Pearl4:4.7, baseHours3Pearl5:4.9,
+  baseHoursCC1:4.0, baseHoursCC2:4.2, baseHoursCC3:4.4, baseHoursCC4:4.7, baseHoursCC5:4.9,
 };
 let settings = {...DEF_SETTINGS};
 let customer = newCust();
@@ -354,36 +440,109 @@ let items = [];
 let history = [];
 let idSeq = 0;
 
+// 自研センター標準塗り数値テーブル
+// {dm2, 取替(単体), 修正1/1(複数), 修正1/2(複数), 修正1/3(複数)}
+// 塗り数値：実データ（5DS/5DW/5DHB/2DCP/1BOX）の回帰分析から算出
+// 回帰式: 取替=0.01756×dm²+1.33 / 修正1/1=0.01305×dm²+1.83 / 修正1/2=0.00775×dm²+1.56 / 修正1/3=0.00601×dm²+1.39
+// バンパーは樹脂部品のため塗り数値・面積は手入力（ブロードリーフ25dm²行はサイドシル）
 const PANEL_PARTS = [
-  {area:'fbumper',name:'フロントバンパー',label:'フロント\nバンパー'},
-  {area:'hood',name:'ボンネット',label:'ボンネット'},
-  {area:'lfender',name:'左フロントフェンダー',label:'左フロント\nフェンダー'},
-  {area:'rfender',name:'右フロントフェンダー',label:'右フロント\nフェンダー'},
-  {area:'roof',name:'ルーフ',label:'ルーフ'},
-  {area:'lfdoor',name:'左フロントドア',label:'左フロント\nドア'},
-  {area:'rfdoor',name:'右フロントドア',label:'右フロント\nドア'},
-  {area:'lrdoor',name:'左リアドア',label:'左リア\nドア'},
-  {area:'rrdoor',name:'右リアドア',label:'右リア\nドア'},
-  {area:'lqpanel',name:'左クォーターパネル',label:'左クォーター\nパネル'},
-  {area:'rqpanel',name:'右クォーターパネル',label:'右クォーター\nパネル'},
-  {area:'trunk',name:'トランク/バックドア',label:'トランク/\nバックドア'},
-  {area:'rbumper',name:'リアバンパー',label:'リア\nバンパー'},
+  {area:'fbumper', name:'フロントバンパー',     label:'フロント\nバンパー',    dm2:0,   ph:{}},
+  {area:'hood',    name:'ボンネット',           label:'ボンネット',            dm2:101, ph:{取替:3.1, '修正1/1':3.1, '修正1/2':2.4, '修正1/3':2.0}},
+  {area:'lfender', name:'左フロントフェンダー', label:'左フロント\nフェンダー',dm2:35,  ph:{取替:1.9, '修正1/1':2.3, '修正1/2':1.8, '修正1/3':1.6}},
+  {area:'rfender', name:'右フロントフェンダー', label:'右フロント\nフェンダー',dm2:35,  ph:{取替:1.9, '修正1/1':2.3, '修正1/2':1.8, '修正1/3':1.6}},
+  {area:'roof',    name:'ルーフ',               label:'ルーフ',                dm2:188, ph:{取替:4.6, '修正1/1':4.3, '修正1/2':3.0, '修正1/3':2.5}},
+  {area:'lfdoor',  name:'左フロントドア',       label:'左フロント\nドア',      dm2:93,  ph:{取替:3.0, '修正1/1':3.0, '修正1/2':2.3, '修正1/3':1.9}},
+  {area:'rfdoor',  name:'右フロントドア',       label:'右フロント\nドア',      dm2:93,  ph:{取替:3.0, '修正1/1':3.0, '修正1/2':2.3, '修正1/3':1.9}},
+  {area:'lrdoor',  name:'左リアドア',           label:'左リア\nドア',          dm2:80,  ph:{取替:2.7, '修正1/1':2.9, '修正1/2':2.2, '修正1/3':1.9}},
+  {area:'rrdoor',  name:'右リアドア',           label:'右リア\nドア',          dm2:80,  ph:{取替:2.7, '修正1/1':2.9, '修正1/2':2.2, '修正1/3':1.9}},
+  {area:'lqpanel', name:'左クォーターパネル',   label:'左クォーター\nパネル',  dm2:70,  ph:{取替:2.6, '修正1/1':2.7, '修正1/2':2.1, '修正1/3':1.8}},
+  {area:'rqpanel', name:'右クォーターパネル',   label:'右クォーター\nパネル',  dm2:70,  ph:{取替:2.6, '修正1/1':2.7, '修正1/2':2.1, '修正1/3':1.8}},
+  {area:'trunk',   name:'トランク/バックドア',  label:'トランク/\nバックドア', dm2:90,  ph:{取替:2.9, '修正1/1':3.0, '修正1/2':2.3, '修正1/3':1.9}},
+  {area:'rbumper', name:'リアバンパー',         label:'リア\nバンパー',        dm2:0,   ph:{}},
+  {area:'lsill',   name:'左サイドシル',         label:'左サイドシル',          dm2:25,  ph:{}},
+  {area:'rsill',   name:'右サイドシル',         label:'右サイドシル',          dm2:25,  ph:{}},
 ];
+// ─── ボディ形状別 面積テーブル (dm²) ───────────────────────────
+// ブロードリーフ実測値（PANEL_PARTSと同じ並び）。バンパーはnull＝手入力
+// 順序: [Fバンパー, ボンネット, 左Fフェンダー, 右Fフェンダー, ルーフ,
+//        左Fドア, 右Fドア, 左Rドア, 右Rドア, 左クォーター, 右クォーター, トランク, Rバンパー,
+//        左サイドシル, 右サイドシル]
+const BODY_SHAPE_DM2 = {
+  'コンパクト': [null, 103, 30, 30, 181, 81, 81, 70, 70, 51, 51, 91, null, 25, 25],  // ヤリス10系G
+  'SサイズSD':  [null, 103, 30, 30, 181, 81, 81, 70, 70, 51, 51, 91, null, 25, 25],  // プリウス
+  'MサイズSD':  [null, 113, 34, 34, 196, 81, 81, 79, 79, 84, 84, 64, null, 25, 25],  // レクサスIS300
+  'LサイズSD':  [null, 157, 42, 42, 190, 98, 98, 79, 79, 82, 82, 104, null, 25, 25],  // レクサスLS500
+  '2DCP':       [null, 139, 42, 42, 134, 79, 79, 0, 0, 110, 110, 77, null, 25, 25],  // トヨタ86
+  'MサイズSUV': [null, 55, 34, 34, 295, 96, 96, 83, 83, 81, 81, 102, null, 25, 25],  // RAV4 60系HYBRID
+  'LサイズSUV': [null, 200, 49, 49, 381, 93, 93, 78, 78, 124, 124, 118, null, 25, 25],  // ランドクルーザー250
+  'TR':         [null, 174, 42, 42, 212, 91, 91, 82, 82, 35, 35, 85, null, 25, 25],  // ハイラックス
+  'SサイズMV':  [null, 81, 35, 35, 284, 86, 86, 113, 113, 105, 105, 123, null, 25, 25],  // シエンタ10系×5人
+  'MサイズMV':  [null, 94, 33, 33, 368, 100, 100, 122, 122, 115, 115, 153, null, 25, 25],  // ヴォクシー90系HYBRID
+  'LサイズMV':  [null, 85, 48, 48, 438, 109, 109, 151, 151, 127, 127, 165, null, 25, 25],  // アルファード40系PHEV
+  '軽自動車':   [null, 71, 33, 33, 261, 94, 94, 73, 73, 45, 45, 90, null, 20, 20],  // ハスラー等
+};
+
+// パネル名→塗り数値テーブルを高速検索用マップ
+const PANEL_PH_MAP = {};
+PANEL_PARTS.forEach(p=>{ PANEL_PH_MAP[p.name]=p.ph||{}; });
+
 const WORK_TYPES = ['鈑金','塗装','鈑金+塗装','部品交換','調整・取付','その他'];
+// 2コートソリッド加算：部位ごとの係数を合計し0.1h単位に切り上げ（ブロードリーフ実測13パターンで一致確認）
+const TWO_COAT_COEF = {hood:0.11, lsill:0.11, rsill:0.11, roof:0.30};
+const TWO_COAT_DEFAULT = 0.10;
+function twoCoatHours(list){
+  const sum = list.reduce((a,it)=>a+(TWO_COAT_COEF[it.panelArea]??TWO_COAT_DEFAULT),0);
+  return Math.ceil(Math.round(sum*100)/10 - 1e-9)/10;
+}
 const PAINT_TYPES = ['グロス','メタリック','2コートパール','3コートパール','カラークリアー'];
+// 塗装区分（自研センター指数区分）
+const PAINT_WORK_TYPES = ['取替','修正1/1','修正1/2','修正1/3','手入力'];
 
 function genId(){ return `i-${Date.now()}-${++idSeq}`; }
 function todayStr(){ return new Date().toISOString().slice(0,10); }
+// 100円未満切り上げ（ブロードリーフ準拠）。浮動小数誤差を避けるため一旦1円単位で丸める
+function ceil100(v){ return Math.ceil(Math.round(v)/100)*100; }
 function fmt(n){ return '¥'+Math.round(n||0).toLocaleString('ja-JP'); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function newCust(){
   return {name:'',car:'',plate:'',color:'',date:todayStr(),staff:'',note:'',carType:'国産車',
+    bodyShape:'コンパクト', paintType:'グロス', cond2cs:true, condBooth:true,
     loanerCar:null,loanerNormal:false,loanerKei:false,loanerHeightLimit:false,loanerRider:false,
     paySelf:false,payVehicle:false,payProperty:false};
 }
-function newItem(part='',isQ=false){
-  return {id:genId(),part,type:'鈑金+塗装',panelHours:0,paintHours:0,paintType:'グロス',
-    includesQuarterPanel:isQ,accessoryHours:0,partsCost:0,qty:1,note:''};
+function newItem(part='',isQ=false,dm2=0){
+  return {id:genId(),part,type:'鈑金+塗装',panelHours:0,paintHours:0,paintType:(typeof customer!=='undefined'&&customer.paintType)||'グロス',
+    paintWork:'取替',includesQuarterPanel:isQ,twoTone:false,accessoryHours:0,paintArea:dm2,partsCost:0,qty:1,note:'',
+    panelArea:null}; // パネルマップ経由の場合はp.areaをセット
+}
+// 塗装区分が変わったとき塗り数値を自動入力（ボディ形状テーブル参照）
+function applyPaintWork(it){
+  if(it.paintWork==='手入力') return;
+  const shapeTable = BODY_SHAPE_PH[currentBodyShape]||BODY_SHAPE_PH['コンパクト'];
+  const panelRow = shapeTable[it.part];
+  if(!panelRow) return;
+  const idx = {'取替':0,'修正1/1':1,'修正1/2':2,'修正1/3':3}[it.paintWork];
+  if(idx!=null) it.paintHours = panelRow[idx];
+}
+// 塗装タイプ→材料費率キー
+function matRateKey(paintType){
+  if(paintType==='メタリック') return 'matRateMetallic';
+  if(paintType==='2コートパール') return 'matRate2Pearl';
+  if(paintType==='3コートパール') return 'matRate3Pearl';
+  if(paintType==='カラークリアー') return 'matRateColorClear';
+  return 'matRateGloss';
+}
+
+// 加算基礎数値を取得（塗装タイプ・パネル枚数から）
+function getBaseHours(paintType, panelCount){
+  const n = Math.min(panelCount, 5);
+  if(paintType==='グロス') return +settings.baseHoursGloss||1.7;
+  const suffix = n.toString();
+  if(paintType==='メタリック') return +settings[`baseHoursMetallic${suffix}`]||2.8;
+  if(paintType==='2コートパール') return +settings[`baseHours2Pearl${suffix}`]||3.0;
+  if(paintType==='3コートパール') return +settings[`baseHours3Pearl${suffix}`]||4.0;
+  if(paintType==='カラークリアー') return +settings[`baseHoursCC${suffix}`]||4.0;
+  return 1.5;
 }
 
 // ─── Calc ─────────────────────────────────────────────────
@@ -395,38 +554,126 @@ function calcRow(it){
   let ex = 0;
   if(isCC){ ex = isBump?0.2:it.includesQuarterPanel?(+settings.quarterPanelExtraHours||0):(+settings.noQuarterPanelExtraHours||0); }
   const tph = bh+ex;
-  const pct = (it.paintType==='3コートパール'||isCC)?(+settings.paintMaterialPercentHigh||0):(+settings.paintMaterialPercentLow||0);
-  const amount = ((ph*rate)+(tph*rate)+(tph*rate*(pct/100))+(ah*rate)+(+it.partsCost||0))*(+it.qty||0);
+
+  // ブロードリーフ準拠：
+  //   塗装工賃 = 塗装指数 × 工賃単価 → 100円未満切り上げ
+  //   材料代   = 塗装工賃 × 材料費率% → 100円未満切り上げ
+  //   塗装料金 = 塗装工賃 + 材料代
+  const matRate = (+settings[matRateKey(it.paintType)]||0)/100;
+  const paintLaborCost = tph>0 ? ceil100(tph*rate) : 0;
+  const paintMatCost = paintLaborCost>0 ? ceil100(paintLaborCost*matRate) : 0;
+
+  const panelCost = ph*rate;
+  const accessoryCost = ah*rate;
+  const partsCost = +it.partsCost||0;
+  const qty = +it.qty||0;
+  const amount = (panelCost + paintLaborCost + paintMatCost + accessoryCost + partsCost) * qty;
+
   const dp=[];
   if(ph) dp.push(`鈑金 ${ph}h×${fmt(rate)}`);
-  if(tph>0){ let s=`塗装(${it.paintType}) ${tph}h×${fmt(rate)}`; if(ex)s+=`(+${ex}h)`; dp.push(s); dp.push(`塗料代${pct}%`); }
+  if(tph>0){
+    let s=`塗装工賃(${it.paintType}) ${tph}h×${fmt(rate)}`;
+    if(ex) s+=`(+${ex}h)`;
+    s+=`=${fmt(paintLaborCost)}`;
+    dp.push(s);
+    dp.push(`材料代${Math.round(matRate*100)}%=${fmt(paintMatCost)}`);
+  }
   if(ah) dp.push(`付属品脱着 ${ah}h×${fmt(rate)}`);
-  if(+it.partsCost) dp.push(`部品代 ${fmt(+it.partsCost)}`);
+  if(partsCost) dp.push(`部品代 ${fmt(partsCost)}`);
   let desc = dp.join(' + ');
   if(it.note) desc += desc?` ／ ${it.note}`:it.note;
-  return {amount, desc, rate};
+  return {amount, desc, rate, paintH:tph*qty, paintLabor:paintLaborCost*qty, paintMat:paintMatCost*qty};
+}
+
+// 加算基礎数値の計算（全パネルの塗装タイプ・枚数を集計）
+function calcBaseAmount(){
+  if(!items.length) return {hours:0, labor:0, mat:0, lines:[], desc:''};
+  const rate = customer.carType==='輸入車'?(settings.laborRateImport||0):(settings.laborRateDomestic||0);
+  // 塗装タイプ別にパネル数を集計（塗装工数>0のもの）
+  const typeCount = {};
+  items.forEach(it=>{
+    if((+it.paintHours||0)>0){
+      typeCount[it.paintType] = (typeCount[it.paintType]||0)+1;
+    }
+  });
+  // 最も多い塗装タイプ（または最初のもの）で加算基礎数値を決定
+  let maxType='グロス', maxCount=0;
+  Object.entries(typeCount).forEach(([t,c])=>{ if(c>maxCount){maxType=t;maxCount=c;} });
+  const totalPanels = maxCount;
+  if(!totalPanels) return {hours:0, labor:0, mat:0, lines:[], desc:''};
+  const baseH = getBaseHours(maxType, totalPanels);
+  const matRate = (+settings[matRateKey(maxType)]||0)/100;
+  // ブロードリーフと同じく1行ずつ 工賃・材料代を100円未満切り上げ
+  const lines = [];
+  const addLine = (label,h)=>{
+    if(!(h>0)) return;
+    const labor = ceil100(h*rate), mat = ceil100(labor*matRate);
+    lines.push({label,h,labor,mat});
+  };
+  const panelsAll = Object.values(typeCount).reduce((a,b)=>a+b,0);
+  addLine(`加算基礎数値(${maxType} ${totalPanels}枚)`, baseH);
+  // 塗装条件（ブロードリーフの「塗装条件」と同じ）：グロス＝ソリッド塗膜に2コートソリッド加算
+  if(customer.cond2cs!==false && typeCount['グロス']){
+    const gl = items.filter(it=>(+it.paintHours||0)>0 && it.paintType==='グロス');
+    addLine(`2コートソリッド加算(${gl.length}枚)`, twoCoatHours(gl));
+  }
+  const tt = items.filter(it=>it.twoTone && (+it.paintHours||0)>0).length;
+  if(tt) addLine(`2トーン加算(${tt}枚)`, +settings[`twoTone${Math.min(tt,3)}`]||0);
+  if(customer.condBooth!==false && panelsAll) addLine('ブース加算', +settings.boothHours||0);
+  return {
+    hours: Math.round(lines.reduce((a,l)=>a+l.h,0)*100)/100,
+    labor: lines.reduce((a,l)=>a+l.labor,0),
+    mat: lines.reduce((a,l)=>a+l.mat,0),
+    lines,
+    desc: lines.map(l=>`${l.label} ${l.h}h=${fmt(l.labor)}+材料${fmt(l.mat)}`).join(' ／ ')
+  };
 }
 
 function calcTotals(){
-  const sub = items.reduce((s,it)=>s+calcRow(it).amount,0);
+  const rows = items.map(calcRow);
+  const itemSub = rows.reduce((s,r)=>s+r.amount,0);
+  const base = calcBaseAmount();
+  // 塗装集計（ブロードリーフの 塗装指数 / 塗装工賃 + 材料代 = 塗装料金）
+  const paintIndex = Math.round((rows.reduce((s,r)=>s+r.paintH,0) + (base.hours||0))*100)/100;
+  const paintLabor = rows.reduce((s,r)=>s+r.paintLabor,0) + base.labor;
+  const paintMat   = rows.reduce((s,r)=>s+r.paintMat,0) + base.mat;
+  const paint = {index:paintIndex, labor:paintLabor, mat:paintMat, total:paintLabor+paintMat};
+  const sub = itemSub + base.labor + base.mat;
   const exp = sub*((+settings.expenseRate||0)/100);
   const taxBase = sub+exp;
   const tax = taxBase*((+settings.taxRate||0)/100);
   const before = taxBase+tax;
   const disc10 = document.getElementById('disc10').checked ? Math.round(before*.1):0;
   const discFree = Math.round(+document.getElementById('disc-free').value||0);
-  return {sub, exp, tax, before, disc10, discFree, grand:before-disc10-discFree};
+  return {sub, itemSub, base, paint, exp, tax, before, disc10, discFree, grand:before-disc10-discFree};
 }
 
 // ─── Render ───────────────────────────────────────────────
 function render(){
   renderItems();
   recalc();
-  renderPanelBadges();
+  renderPanelState();
 }
 
 function recalc(){
+  document.getElementById('cond-2cs').checked = customer.cond2cs!==false;
+  document.getElementById('cond-booth').checked = customer.condBooth!==false;
   const t = calcTotals();
+  document.getElementById('t-item-sub').textContent = fmt(t.itemSub);
+  const baseRow = document.getElementById('t-base-row');
+  if(t.base.labor>0){
+    baseRow.style.display='flex';
+    document.getElementById('t-base-label').textContent = t.base.desc;
+    document.getElementById('t-base').textContent = fmt(t.base.labor+t.base.mat);
+  } else {
+    baseRow.style.display='none';
+  }
+  const pb = document.getElementById('t-paint-box');
+  pb.style.display = t.paint.labor>0 ? 'block' : 'none';
+  document.getElementById('t-paint-index').textContent = t.paint.index.toFixed(2);
+  document.getElementById('t-paint-labor').textContent = fmt(t.paint.labor);
+  document.getElementById('t-paint-mat').textContent = fmt(t.paint.mat);
+  document.getElementById('t-paint-total').textContent = fmt(t.paint.total);
   document.getElementById('t-sub').textContent  = fmt(t.sub);
   document.getElementById('t-exp-label').textContent = `諸経費（${settings.expenseRate}%）`;
   document.getElementById('t-exp').textContent  = fmt(t.exp);
@@ -452,13 +699,15 @@ function renderItems(){
     div.innerHTML = `
       <div class="item-cell col-part"><span class="cell-label">部位</span><input value="${esc(it.part)}" placeholder="部位名" data-id="${it.id}" data-f="part"></div>
       <div class="item-cell"><span class="cell-label">作業区分</span><select data-id="${it.id}" data-f="type">${WORK_TYPES.map(t=>`<option${t===it.type?' selected':''}>${t}</option>`).join('')}</select></div>
-      <div class="item-cell"><span class="cell-label">鈑金(h)</span><input type="number" step="0.5" min="0" value="${it.panelHours||''}" placeholder="0" data-id="${it.id}" data-f="panelHours"></div>
-      <div class="item-cell"><span class="cell-label">塗装(h)</span><input type="number" step="0.5" min="0" value="${it.paintHours||''}" placeholder="0" data-id="${it.id}" data-f="paintHours"></div>
-      <div class="item-cell"><span class="cell-label">塗装タイプ</span><select data-id="${it.id}" data-f="paintType">${PAINT_TYPES.map(t=>`<option${t===it.paintType?' selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="item-cell"><span class="cell-label">鈑金(h)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.panelHours||''}" placeholder="0" data-id="${it.id}" data-f="panelHours"></div>
+      <div class="item-cell"><span class="cell-label">塗装(h)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.paintHours||''}" placeholder="0" data-id="${it.id}" data-f="paintHours"></div>
       <div class="item-cell qcheck"><span class="cell-label">クォーター</span><input type="checkbox" ${it.includesQuarterPanel?'checked':''} data-id="${it.id}" data-f="includesQuarterPanel"></div>
-      <div class="item-cell"><span class="cell-label">付属品(h)</span><input type="number" step="0.5" min="0" value="${it.accessoryHours||''}" placeholder="0" data-id="${it.id}" data-f="accessoryHours"></div>
-      <div class="item-cell"><span class="cell-label">部品代(¥)</span><input type="number" step="100" min="0" value="${it.partsCost||''}" placeholder="0" data-id="${it.id}" data-f="partsCost"></div>
-      <div class="item-cell"><span class="cell-label">数量</span><input type="number" step="1" min="1" value="${it.qty||''}" placeholder="1" data-id="${it.id}" data-f="qty"></div>
+      <div class="item-cell qcheck"><span class="cell-label">2トーン</span><input type="checkbox" ${it.twoTone?'checked':''} data-id="${it.id}" data-f="twoTone"></div>
+      <div class="item-cell"><span class="cell-label">塗装区分</span><select data-id="${it.id}" data-f="paintWork">${PAINT_WORK_TYPES.map(t=>`<option${t===(it.paintWork||'取替')?' selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="item-cell"><span class="cell-label">付属品(h)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.accessoryHours||''}" placeholder="0" data-id="${it.id}" data-f="accessoryHours"></div>
+      <div class="item-cell"><span class="cell-label">面積(dm²)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.paintArea||''}" placeholder="0" data-id="${it.id}" data-f="paintArea" style="background:var(--accent-soft);border-color:var(--accent)"></div>
+      <div class="item-cell"><span class="cell-label">部品代(¥)</span><input type="text" inputmode="numeric" pattern="[0-9]*" value="${it.partsCost||''}" placeholder="0" data-id="${it.id}" data-f="partsCost"></div>
+      <div class="item-cell"><span class="cell-label">数量</span><input type="text" inputmode="numeric" pattern="[0-9]*" value="${it.qty||''}" placeholder="1" data-id="${it.id}" data-f="qty"></div>
       <div class="item-cell col-amt"><span class="cell-label">金額</span><div class="row-amount">${fmt(amount)}</div></div>
       <button class="row-del" data-del="${it.id}" title="削除">✕</button>
       ${desc?`<div class="row-desc">${esc(desc)}</div>`:''}
@@ -466,10 +715,17 @@ function renderItems(){
     list.appendChild(div);
   });
 
-  // Events
+  // Events: inputイベントは金額のみ即時更新（DOM再生成なし）、changeで完全再描画
   list.querySelectorAll('input,select').forEach(el => {
-    el.addEventListener('change', onItemChange);
-    el.addEventListener('input',  onItemChange);
+    if(el.type==='checkbox'||el.tagName==='SELECT'){
+      el.addEventListener('change', onItemChange);
+    } else {
+      // フォーカス時に0を消去
+      el.addEventListener('focus', ()=>{ if(el.value==='0'||el.value==='0.0') el.value=''; });
+      el.addEventListener('blur',  ()=>{ if(el.value===''&&NUM_FIELDS.includes(el.dataset.f)) el.value='0'; });
+      el.addEventListener('input', onItemInput);
+      el.addEventListener('change', onItemChange);
+    }
   });
   list.querySelectorAll('[data-del]').forEach(btn => {
     btn.addEventListener('click', e => {
@@ -479,25 +735,278 @@ function renderItems(){
   });
 }
 
-function onItemChange(e){
+const NUM_FIELDS = ['panelHours','paintHours','accessoryHours','paintArea','partsCost','qty'];
+
+function onItemInput(e){
+  // inputイベント：値だけ更新、DOMは再生成しない（キーボードが閉じないように）
   const el = e.currentTarget;
   const id = el.dataset.id, f = el.dataset.f;
   const it = items.find(i=>i.id===id);
   if(!it) return;
-  if(el.type==='checkbox') it[f]=el.checked;
-  else if(['panelHours','paintHours','accessoryHours','partsCost','qty'].includes(f)) it[f]=+el.value||0;
-  else it[f]=el.value;
+  if(NUM_FIELDS.includes(f)){
+    const v = el.value.replace(/[^\d.]/g,'');
+    it[f] = v===''?0:parseFloat(v)||0;
+  } else {
+    it[f] = el.value;
+  }
+  // 金額欄だけ更新（DOM再生成なし）
+  const row = el.closest('.item-row');
+  if(row){
+    const amtEl = row.querySelector('.row-amount');
+    const descEl = row.querySelector('.row-desc');
+    if(amtEl){ amtEl.textContent = fmt(calcRow(it).amount); }
+    if(descEl){ descEl.textContent = calcRow(it).desc; }
+  }
+  recalc();
+}
+
+function onItemChange(e){
+  // changeイベント（フォーカスが外れた時）：完全再レンダリング
+  const el = e.currentTarget;
+  const id = el.dataset.id, f = el.dataset.f;
+  const it = items.find(i=>i.id===id);
+  if(!it) return;
+  if(el.type==='checkbox'){
+    it[f]=el.checked;
+  } else if(NUM_FIELDS.includes(f)){
+    const v = el.value.replace(/[^\d.]/g,'');
+    it[f] = v===''?0:parseFloat(v)||0;
+  } else {
+    it[f]=el.value;
+  }
+  // 塗装区分または部位が変わったら塗り数値を自動更新
+  if(f==='paintWork'||f==='part'){
+    applyPaintWork(it);
+  }
   render();
 }
 
-function renderPanelBadges(){
+// ─── ボディ形状別 塗り数値テーブル ───────────────────────────
+// ブロードリーフ実測値をパネルに直接対応付け（取替単体, 修正1/1, 修正1/2, 修正1/3）
+// バンパーの修正1/2・1/3はデータなしのため0
+const BODY_SHAPE_PH = {
+  'コンパクト': {  // 5DHB ヤリス10系G（実測値そのまま）
+    'ボンネット':          [2.5,3.5,2.5,2.0],
+    '左フロントフェンダー':[1.7,1.9,1.6,1.4],
+    '右フロントフェンダー':[1.7,1.9,1.6,1.4],
+    'ルーフ':              [4.5,4.7,3.4,2.9],
+    '左フロントドア':      [2.7,3.1,2.2,1.9],
+    '右フロントドア':      [2.7,3.1,2.2,1.9],
+    '左リアドア':          [2.5,2.9,2.0,1.7],
+    '右リアドア':          [2.5,2.9,2.0,1.7],
+    '左クォーターパネル':  [2.9,2.5,1.9,1.6],
+    '右クォーターパネル':  [2.9,2.5,1.9,1.6],
+    'トランク/バックドア': [2.9,3.3,2.3,2.0],
+    '左サイドシル':        [1.8,1.5,0,0],
+    '右サイドシル':        [1.8,1.5,0,0],
+  },
+  'SサイズSD': {  // 5DHB プリウス（実測値そのまま）
+    'ボンネット':          [2.5,3.5,2.5,2.0],
+    '左フロントフェンダー':[1.7,1.9,1.6,1.4],
+    '右フロントフェンダー':[1.7,1.9,1.6,1.4],
+    'ルーフ':              [4.5,4.7,3.4,2.9],
+    '左フロントドア':      [2.7,3.1,2.2,1.9],
+    '右フロントドア':      [2.7,3.1,2.2,1.9],
+    '左リアドア':          [2.5,2.9,2.0,1.7],
+    '右リアドア':          [2.5,2.9,2.0,1.7],
+    '左クォーターパネル':  [2.9,2.5,1.9,1.6],
+    '右クォーターパネル':  [2.9,2.5,1.9,1.6],
+    'トランク/バックドア': [2.9,3.3,2.3,2.0],
+    '左サイドシル':        [1.8,1.5,0,0],
+    '右サイドシル':        [1.8,1.5,0,0],
+  },
+  'MサイズSD': {  // 5DS レクサスIS300（実測値そのまま）
+    'ボンネット':          [2.6,3.6,2.5,2.1],
+    '左フロントフェンダー':[1.8,2.0,1.6,1.5],
+    '右フロントフェンダー':[1.8,2.0,1.6,1.5],
+    'ルーフ':              [4.4,4.6,3.4,2.7],
+    '左フロントドア':      [2.6,3.0,2.2,1.9],
+    '右フロントドア':      [2.6,3.0,2.2,1.9],
+    '左リアドア':          [2.6,3.0,2.2,1.9],
+    '右リアドア':          [2.6,3.0,2.2,1.9],
+    '左クォーターパネル':  [3.4,3.2,2.2,1.9],
+    '右クォーターパネル':  [3.4,3.2,2.2,1.9],
+    'トランク/バックドア': [2.3,2.7,2.0,1.7],
+    '左サイドシル':        [1.8,1.5,0,0],
+    '右サイドシル':        [1.8,1.5,0,0],
+  },
+  'LサイズSD': {  // 4DS レクサスLS500（実測値そのまま）
+    'ボンネット':          [4.0,5.0,3.4,2.8],
+    '左フロントフェンダー':[2.1,2.5,1.8,1.7],
+    '右フロントフェンダー':[2.1,2.5,1.8,1.7],
+    'ルーフ':              [5.4,5.5,3.9,3.0],
+    '左フロントドア':      [3.5,3.9,2.7,2.2],
+    '右フロントドア':      [3.5,3.9,2.7,2.2],
+    '左リアドア':          [3.0,3.4,2.4,2.0],
+    '右リアドア':          [3.0,3.4,2.4,2.0],
+    '左クォーターパネル':  [4.0,3.6,2.4,2.0],
+    '右クォーターパネル':  [4.0,3.6,2.4,2.0],
+    'トランク/バックドア': [3.1,4.0,2.7,2.2],
+    '左サイドシル':        [1.8,1.6,0,0],
+    '右サイドシル':        [1.8,1.6,0,0],
+  },
+  '2DCP': {  // 2DCP トヨタ86（実測値そのまま）
+    'ボンネット':          [2.9,4.0,2.9,2.3],
+    '左フロントフェンダー':[1.9,2.2,1.7,1.6],
+    '右フロントフェンダー':[1.9,2.2,1.7,1.6],
+    'ルーフ':              [3.4,3.9,2.7,2.3],
+    '左フロントドア':      [2.6,3.0,2.2,1.9],
+    '右フロントドア':      [2.6,3.0,2.2,1.9],
+    '左リアドア':          [0,0,0,0],
+    '右リアドア':          [0,0,0,0],
+    '左クォーターパネル':  [4.0,3.6,2.5,2.1],
+    '右クォーターパネル':  [4.0,3.6,2.5,2.1],
+    'トランク/バックドア': [2.2,3.0,2.1,1.9],
+    '左サイドシル':        [1.6,1.5,0,0],
+    '右サイドシル':        [1.6,1.5,0,0],
+  },
+  'MサイズSUV': {  // 5DW RAV4 60系HYBRID（実測値そのまま）
+    'ボンネット':          [3.2,4.2,3.0,2.5],
+    '左フロントフェンダー':[1.8,2.1,1.8,1.5],
+    '右フロントフェンダー':[1.8,2.1,1.8,1.5],
+    'ルーフ':              [6.3,5.8,4.3,3.6],
+    '左フロントドア':      [3.0,3.5,2.3,2.0],
+    '右フロントドア':      [3.0,3.5,2.3,2.0],
+    '左リアドア':          [2.7,3.2,2.2,1.9],
+    '右リアドア':          [2.7,3.2,2.2,1.9],
+    '左クォーターパネル':  [3.4,3.1,2.2,1.9],
+    '右クォーターパネル':  [3.4,3.1,2.2,1.9],
+    'トランク/バックドア': [3.1,3.5,2.4,2.0],
+    '左サイドシル':        [1.8,1.5,0,0],
+    '右サイドシル':        [1.8,1.5,0,0],
+  },
+  'LサイズSUV': {  // 5DW ランドクルーザー250系2（実測値そのまま）
+    'ボンネット':          [3.7,4.6,3.5,2.7],
+    '左フロントフェンダー':[2.1,2.4,1.9,1.6],
+    '右フロントフェンダー':[2.1,2.4,1.9,1.6],
+    'ルーフ':              [7.6,6.5,4.7,4.0],
+    '左フロントドア':      [2.9,3.3,2.3,2.0],
+    '右フロントドア':      [2.9,3.3,2.3,2.0],
+    '左リアドア':          [2.6,3.0,2.1,1.9],
+    '右リアドア':          [2.6,3.0,2.1,1.9],
+    '左クォーターパネル':  [4.2,3.9,2.7,2.2],
+    '右クォーターパネル':  [4.2,3.9,2.7,2.2],
+    'トランク/バックドア': [3.4,3.7,2.6,2.2],
+    '左サイドシル':        [1.8,1.5,0,0],
+    '右サイドシル':        [1.8,1.5,0,0],
+  },
+  'TR': {  // TR ハイラックス（実測値そのまま）
+    'ボンネット':          [3.4,4.4,3.2,2.6],
+    '左フロントフェンダー':[2.0,2.3,1.7,1.6],
+    '右フロントフェンダー':[2.0,2.3,1.7,1.6],
+    'ルーフ':              [5.0,5.0,3.7,3.1],
+    '左フロントドア':      [2.9,3.3,2.3,2.0],
+    '右フロントドア':      [2.9,3.3,2.3,2.0],
+    '左リアドア':          [2.7,3.2,2.2,1.9],
+    '右リアドア':          [2.7,3.2,2.2,1.9],
+    '左クォーターパネル':  [2.8,2.1,1.6,1.5],
+    '右クォーターパネル':  [2.8,2.1,1.6,1.5],
+    'トランク/バックドア': [2.8,3.2,2.2,1.9],
+    '左サイドシル':        [1.8,1.5,0,0],
+    '右サイドシル':        [1.8,1.5,0,0],
+  },
+  'SサイズMV': {  // 5DW シエンタ10系×5人（実測値そのまま）
+    'ボンネット':          [2.3,3.0,2.2,1.9],
+    '左フロントフェンダー':[1.8,2.1,1.6,1.5],
+    '右フロントフェンダー':[1.8,2.1,1.6,1.5],
+    'ルーフ':              [8.1,5.7,4.3,3.8],
+    '左フロントドア':      [2.8,3.2,2.2,1.9],
+    '右フロントドア':      [2.8,3.2,2.2,1.9],
+    '左リアドア':          [3.3,3.7,2.5,2.1],
+    '右リアドア':          [3.3,3.7,2.5,2.1],
+    '左クォーターパネル':  [3.8,3.5,2.5,2.0],
+    '右クォーターパネル':  [3.8,3.5,2.5,2.0],
+    'トランク/バックドア': [3.5,3.8,2.7,2.2],
+    '左サイドシル':        [1.8,1.5,0,0],
+    '右サイドシル':        [1.8,1.5,0,0],
+  },
+  'MサイズMV': {  // 5DW ヴォクシー90系HYBRID（実測値そのまま）
+    'ボンネット':          [2.4,3.4,2.3,2.0],
+    '左フロントフェンダー':[1.8,2.0,1.6,1.4],
+    '右フロントフェンダー':[1.8,2.0,1.6,1.4],
+    'ルーフ':              [7.4,6.4,4.7,3.9],
+    '左フロントドア':      [3.0,3.5,2.4,2.0],
+    '右フロントドア':      [3.0,3.5,2.4,2.0],
+    '左リアドア':          [3.4,3.8,2.7,2.2],
+    '右リアドア':          [3.4,3.8,2.7,2.2],
+    '左クォーターパネル':  [4.0,4.0,2.8,2.1],
+    '右クォーターパネル':  [4.0,4.0,2.8,2.1],
+    'トランク/バックドア': [3.0,2.3,2.4,1.8],
+    '左サイドシル':        [1.8,1.5,0,0],
+    '右サイドシル':        [1.8,1.5,0,0],
+  },
+  'LサイズMV': {  // 5DW アルファード40系PHEV（実測値そのまま）
+    'ボンネット':          [2.3,3.2,2.2,1.9],
+    '左フロントフェンダー':[2.1,2.3,1.7,1.6],
+    '右フロントフェンダー':[2.1,2.3,1.7,1.6],
+    'ルーフ':              [8.5,7.1,5.0,4.3],
+    '左フロントドア':      [3.2,3.6,2.5,2.1],
+    '右フロントドア':      [3.2,3.6,2.5,2.1],
+    '左リアドア':          [4.0,4.2,3.0,2.4],
+    '右リアドア':          [4.0,4.2,3.0,2.4],
+    '左クォーターパネル':  [4.2,3.9,2.7,2.2],
+    '右クォーターパネル':  [4.2,3.9,2.7,2.2],
+    'トランク/バックドア': [4.2,4.5,3.1,2.5],
+    '左サイドシル':        [1.8,1.5,0,0],
+    '右サイドシル':        [1.8,1.5,0,0],
+  },
+  '軽自動車': {  // 5DW 軽自動車（ハスラー等・実測値そのまま）
+    'ボンネット':          [1.9,2.7,1.9,1.6],
+    '左フロントフェンダー':[1.5,1.9,1.5,1.3],
+    '右フロントフェンダー':[1.5,1.9,1.5,1.3],
+    'ルーフ':              [5.1,5.0,3.8,3.2],
+    '左フロントドア':      [2.5,3.2,2.1,1.9],
+    '右フロントドア':      [2.5,3.2,2.1,1.9],
+    '左リアドア':          [2.2,2.8,1.9,1.7],
+    '右リアドア':          [2.2,2.8,1.9,1.7],
+    '左クォーターパネル':  [2.5,2.2,1.6,1.5],
+    '右クォーターパネル':  [2.5,2.2,1.6,1.5],
+    'トランク/バックドア': [2.4,3.1,2.1,1.8],
+    '左サイドシル':        [1.4,1.3,0,0],
+    '右サイドシル':        [1.4,1.3,0,0],
+  },
+};
+const BODY_SHAPE_LABELS = {
+  'コンパクト':'コンパクトカー（ヤリス等）',
+  'SサイズSD':'Sサイズ セダン（プリウス等）',
+  'MサイズSD':'Mサイズ セダン（レクサスIS等）',
+  'LサイズSD':'Lサイズ セダン（レクサスLS等）',
+  '2DCP':'2ドアクーペ（86等）',
+  'LサイズSUV':'LサイズSUV（ランクル等）',
+  'MサイズSUV':'MサイズSUV（RAV4等）',
+  'TR':'トラック（ハイラックス等）',
+  'SサイズMV':'Sサイズ ミニバン（シエンタ等）',
+  'MサイズMV':'Mサイズ ミニバン（ヴォクシー等）',
+  'LサイズMV':'Lサイズ ミニバン（アルファード等）',
+  '軽自動車':'軽自動車（ハスラー等）',
+};
+let currentBodyShape = 'コンパクト';
+
+function setBodyShape(btn){
+  currentBodyShape = btn.dataset.shape;
+  document.querySelectorAll('[data-shape]').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('shape-hint').textContent = BODY_SHAPE_LABELS[currentBodyShape]||'';
+  // 既存の選択済みパネル行の塗り数値・面積を更新
+  const dm2Table = BODY_SHAPE_DM2[currentBodyShape];
+  items.forEach(it=>{
+    if(it.paintWork && it.paintWork!=='手入力') applyPaintWork(it);
+    // 面積も更新（パネルマップから追加された行のみ）
+    if(it.panelArea && dm2Table){
+      const idx = PANEL_PARTS.findIndex(p=>p.area===it.panelArea);
+      if(idx>=0 && dm2Table[idx]!=null) it.paintArea = dm2Table[idx];
+    }
+  });
+  render();
+}
+
+// ─── パネルの選択状態をボタンに反映
+function renderPanelState(){
   PANEL_PARTS.forEach(p=>{
     const btn = document.getElementById('pb-'+p.area);
     if(!btn) return;
-    const cnt = items.filter(it=>it.part===p.name).length;
-    const badge = btn.querySelector('.panel-badge');
-    if(cnt>0){ if(badge) badge.textContent=cnt; else btn.insertAdjacentHTML('beforeend',`<span class="panel-badge">${cnt}</span>`); }
-    else if(badge) badge.remove();
+    const selected = items.some(it=>it.panelArea===p.area);
+    btn.classList.toggle('selected', selected);
   });
 }
 
@@ -506,12 +1015,27 @@ function buildPanelMap(){
   map.innerHTML = '';
   PANEL_PARTS.forEach(p=>{
     const btn = document.createElement('button');
-    btn.className='panel-btn'; btn.id='pb-'+p.area;
+    btn.className='panel-btn'+(p.area.endsWith('sill')?' sill':''); btn.id='pb-'+p.area;
     btn.style.gridArea=p.area;
     btn.textContent=p.label;
     btn.addEventListener('click',()=>{
-      const isQ=p.area==='lqpanel'||p.area==='rqpanel';
-      items.push(newItem(p.name,isQ));
+      const already = items.findIndex(it=>it.panelArea===p.area);
+      if(already>=0){
+        // すでに選択済み → 解除（行を削除）
+        items.splice(already,1);
+      } else {
+        // 未選択 → 選択（行を追加）
+        const isQ=p.area==='lqpanel'||p.area==='rqpanel';
+        // ボディ形状別の面積を使用
+        const dm2Table = BODY_SHAPE_DM2[currentBodyShape];
+        const pIdx = PANEL_PARTS.findIndex(pp=>pp.area===p.area);
+        const dm2 = (dm2Table && pIdx>=0 && dm2Table[pIdx]!=null) ? dm2Table[pIdx] : (p.dm2||0);
+        const it=newItem(p.name,isQ,dm2);
+        it.panelArea=p.area;
+        if(p.area.endsWith('bumper')) it.paintWork='手入力';
+        applyPaintWork(it);
+        items.push(it);
+      }
       render();
     });
     map.appendChild(btn);
@@ -527,8 +1051,17 @@ function updateCust(){
   customer.date=document.getElementById('c-date').value;
   customer.staff=document.getElementById('c-staff').value;
   customer.note=document.getElementById('c-note').value;
+  customer.bodyShape=currentBodyShape;
+}
+function setPaintTypeAll(t){
+  customer.paintType=t;
+  items.forEach(it=>{ it.paintType=t; });
+  render();
 }
 function fillCustForm(){
+  const ps=document.getElementById('c-ptype');
+  if(!ps.options.length) ps.innerHTML=PAINT_TYPES.map(t=>`<option>${t}</option>`).join('');
+  ps.value=customer.paintType||'グロス';
   document.getElementById('c-name').value=customer.name||'';
   document.getElementById('c-car').value=customer.car||'';
   document.getElementById('c-plate').value=customer.plate||'';
@@ -568,8 +1101,29 @@ function updateSettings(){
   settings.shopRegNo=document.getElementById('s-shopRegNo').value;
   settings.laborRateDomestic=+document.getElementById('s-domestic').value||0;
   settings.laborRateImport=+document.getElementById('s-import').value||0;
-  settings.paintMaterialPercentLow=+document.getElementById('s-pctLow').value||0;
-  settings.paintMaterialPercentHigh=+document.getElementById('s-pctHigh').value||0;
+  settings.matRateGloss=+document.getElementById('s-matGloss').value||0;
+  settings.matRateMetallic=+document.getElementById('s-matMetallic').value||0;
+  settings.matRate2Pearl=+document.getElementById('s-mat2Pearl').value||0;
+  settings.matRate3Pearl=+document.getElementById('s-mat3Pearl').value||0;
+  settings.matRateColorClear=+document.getElementById('s-matCC').value||0;
+  settings.baseHoursGloss=+document.getElementById('s-baseGloss').value||0;
+  settings.boothHours=+document.getElementById('s-booth').value||0;
+  [1,2,3].forEach(n=>settings['twoTone'+n]=+document.getElementById('s-tt'+n).value||0);
+  settings.baseHoursMetallic1=+document.getElementById('s-baseM1').value||0;
+  settings.baseHoursMetallic2=+document.getElementById('s-baseM2').value||0;
+  settings.baseHoursMetallic3=+document.getElementById('s-baseM3').value||0;
+  settings.baseHoursMetallic4=+document.getElementById('s-baseM4').value||0;
+  settings.baseHoursMetallic5=+document.getElementById('s-baseM5').value||0;
+  settings.baseHours2Pearl1=+document.getElementById('s-base2P1').value||0;
+  settings.baseHours2Pearl2=+document.getElementById('s-base2P2').value||0;
+  settings.baseHours2Pearl3=+document.getElementById('s-base2P3').value||0;
+  settings.baseHours2Pearl4=+document.getElementById('s-base2P4').value||0;
+  settings.baseHours2Pearl5=+document.getElementById('s-base2P5').value||0;
+  settings.baseHours3Pearl1=+document.getElementById('s-base3P1').value||0;
+  settings.baseHours3Pearl2=+document.getElementById('s-base3P2').value||0;
+  settings.baseHours3Pearl3=+document.getElementById('s-base3P3').value||0;
+  settings.baseHours3Pearl4=+document.getElementById('s-base3P4').value||0;
+  settings.baseHours3Pearl5=+document.getElementById('s-base3P5').value||0;
   settings.quarterPanelExtraHours=+document.getElementById('s-qEx').value||0;
   settings.noQuarterPanelExtraHours=+document.getElementById('s-noqEx').value||0;
   settings.expenseRate=+document.getElementById('s-expRate').value||0;
@@ -584,8 +1138,29 @@ function fillSettingsForm(){
   document.getElementById('s-shopRegNo').value=settings.shopRegNo||'';
   document.getElementById('s-domestic').value=settings.laborRateDomestic||'';
   document.getElementById('s-import').value=settings.laborRateImport||'';
-  document.getElementById('s-pctLow').value=settings.paintMaterialPercentLow||'';
-  document.getElementById('s-pctHigh').value=settings.paintMaterialPercentHigh||'';
+  document.getElementById('s-matGloss').value=settings.matRateGloss||'';
+  document.getElementById('s-matMetallic').value=settings.matRateMetallic||'';
+  document.getElementById('s-mat2Pearl').value=settings.matRate2Pearl||'';
+  document.getElementById('s-mat3Pearl').value=settings.matRate3Pearl||'';
+  document.getElementById('s-matCC').value=settings.matRateColorClear||'';
+  document.getElementById('s-baseGloss').value=settings.baseHoursGloss||'';
+  document.getElementById('s-booth').value=settings.boothHours||'';
+  [1,2,3].forEach(n=>document.getElementById('s-tt'+n).value=settings['twoTone'+n]||'');
+  document.getElementById('s-baseM1').value=settings.baseHoursMetallic1||'';
+  document.getElementById('s-baseM2').value=settings.baseHoursMetallic2||'';
+  document.getElementById('s-baseM3').value=settings.baseHoursMetallic3||'';
+  document.getElementById('s-baseM4').value=settings.baseHoursMetallic4||'';
+  document.getElementById('s-baseM5').value=settings.baseHoursMetallic5||'';
+  document.getElementById('s-base2P1').value=settings.baseHours2Pearl1||'';
+  document.getElementById('s-base2P2').value=settings.baseHours2Pearl2||'';
+  document.getElementById('s-base2P3').value=settings.baseHours2Pearl3||'';
+  document.getElementById('s-base2P4').value=settings.baseHours2Pearl4||'';
+  document.getElementById('s-base2P5').value=settings.baseHours2Pearl5||'';
+  document.getElementById('s-base3P1').value=settings.baseHours3Pearl1||'';
+  document.getElementById('s-base3P2').value=settings.baseHours3Pearl2||'';
+  document.getElementById('s-base3P3').value=settings.baseHours3Pearl3||'';
+  document.getElementById('s-base3P4').value=settings.baseHours3Pearl4||'';
+  document.getElementById('s-base3P5').value=settings.baseHours3Pearl5||'';
   document.getElementById('s-qEx').value=settings.quarterPanelExtraHours||'';
   document.getElementById('s-noqEx').value=settings.noQuarterPanelExtraHours||'';
   document.getElementById('s-expRate').value=settings.expenseRate||'';
@@ -710,6 +1285,15 @@ function saveEst(){
 }
 function loadEst(h){
   customer={...newCust(),...h.customer};
+  if(!h.customer.paintType && h.items && h.items[0]) customer.paintType=h.items[0].paintType||'グロス';
+  // ボディ形状を復元
+  currentBodyShape = customer.bodyShape||'5DHB';
+  const shapeBtn = document.querySelector(`[data-shape="${currentBodyShape}"]`);
+  if(shapeBtn){
+    document.querySelectorAll('[data-shape]').forEach(b=>b.classList.remove('on'));
+    shapeBtn.classList.add('on');
+    document.getElementById('shape-hint').textContent = BODY_SHAPE_LABELS[currentBodyShape]||'';
+  }
   items=h.items.map(it=>({...newItem(),...it,id:genId()}));
   fillCustForm();
   setCarType(customer.carType);
@@ -807,6 +1391,8 @@ if('serviceWorker' in navigator){
 
 // ─── Init ─────────────────────────────────────────────────
 try{const s=localStorage.getItem('est-settings');if(s)settings={...DEF_SETTINGS,...JSON.parse(s)};}catch(e){}
+// 旧既定値1.5を保存済みの場合はブロードリーフ値1.7へ移行（1回のみ）
+if(!settings.migBase17){ if(+settings.baseHoursGloss===1.5) settings.baseHoursGloss=1.7; settings.migBase17=true; try{localStorage.setItem('est-settings',JSON.stringify(settings));}catch(e){} }
 try{const h=localStorage.getItem('est-history');if(h)history=JSON.parse(h);}catch(e){}
 fillCustForm();
 fillSettingsForm();
