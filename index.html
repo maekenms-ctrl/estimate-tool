@@ -16,8 +16,8 @@
 :root{
   --bg:#1a1d21;--surface:#232830;--surface2:#2c323b;--surface3:#353c46;
   --border:#3a414b;--text:#eef1f4;--muted:#90989f;
-  --accent:#2f6feb;--accent-soft:rgba(47,111,235,.20);--accent2:#0ea5e9;
-  --positive:#5ec98f;--on-accent:#fff;--radius:10px;
+  --accent:#e4ff1a;--accent-soft:rgba(228,255,26,.14);--accent2:#f2ff7a;
+  --positive:#5ec98f;--on-accent:#111;--radius:10px;
 }
 html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Hiragino Sans','Noto Sans JP',sans-serif;}
 body{padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px);}
@@ -93,8 +93,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
 /* Item rows */
 .items-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.items-header{display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(90px,.9fr) 68px 68px 58px 58px minmax(80px,.8fr) 68px 68px 90px 52px 90px 30px;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700;padding:0 4px 8px;border-bottom:1px solid var(--border);margin-bottom:6px;min-width:920px;}
-.item-row{display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(90px,.9fr) 68px 68px 58px 58px minmax(80px,.8fr) 68px 68px 90px 52px 90px 30px;gap:5px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--surface3);min-width:920px;}
+.items-header{display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(90px,.9fr) 68px 68px 90px 46px 46px minmax(80px,.8fr) 68px 68px 90px 52px 90px 30px;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700;padding:0 4px 8px;border-bottom:1px solid var(--border);margin-bottom:6px;min-width:1010px;}
+.item-row{display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(90px,.9fr) 68px 68px 90px 46px 46px minmax(80px,.8fr) 68px 68px 90px 52px 90px 30px;gap:5px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--surface3);min-width:1010px;}
 .item-row:last-child{border-bottom:none;}
 .item-row input,.item-row select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 4px;font-size:15px;font-family:inherit;min-width:0;}
 .item-row input[type=number]{-moz-appearance:textfield;appearance:textfield;}
@@ -115,10 +115,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 @media(max-width:700px){
   .items-scroll{overflow-x:visible;}
   .items-header{display:none;}
-  .item-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:0;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--surface2);}
+  .item-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;min-width:0;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--surface2);}
   .item-row .col-part,.item-row .col-amt,.item-row .row-desc{grid-column:1/-1;}
   .item-row .row-del{justify-self:start;}
-  .item-row .qcheck{justify-content:flex-start;}
+  .item-row>.item-cell{grid-column:span 2;}
+  .item-row>.item-cell.qcheck{grid-column:span 1;align-items:center;justify-content:flex-start;}
+  .item-row .col-part,.item-row .col-amt,.item-row .row-desc{grid-column:1/-1;}
   .item-cell{display:flex;flex-direction:column;}
   .cell-label{font-size:10px;color:var(--muted);margin-bottom:2px;}
   .row-amount{text-align:left;font-size:14px;}
@@ -268,7 +270,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <div class="card-title"><span class="bar"></span>作業項目</div>
       <div class="items-scroll">
         <div class="items-header">
-          <div>部位</div><div>作業区分</div><div>鈑金(h)</div><div>塗装(h)</div>
+          <div>部位</div><div>作業区分</div><div>鈑金(h)</div><div>塗装(h)</div><div>塗装金額(¥)</div>
           <div>クォーター</div><div>2トーン</div><div>塗装区分</div>
           <div>付属品(h)</div><div>面積(dm²)</div><div>部品代(¥)</div><div>数量</div><div>金額</div><div></div>
         </div>
@@ -569,8 +571,10 @@ function calcRow(it){
   //   材料代   = 塗装工賃 × 材料費率% → 100円未満切り上げ
   //   塗装料金 = 塗装工賃 + 材料代
   const matRate = (+settings[matRateKey(it.paintType)]||0)/100;
-  const paintLaborCost = tph>0 ? ceil100(tph*rate) : 0;
-  const paintMatCost = paintLaborCost>0 ? ceil100(paintLaborCost*matRate) : 0;
+  // 塗装区分「手入力」で塗装金額が入っていれば、その金額を塗装代として使う（時間からの自動計算はしない）
+  const manualPaint = it.paintWork==='手入力' ? (+it.paintAmount||0) : 0;
+  const paintLaborCost = manualPaint>0 ? manualPaint : (tph>0 ? ceil100(tph*rate) : 0);
+  const paintMatCost = manualPaint>0 ? 0 : (paintLaborCost>0 ? ceil100(paintLaborCost*matRate) : 0);
 
   const panelCost = ph*rate;
   const accessoryCost = ah*rate;
@@ -580,7 +584,9 @@ function calcRow(it){
 
   const dp=[];
   if(ph) dp.push(`鈑金 ${ph}h×${fmt(rate)}`);
-  if(tph>0){
+  if(manualPaint>0){
+    dp.push(`塗装金額(手入力) ${fmt(manualPaint)}`);
+  } else if(tph>0){
     let s=`塗装工賃(${it.paintType}) ${tph}h×${fmt(rate)}`;
     if(ex) s+=`(+${ex}h)`;
     s+=`=${fmt(paintLaborCost)}`;
@@ -591,7 +597,7 @@ function calcRow(it){
   if(partsCost) dp.push(`部品代 ${fmt(partsCost)}`);
   let desc = dp.join(' + ');
   if(it.note) desc += desc?` ／ ${it.note}`:it.note;
-  return {amount, desc, rate, paintH:tph*qty, paintLabor:paintLaborCost*qty, paintMat:paintMatCost*qty};
+  return {amount, desc, rate, paintH:(manualPaint>0?0:tph)*qty, paintLabor:paintLaborCost*qty, paintMat:paintMatCost*qty};
 }
 
 // 加算基礎数値の計算（全パネルの塗装タイプ・枚数を集計）
@@ -710,7 +716,8 @@ function renderItems(){
       <div class="item-cell col-part"><span class="cell-label">部位</span><input value="${esc(it.part)}" placeholder="部位名" data-id="${it.id}" data-f="part"></div>
       <div class="item-cell"><span class="cell-label">作業区分</span><select data-id="${it.id}" data-f="type">${WORK_TYPES.map(t=>`<option${t===it.type?' selected':''}>${t}</option>`).join('')}</select></div>
       <div class="item-cell"><span class="cell-label">鈑金(h)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.panelHours||''}" placeholder="0" data-id="${it.id}" data-f="panelHours"></div>
-      ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">塗装(h)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.paintHours||''}" placeholder="0" data-id="${it.id}" data-f="paintHours" ${it.paintWork==='手入力'?'class="ph-manual"':'readonly tabindex="-1" class="ph-auto" title="塗装区分を「手入力」にすると入力できます"'}></div>`}
+      ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">塗装(h)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.paintHours||''}" placeholder="0" data-id="${it.id}" data-f="paintHours"></div>`}
+      ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">塗装金額(¥)</span><input type="text" inputmode="numeric" pattern="[0-9]*" value="${it.paintWork==='手入力'?(it.paintAmount||''):''}" placeholder="${it.paintWork==='手入力'?'金額':'—'}" data-id="${it.id}" data-f="paintAmount" ${it.paintWork==='手入力'?'class="ph-manual"':'readonly tabindex="-1" class="ph-auto" title="塗装区分を「手入力」にすると入力できます"'}></div>`}
       ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell qcheck"><span class="cell-label">クォーター</span><input type="checkbox" ${it.includesQuarterPanel?'checked':''} data-id="${it.id}" data-f="includesQuarterPanel"></div>`}
       ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell qcheck"><span class="cell-label">2トーン</span><input type="checkbox" ${it.twoTone?'checked':''} data-id="${it.id}" data-f="twoTone"></div>`}
       ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">塗装区分</span><select data-id="${it.id}" data-f="paintWork">${PAINT_WORK_TYPES.map(t=>`<option${t===(it.paintWork||'取替')?' selected':''}>${t}</option>`).join('')}</select></div>`}
@@ -745,7 +752,7 @@ function renderItems(){
   });
 }
 
-const NUM_FIELDS = ['panelHours','paintHours','accessoryHours','paintArea','partsCost','qty'];
+const NUM_FIELDS = ['panelHours','paintHours','accessoryHours','paintArea','paintAmount','partsCost','qty'];
 
 function onItemInput(e){
   // inputイベント：値だけ更新、DOMは再生成しない（キーボードが閉じないように）
@@ -789,9 +796,9 @@ function onItemChange(e){
     applyPaintWork(it);
   }
   render();
-  // 「手入力」に切り替えたら塗装(h)欄にすぐ入力できるようにする
+  // 「手入力」に切り替えたら塗装金額欄にすぐ入力できるようにする
   if(f==='paintWork' && it.paintWork==='手入力'){
-    const ph=document.querySelector(`input[data-id="${it.id}"][data-f="paintHours"]`);
+    const ph=document.querySelector(`input[data-id="${it.id}"][data-f="paintAmount"]`);
     if(ph){ ph.focus(); ph.select(); }
   }
 }
