@@ -302,6 +302,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <label style="font-size:13px"><input type="checkbox" id="cond-coat" onchange="customer.bodyCoat=this.checked;recalc()" style="margin-right:5px;accent-color:var(--accent)">あり</label>
         </div>
         <div class="tline"><span>作業小計（パネル）</span><span class="val" id="t-item-sub">¥0</span></div>
+        <div class="tline" id="t-coat-row" style="display:none"><span id="t-coat-label" style="font-size:11px;color:var(--accent2)">ボディコーティング加算</span><span class="val" id="t-coat">¥0</span></div>
         <div class="tline" id="t-base-row" style="display:none"><span id="t-base-label" style="font-size:11px;color:var(--accent2)">加算基礎数値</span><span class="val" id="t-base">¥0</span></div>
         <div id="t-paint-box" style="display:none;margin:6px 0;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface)">
           <div class="tline" style="font-size:11px"><span>塗装指数</span><span class="val" id="t-paint-index">0.00</span></div>
@@ -674,7 +675,17 @@ function calcTotals(){
   const paintLabor = rows.reduce((s,r)=>s+r.paintLabor,0) + base.labor;
   const paintMat   = rows.reduce((s,r)=>s+r.paintMat,0) + base.mat;
   const paint = {index:paintIndex, labor:paintLabor, mat:paintMat, total:paintLabor+paintMat};
-  const sub = itemSub + base.labor + base.mat;
+  // ボディコーティング加算：パーツマップで選んだパネル1枚につき1h（ルーフは2h）×工賃単価（ライト類は除く）
+  const coat = {count:0, hours:0, labor:0};
+  if(customer.bodyCoat){
+    const rate = customer.carType==='輸入車'?(settings.laborRateImport||0):(settings.laborRateDomestic||0);
+    items.forEach(it=>{
+      if(!it.panelArea || ['lhead','rhead','ltail','rtail'].includes(it.panelArea)) return;
+      coat.count++; coat.hours += it.panelArea==='roof' ? 2 : 1;
+    });
+    coat.labor = Math.round(coat.hours*rate);
+  }
+  const sub = itemSub + base.labor + base.mat + coat.labor;
   const exp = customer.noExpense ? 0 : sub*((+settings.expenseRate||0)/100);
   const taxBase0 = Math.round(sub+exp);
   // 消費税前の端数カット：税抜金額の下3桁を000に
@@ -689,7 +700,7 @@ function calcTotals(){
   const disc10 = document.getElementById('disc10').checked ? Math.round(tax):0;
   // 自由値引きは一番最後
   const discFree = Math.round(+document.getElementById('disc-free').value||0);
-  return {sub, itemSub, base, paint, exp, taxBase, cutPre, tax, before, disc10, discFree, cutPost, grand:grand0-cutPost-disc10-discFree};
+  return {sub, itemSub, base, coat, paint, exp, taxBase, cutPre, tax, before, disc10, discFree, cutPost, grand:grand0-cutPost-disc10-discFree};
 }
 
 // ─── Render ───────────────────────────────────────────────
@@ -705,6 +716,10 @@ function recalc(){
   document.getElementById('cond-booth').checked = customer.condBooth!==false;
   const t = calcTotals();
   document.getElementById('t-item-sub').textContent = fmt(t.itemSub);
+  const coatRow=document.getElementById('t-coat-row');
+  coatRow.style.display = t.coat.labor>0 ? 'flex' : 'none';
+  document.getElementById('t-coat-label').textContent = `ボディコーティング加算（${t.coat.count}枚・${t.coat.hours}h）`;
+  document.getElementById('t-coat').textContent = fmt(t.coat.labor);
   const baseRow = document.getElementById('t-base-row');
   if(t.base.labor>0){
     baseRow.style.display='flex';
@@ -1284,7 +1299,9 @@ function buildText(){
   if(!items.length) lines.push('（項目なし）');
   else items.forEach(it=>{const b=calcRow(it);lines.push(`・${it.part||'-'}（${it.type}） 数量${it.qty}　${fmt(b.amount)}`);if(b.desc)lines.push(`    ${b.desc}`);});
   const t=calcTotals();
-  lines.push(D,`作業小計　${fmt(t.sub)}`,customer.noExpense?'':`諸経費（${settings.expenseRate}%）　${fmt(t.exp)}`);
+  lines.push(D);
+  if(t.coat.labor>0) lines.push(`ボディコーティング加算（${t.coat.count}枚・${t.coat.hours}h）　${fmt(t.coat.labor)}`);
+  lines.push(`作業小計　${fmt(t.sub)}`,customer.noExpense?'':`諸経費（${settings.expenseRate}%）　${fmt(t.exp)}`);
   if(t.cutPre>0)lines.push(`端数調整（税抜）　－${fmt(t.cutPre)}`);
   lines.push(`消費税（${settings.taxRate}%）　${fmt(t.tax)}`);
   if(t.cutPost>0)lines.push(`端数調整（税込）　－${fmt(t.cutPost)}`);
@@ -1333,7 +1350,9 @@ function buildLineText(){
     const w=(+it.paintHours||0)>0?pw(it.paintWork):((+it.accessoryHours||0)>0&&it.type==='脱着'?'脱着':'');
     lines.push(`・${it.part||'-'}${w?`［${w}］`:''}`);
   });
-  lines.push(L,
+  lines.push(L);
+  if(t.coat.labor>0) lines.push(`💎 コーティング施工（${t.coat.count}枚）　${fmt(t.coat.labor)}`);
+  lines.push(
     `📋 作業小計　${fmt(t.sub)}`,
     customer.noExpense?'':`🧾 諸経費（${settings.expenseRate}%）　${fmt(t.exp)}`);
   if(t.cutPre>0) lines.push(`✂️ 端数調整（税抜）　－${fmt(t.cutPre)}`);
