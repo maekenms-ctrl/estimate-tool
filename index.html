@@ -11750,6 +11750,16 @@ function _labelPrep(src){
   const rot=(deg)=>{const r=document.createElement('canvas');const sw=deg%180?lh:lw,sh=deg%180?lw:lh,pd=30;r.width=sw+pd*2;r.height=sh+pd*2;const x=r.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,r.width,r.height);x.translate(r.width/2,r.height/2);x.rotate(deg*Math.PI/180);x.drawImage(o,-lw/2,-lh/2);return r;};
   return vertical?[rot(90),rot(270),rot(0),rot(180)]:[rot(0),rot(180),rot(90),rot(270)];
 }
+// ホンダのカラー番号（NH812P, R81, B593M, YR615M など）：数字部分の読み違い（B→8, O→0 など）を補正
+function _fixHondaColor(c){
+  const P=['NH','YR','BG','PB','RP','GY','YG','R','B','G','Y'];
+  for(const p of P){
+    if(!c.startsWith(p)) continue;
+    const m=c.slice(p.length).match(/^([0-9OILSBZ]{2,3})([A-Z]?)$/);
+    if(m){ const d=m[1].replace(/O/g,'0').replace(/[IL]/g,'1').replace(/S/g,'5').replace(/B/g,'8').replace(/Z/g,'2'); if(/\d/.test(m[1])) return p+d+m[2]; }
+  }
+  return /^[A-Z]{1,3}\d{2,3}[A-Z]?$/.test(c)?c:null;
+}
 // OCRの文字列から型式・車台番号・カラー番号を拾う
 function parseLabelText(text){
   const T=String(text||'').toUpperCase().replace(/[|]/g,'I');
@@ -11757,8 +11767,13 @@ function parseLabelText(text){
   const out={};
   const ctr=T.match(/C\s*\/\s*TR\s*[:.]?\s*([A-Z0-9]{2,4})/); if(ctr) out.color=ctr[1];
   if(!out.color){
-    const i=lines.findIndex(l=>/C[O0]L[O0]U?R/.test(l));
-    if(i>=0){
+    const i=lines.findIndex(l=>/C[O0]?L[O0]?U?R\b|C[O0]L[O0]U?R/.test(l));
+    // 見出し行（COLOR TRIM PLANT OPTION）なら次の行の先頭がカラー番号
+    if(i>=0 && /PLANT|PLAN|OPTI|OPT1|TR[I1L]?[MN]\b|RIN\b/.test(lines[i]) && lines[i+1]){
+      const t=(lines[i+1].replace(/^[^A-Z0-9]+/,'').match(/^([0-9][A-Z0-9]{2}|[A-Z][0-9][A-Z0-9])(?![A-Z0-9])/)||[])[1];
+      if(t) out.color=t;
+    }
+    if(i>=0 && !out.color){
       const after=lines[i].replace(/.*C[O0]L[O0]U?R\.?\s*(?:N[O0]\.?|CODE)?[:.\s]*/,'');
       if(after && !/^(TR[I1L][MN]|PLANT|[CO]*PT|OPT)/.test(after)){ const t=(after.match(/^([A-Z0-9]{2,6}(?:-[A-Z0-9]{1,4})?)/)||[])[1]; if(t) out.color=t; }
       if(!out.color && lines[i+1]){ const t2=(lines[i+1].replace(/^[^A-Z0-9]+/,'').match(/^([A-Z0-9]{2,6}(?:-[A-Z0-9]{1,4})?)/)||[])[1]; if(t2) out.color=t2; }
@@ -11767,8 +11782,10 @@ function parseLabelText(text){
   // ホンダ：「TDKH7L8-NH812P -A -C」の2番目（NH812P）がカラー番号
   if(!out.color){
     for(const l of lines){
-      const h=l.replace(/\s*-\s*/g,'-').match(/(?:^|[^A-Z0-9])[A-Z0-9]{5,9}-([A-Z]{1,3}\d{2,3}[A-Z]{0,2})(?:-[A-Z0-9]{1,2}){1,3}(?![A-Z0-9])/);
-      if(h){ out.color=h[1]; out.maker='HONDA'; break; }
+      const z=l.replace(/\s+/g,'');  // 「TDKH 7L8-NH812P -A -C」→ 空白を除いて判定
+      const h=z.match(/[A-Z0-9]{5,10}-([A-Z0-9]{4,7})(?:-[A-Z0-9]{1,2}){1,3}(?![A-Z0-9])/) || z.match(/[A-Z0-9]{5,10}-(NH[A-Z0-9]{3,4})/);
+      const c=h&&_fixHondaColor(h[1]);
+      if(c){ out.color=c; out.maker='HONDA'; break; }
     }
   }
   if(out.color && /^[0-9OIL]{3}$/.test(out.color)) out.color=out.color.replace(/O/g,'0').replace(/[IL]/g,'1');
@@ -11776,6 +11793,7 @@ function parseLabelText(text){
   const md=T.match(/MODEL\.*\s*([A-Z0-9]{2,4})\s*-\s*([A-Z0-9]{3,8})/); if(md) out.kata=md[1]+'-'+md[2];
   // 日本語表記のラベル（型式／車台番号）：英字は読めないので並びで判定
   if(!out.chassis){ const c=T.match(/(?:^|[^A-Z0-9])([A-Z]{1,4}\d{1,3}[A-Z]?)\s*-\s*(\d{6,8})(?!\d)/m); if(c) out.chassis=c[1]+'-'+c[2]; }
+  if(!out.kata){ const k=T.match(/(?:^|[^A-Z0-9])([0-9A-Z]{3})\s*-\s*([A-Z]{1,4}\d{1,3}[A-Z]?)(?![A-Z0-9-])/m); if(k) out.kata=k[1]+'-'+k[2]; }
   return out;
 }
 
@@ -11856,7 +11874,7 @@ function applyVehicleInfo(info,source){
       candHtml='<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span style="color:var(--muted)">候補：</span>'+m.cands.map((c,i)=>`<button type="button" class="selbtn rbtn cand-btn${i===0?' on':''}" onclick="chooseCandidate(${i})">${esc(c[0])}</button>`).join('')+'</div>';
     }
   } else if(info.chassis||info.kata){
-    const car=document.getElementById('c-car'); if(!car.value) car.value=_codeFrom(info.chassis)||info.kata||'';
+    const car=document.getElementById('c-car'); if(!car.value && source!=='コーションラベル') car.value=_codeFrom(info.chassis)||info.kata||'';
     msgs.push(`型式 ${info.kata||info.chassis}（車種表に未登録：車種名を入力して保存すると次回から自動で入ります）`);
   }
   if(info.color){ document.getElementById('c-color').value=info.color; msgs.push('カラー '+info.color); }
@@ -12027,7 +12045,7 @@ async function labelFromBlob(f){
     // 車台番号はQRの方が確実なので、ラベル由来は車種が未入力のときだけ使う
     if(document.getElementById('c-car').value){ delete best.chassis; delete best.kata; }
     // ラベルの車台番号は読み違いがあり得るので、車種の判定にだけ使い、車台番号欄には入れない
-    if(best.chassis){ best.kata=best.chassis; delete best.chassis; }
+    if(best.chassis){ if(lookupChassis(best.chassis)||!best.kata||!lookupChassis(best.kata)) best.kata=best.chassis; delete best.chassis; }
     delete best.maker;
     applyVehicleInfo(best,'コーションラベル');
   }catch(e){ _busy(null); toast('エラー：'+_errMsg(e),7000); }
