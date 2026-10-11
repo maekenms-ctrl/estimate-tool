@@ -2,6 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>鈑金・塗装 見積りツール</title>
 <meta name="mobile-web-app-capable" content="yes">
@@ -142,7 +144,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px;position:relative;z-index:2;}
 .actions .btn{justify-content:center;min-height:46px;touch-action:manipulation;-webkit-tap-highlight-color:rgba(228,255,26,.35);-webkit-user-select:none;user-select:none;}
 @media(min-width:901px){.actions{grid-template-columns:repeat(3,minmax(0,1fr));}}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#111;color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;z-index:9999;max-width:90vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s;}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#111;color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;z-index:30000;max-width:90vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s;}
 .toast.show{opacity:1;}
 .scan-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
 .scan-row .btn{justify-content:center;min-height:46px;font-size:12px;text-align:center;touch-action:manipulation;cursor:pointer;line-height:1.3;}
@@ -183,6 +185,22 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 #pv-banner button{margin-left:8px;background:var(--accent);color:#111;border:none;border-radius:6px;padding:3px 8px;font-weight:700;font-size:11px;font-family:inherit;}
 .pv-imgs{display:grid;gap:10px;max-height:60vh;overflow:auto;margin-top:10px;}
 .pv-imgs img{width:100%;border-radius:8px;-webkit-touch-callout:default;user-select:auto;}
+#lock-ov{position:fixed;inset:0;z-index:20000;background:var(--bg,#14161a);display:flex;align-items:center;justify-content:center;padding:20px;}
+.lk-box{width:100%;max-width:340px;text-align:center;}
+.lk-box.shake{animation:lkshake .35s;}
+@keyframes lkshake{0%,100%{transform:none}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.lk-logo{width:64px;height:64px;border-radius:16px;margin-bottom:12px;}
+.lk-title{font-size:18px;font-weight:900;color:var(--text);}
+.lk-sub{font-size:12px;color:var(--muted);margin-top:6px;min-height:34px;line-height:1.5;}
+.lk-sub.lk-err{color:#ff6b6b;}
+.lk-dots{display:flex;justify-content:center;gap:14px;margin:14px 0 18px;}
+.lk-dots span{width:14px;height:14px;border-radius:50%;border:2px solid var(--accent);}
+.lk-dots span.on{background:var(--accent);}
+.lk-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.lk-pad button{height:62px;border-radius:14px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:24px;font-weight:700;font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:rgba(228,255,26,.35);}
+.lk-pad button.lk-fn{font-size:15px;}
+.lk-pad button.lk-ok{background:var(--accent);color:#111;border-color:var(--accent);}
+.lk-link{margin-top:18px;background:none;border:none;color:var(--muted);text-decoration:underline;font-size:12px;font-family:inherit;}
 .cf-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .cf-btns .btn{justify-content:center;min-height:46px;touch-action:manipulation;}
 .cf-btns .btn.cf-yes{background:#e5484d;border-color:#e5484d;color:#fff;}
@@ -419,6 +437,13 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="sg"><h3>覚えた車種 <span id="learned-count" style="color:var(--muted)"></span></h3>
       <div class="sg-note">見積りを保存すると、車台番号（または車種欄の末尾のコード）と車種名・ボディ形状を覚え、次回の読み取りで自動入力します。内蔵の車種表より優先されます。</div>
       <div id="learned-list"></div>
+    </div>
+    <div class="sg"><h3>セキュリティ</h3>
+      <div class="sg-note">アプリを開くときに暗証番号が必要です。保存した見積り履歴（お客様名・登録番号など）は暗証番号で暗号化して、この端末の中だけに保存しています。</div>
+      <div class="fgrid">
+        <div class="field"><label>自動ロック（操作がないとき）</label><select id="s-autoLockMin" onchange="settings.autoLockMin=+this.value;try{localStorage.setItem('est-settings',JSON.stringify(settings));}catch(e){};toast('自動ロックを'+this.value+'分にしました')"><option value="1">1分</option><option value="3">3分</option><option value="5">5分</option><option value="10">10分</option><option value="30">30分</option></select></div>
+        <div class="field" style="display:flex;gap:8px;align-items:flex-end"><button type="button" class="btn" onclick="changePin()">🔑 暗証番号を変更</button><button type="button" class="btn" onclick="lockNow()">🔒 今すぐロック</button></div>
+      </div>
     </div>
     <div class="sg"><h3>会社情報</h3>
       <div class="fgrid">
@@ -1271,6 +1296,7 @@ function updateSettings(){
 }
 function fillSettingsForm(){
   try{renderLearned();}catch(e){}
+  {const a=document.getElementById('s-autoLockMin'); if(a) a.value=String(settings.autoLockMin||5);}
   document.getElementById('s-shopName').value=settings.shopName||'';
   document.getElementById('s-shopAddress').value=settings.shopAddress||'';
   document.getElementById('s-shopTel').value=settings.shopTel||'';
@@ -1501,8 +1527,7 @@ function saveEst(){
   const snap={id:genId(),savedAt:new Date().toISOString(),customer:{...customer},items:[...items.map(i=>({...i}))],settings:{...settings},totals:t,disc10:document.getElementById('disc10').checked,discountFree:document.getElementById('disc-free').value};
   try{learnCurrentVehicle();}catch(e){}
   history.unshift(snap);
-  try{localStorage.setItem('est-history',JSON.stringify(history));showMsg('save-msg','履歴に保存しました');}
-  catch(e){showMsg('save-msg','保存に失敗しました');}
+  showMsg('save-msg',_saveHistory()?'履歴に保存しました':'保存に失敗しました');
 }
 function loadEst(h){
   customer={...newCust(),...h.customer};
@@ -1555,7 +1580,7 @@ async function deleteEst(id){
   const name=h?`${h.customer.name||'（名前未入力）'} ／ ${h.customer.car||'車種未入力'}`:'';
   if(!await askConfirm(`この見積りを削除しますか？\n${name}`))return;
   history=history.filter(x=>x.id!==id);
-  try{localStorage.setItem('est-history',JSON.stringify(history));}catch(e){}
+  _saveHistory();
   renderHistory();
   toast('削除しました');
 }
@@ -12005,17 +12030,32 @@ function _errMsg(e){
   return m;
 }
 // 文字認識エンジンの起動（失敗・無応答でも止まらないように）
+// 外部から取り込む文字認識プログラムの改ざん防止（ハッシュ値が一致しないと動かない）
+const TESS_URL='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/';
+const TESS_SRI={main:'sha256-qOKZGNCYsrBuEBK9rv+0rsBEXF1WVHCQI+C9H0QqgOg=',worker:'sha256-rKEiljn8mQfYb5boJZVaK3xXFtF/O8Os1x+cerZhgfw='};
+let _verifiedWorkerURL=null;
+async function _workerURL(){
+  if(_verifiedWorkerURL) return _verifiedWorkerURL;
+  let r;
+  try{ r=await fetch(TESS_URL+'worker.min.js',{integrity:TESS_SRI.worker,mode:'cors',cache:'force-cache'}); }
+  catch(e){ throw new Error(/integrity|SRI|digest/i.test(e&&e.message||'')?'文字認識プログラムの安全確認に失敗しました（改ざんの可能性）':'worker fetch'); }
+  if(!r.ok) throw new Error('worker fetch');
+  const code=await r.text();
+  _verifiedWorkerURL=URL.createObjectURL(new Blob([code],{type:'application/javascript'}));
+  return _verifiedWorkerURL;
+}
 async function _newWorker(lang){
   let t;
   const to=new Promise((_,rej)=>{t=setTimeout(()=>rej(new Error('worker timeout')),90000);});
   try{
-    return await Promise.race([Tesseract.createWorker(lang).catch(e=>{throw (e instanceof Error)?e:new Error('worker '+String(e&&e.message||e||''));}),to]);
+    const wp=await _workerURL();
+    return await Promise.race([Tesseract.createWorker(lang,1,{workerPath:wp,workerBlobURL:false}).catch(e=>{throw (e instanceof Error)?e:new Error('worker '+String(e&&e.message||e||''));}),to]);
   } finally { clearTimeout(t); }
 }
 function _loadTesseract(){
   if(window.Tesseract) return Promise.resolve();
   if(_tessLoading) return _tessLoading;
-  _tessLoading=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';s.onload=()=>res();s.onerror=()=>{_tessLoading=null;rej(new Error('文字認識の読み込みに失敗しました（通信を確認してください）'));};document.head.appendChild(s);});
+  _tessLoading=new Promise((res,rej)=>{const s=document.createElement('script');s.src=TESS_URL+'tesseract.min.js';s.integrity=TESS_SRI.main;s.crossOrigin='anonymous';s.onload=()=>res();s.onerror=()=>{_tessLoading=null;rej(new Error('文字認識の読み込みに失敗しました（通信を確認してください）'));};document.head.appendChild(s);});
   return _tessLoading;
 }
 async function labelFromFile(input){
@@ -12257,6 +12297,131 @@ function lineShareWithPhotos(){
   document.body.appendChild(ov);
 }
 
+// ─── セキュリティ：暗証番号ロック・履歴の暗号化 ─────────────────────────
+// 履歴は暗証番号から作った鍵（PBKDF2 25万回）で AES-GCM 暗号化して端末に保存する。
+// 暗証番号そのものは保存しない（照合用の暗号文だけを保存）。
+const SEC={key:null,locked:true,lastAct:Date.now(),hiddenAt:0,ok:!!(window.crypto&&crypto.subtle)};
+const _b64=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
+const _ub64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+function _lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function _lsSet(k,v){try{localStorage.setItem(k,v);return true;}catch(e){return false;}}
+function _lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
+async function _deriveKey(pin,salt,iter){
+  const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:iter,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function _enc(key,obj){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(obj)));return {iv:_b64(iv),ct:_b64(ct)};}
+async function _dec(key,box){const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:_ub64(box.iv)},key,_ub64(box.ct));return JSON.parse(new TextDecoder().decode(pt));}
+function _lockInfo(){try{return JSON.parse(_lsGet('est-lock')||'null');}catch(e){return null;}}
+// 履歴の保存（ロック中・未設定時の扱いも含めてここに集約）
+let _saveChain=Promise.resolve();
+function _saveHistory(){
+  if(!SEC.ok){ return _lsSet('est-history',JSON.stringify(history)); }
+  if(!SEC.key) return false;
+  const snap=JSON.parse(JSON.stringify(history));
+  _saveChain=_saveChain.then(async()=>{ const box=await _enc(SEC.key,snap); if(!_lsSet('est-history-enc',JSON.stringify(box))) toast('履歴の保存に失敗しました（容量不足の可能性）',6000); }).catch(e=>toast('履歴の保存に失敗しました',6000));
+  return true;
+}
+async function _unlockWith(pin){
+  const L=_lockInfo(); const key=await _deriveKey(pin,_ub64(L.salt),L.iter);
+  try{ const v=await _dec(key,L.chk); if(v!=='ARK-OK') return false; }catch(e){ return false; }
+  SEC.key=key;
+  const enc=_lsGet('est-history-enc');
+  try{ history=enc?await _dec(key,JSON.parse(enc)):[]; }catch(e){ history=[]; toast('履歴を読み込めませんでした',6000); }
+  return true;
+}
+async function _setupPin(pin){
+  const salt=crypto.getRandomValues(new Uint8Array(16)), iter=250000;
+  const key=await _deriveKey(pin,salt,iter);
+  const chk=await _enc(key,'ARK-OK');
+  // 以前の暗号化していない履歴があれば引き継ぐ
+  let old=[]; try{ old=JSON.parse(_lsGet('est-history')||'[]')||[]; }catch(e){}
+  if(!Array.isArray(history)||!history.length) history=old;
+  SEC.key=key;
+  _lsSet('est-lock',JSON.stringify({v:1,salt:_b64(salt),iter,chk}));
+  _saveHistory(); await _saveChain;
+  _lsDel('est-history'); // 平文の履歴は削除
+}
+function _failState(){try{return JSON.parse(_lsGet('est-lock-fail')||'{"n":0,"until":0}');}catch(e){return {n:0,until:0};}}
+function lockNow(){
+  if(!SEC.ok||!_lockInfo()) return;
+  SEC.key=null; SEC.locked=true; history=[]; try{renderHistory();}catch(e){}
+  document.querySelectorAll('.cf-ov:not(#lock-ov)').forEach(o=>{ if(o.id!=='busy') o.remove(); });
+  _showLock('unlock');
+}
+function _showLock(mode){
+  let ov=document.getElementById('lock-ov'); if(ov) ov.remove();
+  ov=document.createElement('div'); ov.id='lock-ov';
+  const icon=(document.getElementById('apple-touch-icon')||{}).href||'';
+  ov.innerHTML=`<div class="lk-box">
+    ${icon?`<img class="lk-logo" src="${icon}" alt="">`:''}
+    <div class="lk-title"></div><div class="lk-sub"></div>
+    <div class="lk-dots"></div>
+    <div class="lk-pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button type="button" data-k="${n}">${n}</button>`).join('')}<button type="button" data-k="del" class="lk-fn">消す</button><button type="button" data-k="0">0</button><button type="button" data-k="ok" class="lk-fn lk-ok">決定</button></div>
+    <button type="button" class="lk-link"></button>
+  </div>`;
+  document.body.appendChild(ov);
+  const title=ov.querySelector('.lk-title'),sub=ov.querySelector('.lk-sub'),dots=ov.querySelector('.lk-dots'),link=ov.querySelector('.lk-link');
+  let pin='',first='',step=mode; // unlock | setup | setup2 | change-old
+  const texts={
+    unlock:['暗証番号を入力','見積りツールはロックされています'],
+    setup:['暗証番号を決めてください','4〜6桁の数字（6桁がおすすめ）。お客様情報の履歴はこの番号で暗号化されます'],
+    setup2:['もう一度入力してください','確認のため、同じ番号をもう一度'],
+    'change-old':['今の暗証番号を入力','暗証番号の変更'],
+  };
+  const paint=()=>{ title.textContent=texts[step][0]; if(!sub.dataset.err) sub.textContent=texts[step][1];
+    dots.innerHTML=Array.from({length:Math.max(4,pin.length)},(_,i)=>`<span class="${i<pin.length?'on':''}"></span>`).join('');
+    link.textContent= step==='unlock'?'暗証番号を忘れた場合': (mode==='change-old'?'キャンセル':''); link.style.display=link.textContent?'':'none'; };
+  const err=(m)=>{ sub.textContent=m; sub.dataset.err='1'; sub.classList.add('lk-err'); ov.querySelector('.lk-box').classList.remove('shake'); void ov.offsetWidth; ov.querySelector('.lk-box').classList.add('shake'); setTimeout(()=>{delete sub.dataset.err;sub.classList.remove('lk-err');},2500); };
+  const submit=async()=>{
+    if(pin.length<4){ err('4桁以上入力してください'); return; }
+    if(step==='unlock'||step==='change-old'){
+      const f=_failState(); if(Date.now()<f.until){ err(`入力の間違いが続いたため、${Math.ceil((f.until-Date.now())/1000)}秒お待ちください`); pin=''; paint(); return; }
+      sub.textContent='確認しています…';
+      const ok=await _unlockWith(pin);
+      if(!ok){ f.n++; if(f.n>=5) f.until=Date.now()+30000*Math.pow(2,f.n-5); _lsSet('est-lock-fail',JSON.stringify(f)); pin=''; paint(); err(f.n>=5?'暗証番号が違います（しばらく入力できません）':`暗証番号が違います（${f.n}回目）`); return; }
+      _lsDel('est-lock-fail');
+      if(step==='change-old'){ step='setup'; pin=''; paint(); return; }
+      _unlocked(ov); return;
+    }
+    if(step==='setup'){ first=pin; pin=''; step='setup2'; paint(); return; }
+    if(step==='setup2'){
+      if(pin!==first){ pin='';first='';step='setup';paint();err('一致しませんでした。最初からやり直してください'); return; }
+      sub.textContent='設定しています…';
+      await _setupPin(pin); _unlocked(ov); toast(mode==='change-old'?'暗証番号を変更しました':'暗証番号を設定しました',4000); return;
+    }
+  };
+  ov.querySelector('.lk-pad').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.k;
+    if(k==='del') pin=pin.slice(0,-1); else if(k==='ok') return submit(); else if(pin.length<6) pin+=k;
+    paint(); if(pin.length===6 && step!=='setup') submit(); });
+  link.addEventListener('click',async()=>{
+    if(mode==='change-old'){ _unlocked(ov); return; }
+    const cp=askConfirm('暗証番号を忘れた場合は、保存済みの見積り履歴をすべて削除して、新しい暗証番号を設定し直します。\n（設定・覚えた車種は残ります）','履歴を削除して再設定');
+    {const o=document.querySelectorAll('.cf-ov');if(o.length)o[o.length-1].style.zIndex='20001';}
+    if(!await cp) return;
+    _lsDel('est-history-enc'); _lsDel('est-lock'); _lsDel('est-lock-fail'); _lsDel('est-history'); history=[];
+    pin='';step='setup';mode='setup';paint();
+  });
+  paint();
+}
+function _unlocked(ov){ SEC.locked=false; SEC.lastAct=Date.now(); ov.remove(); try{renderHistory();}catch(e){} }
+function changePin(){ if(!SEC.ok){toast('この画面では暗証番号を使えません',5000);return;} _showLock('change-old'); }
+function _secInit(){
+  if(!SEC.ok){ // 暗号化が使えない画面（プレビュー等）
+    try{const h=_lsGet('est-history');if(h)history=JSON.parse(h);}catch(e){}
+    SEC.locked=false; return;
+  }
+  _showLock(_lockInfo()?'unlock':'setup');
+  // 自動ロック：一定時間操作がない／アプリを離れて一定時間たったらロック
+  ['pointerdown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{SEC.lastAct=Date.now();},{passive:true,capture:true}));
+  const lim=()=>(+settings.autoLockMin||5)*60000;
+  setInterval(()=>{ if(!SEC.locked && Date.now()-SEC.lastAct>lim()) lockNow(); },15000);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='hidden'){ SEC.hiddenAt=Date.now(); }
+    else if(!SEC.locked && SEC.hiddenAt && Date.now()-SEC.hiddenAt>lim()){ lockNow(); }
+  });
+}
+
 // ─── Init ─────────────────────────────────────────────────
 const SHOP_NAME='株式会社AUTO REPAIR KOBE', SHOP_TEL='078-881-6678', SHOP_ADDRESS='〒657-0864　神戸市灘区新在家南町4丁目11-10';
 try{const s=localStorage.getItem('est-settings');if(s)settings={...DEF_SETTINGS,...JSON.parse(s)};}catch(e){}
@@ -12265,7 +12430,7 @@ try{const s=localStorage.getItem('est-settings');if(s)settings={...DEF_SETTINGS,
 if(!settings.migMat43){ if(+settings.matRate3Pearl===38) settings.matRate3Pearl=43; if(+settings.matRateColorClear===38) settings.matRateColorClear=43; settings.migMat43=true; try{localStorage.setItem('est-settings',JSON.stringify(settings));}catch(e){} }
 if(!settings.migBase17){ if(+settings.baseHoursGloss===1.5) settings.baseHoursGloss=1.7; settings.migBase17=true; try{localStorage.setItem('est-settings',JSON.stringify(settings));}catch(e){} }
 settings.shopName=SHOP_NAME; settings.shopTel=SHOP_TEL; settings.shopAddress=SHOP_ADDRESS; // 会社名・電話番号・所在地は固定
-try{const h=localStorage.getItem('est-history');if(h)history=JSON.parse(h);}catch(e){}
+_secInit();
 fillCustForm();
 fillSettingsForm();
 setCarType('国産車');
