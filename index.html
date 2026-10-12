@@ -178,6 +178,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .ph-sub{font-size:11px;color:var(--muted);margin:-2px 0 8px;line-height:1.5;}
 .field label .ph-count{margin-left:auto;}
 .field .ph-btns label.btn{display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.3;color:var(--text);font-size:12px;font-weight:700;margin:0;}
+.odo-btn{white-space:nowrap;justify-content:center;font-size:12px;cursor:pointer;margin:0!important;color:var(--text)!important;}
 .ph-note{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;}
 .line-steps{display:grid;gap:8px;margin-top:12px;}
 .line-steps .btn{justify-content:center;min-height:48px;touch-action:manipulation;}
@@ -310,6 +311,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div class="field span2"><label>車台番号</label><input id="c-chassis" placeholder="例：ZVW30-5237294" autocapitalize="characters" oninput="updateCust()"></div>
         <div class="field"><label>型式指定番号</label><input id="c-typeno" inputmode="numeric" placeholder="例：12604" oninput="updateCust()"></div>
         <div class="field"><label>類別区分番号</label><input id="c-ruino" inputmode="numeric" placeholder="例：0042" oninput="updateCust()"></div>
+        <div class="field span2"><label>走行距離（km）</label><div style="display:flex;gap:8px"><input id="c-mileage" inputmode="numeric" pattern="[0-9]*" placeholder="例：45678" oninput="this.value=this.value.replace(/[^0-9]/g,'');updateCust()" style="flex:1"><label class="btn odo-btn">🚗 メーターから読む<input type="file" accept="image/*" style="display:none" onchange="odoFromFile(this)"></label></div></div>
         <div class="field span2"><label>登録番号</label><input id="c-plate" placeholder="品川 300 あ 12-34" oninput="updateCust()"></div>
         <div class="field"><label>車体色（カラー番号）</label><input id="c-color" placeholder="例：070" oninput="updateCust()"></div>
         <div class="field"><label>塗装タイプ（全部位一括）</label><select id="c-ptype" onchange="setPaintTypeAll(this.value)"></select></div>
@@ -1210,6 +1212,7 @@ function updateCust(){
   customer.name=document.getElementById('c-name').value;
   customer.car=document.getElementById('c-car').value;
   customer.chassis=document.getElementById('c-chassis').value;
+  customer.mileage=document.getElementById('c-mileage').value;
   {const a=document.getElementById('c-typeno').value.trim(),b=document.getElementById('c-ruino').value.trim(); customer.typeNo=a||b?`${a}-${b}`:'';}
   customer.plate=document.getElementById('c-plate').value;
   customer.color=document.getElementById('c-color').value;
@@ -1230,6 +1233,7 @@ function fillCustForm(){
   document.getElementById('c-name').value=customer.name||'';
   document.getElementById('c-car').value=customer.car||'';
   document.getElementById('c-chassis').value=customer.chassis||'';
+  document.getElementById('c-mileage').value=customer.mileage||'';
   {const tn=String(customer.typeNo||'').split('-'); document.getElementById('c-typeno').value=tn[0]||''; document.getElementById('c-ruino').value=tn[1]||'';}
   document.getElementById('c-plate').value=customer.plate||'';
   document.getElementById('c-color').value=customer.color||'';
@@ -1436,6 +1440,7 @@ function buildLineText(){
     customer.chassis?`🔖 車台番号：${customer.chassis}`:'',
     customer.plate?`🔢 ${customer.plate}`:'',
     `🚘 車格：${SHAPE_READING[currentBodyShape]||currentBodyShape}`,
+    customer.mileage?`🛣 走行距離：${(+customer.mileage).toLocaleString()}km`:'',
     customer.color?`🏷 車体色：${customer.color}`:'',
     `💎 ボディコーティング：${customer.bodyCoat?'あり':'なし'}`,
     items.some(it=>(+it.paintHours||0)>0)?`🎨 塗装：${customer.paintType||'ソリッド'}`:'',
@@ -1513,7 +1518,7 @@ function _lineSendText(){
 async function dlFile(){
   const t2=calcTotals();
   const rows=items.map(it=>{const b=calcRow(it);return`<tr><td>${esc(it.part)||'-'}</td><td>${esc(it.type)}</td><td>${esc(b.desc)||'-'}</td><td style="text-align:center">${it.qty}</td><td style="text-align:right">${fmt(b.amount)}</td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center">項目がありません</td></tr>';
-  const html=`<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>御見積書</title><style>@page{size:A4;margin:8mm;}body{font-family:'Hiragino Sans',sans-serif;color:#111;padding:8mm;font-size:11px;}table{width:100%;border-collapse:collapse;margin-top:8px;}th,td{border:1px solid #333;padding:4px 6px;font-size:10px;text-align:left;vertical-align:top;}th{background:#eee;}.ti{text-align:center;font-size:18px;font-weight:900;letter-spacing:.3em;margin-bottom:10px;}.top{display:flex;justify-content:space-between;margin-bottom:8px;gap:16px;flex-wrap:wrap;}.tots td{border:none;padding:2px 0;font-size:11px;}.grd td{border-top:2px solid #333;padding-top:4px;font-size:14px;font-weight:900;}</style></head><body><div class="ti">御 見 積 書</div><div class="top"><div><div><b>${esc(customer.name)||'お客様'}</b> 様</div><div>車種：${esc(customer.car)||'-'}（${esc(customer.carType)}）</div>${customer.chassis?`<div>車台番号：${esc(customer.chassis)}</div>`:''}${customer.typeNo?`<div>型式指定番号／類別区分番号：${esc(customer.typeNo.replace('-','／'))}</div>`:''}<div>登録番号：${esc(customer.plate)||'-'}</div><div>車体色：${esc(customer.color)||'-'}</div><div>ボディコーティング：${customer.bodyCoat?'あり':'なし'}</div><div>代車：${esc(loanerSummary())}</div><div>支払区分：${esc(paySummary())}</div></div><div style="text-align:right"><div>見積日：${esc(customer.date)}</div><div><b>${esc(settings.shopName)}</b></div>${settings.shopAddress?`<div>${esc(settings.shopAddress)}</div>`:''}${settings.shopTel?`<div>TEL：${esc(settings.shopTel)}</div>`:''}</div></div><table><thead><tr><th style="width:15%">部位</th><th style="width:11%">作業区分</th><th>内容</th><th style="width:6%">数量</th><th style="width:13%">金額</th></tr></thead><tbody>${rows}</tbody></table><table class="tots" style="width:240px;margin-left:auto;margin-top:8px;"><tr><td>作業小計</td><td style="text-align:right">${fmt(t2.sub)}</td></tr>${customer.noExpense?'':`<tr><td>諸経費（${settings.expenseRate}%）</td><td style="text-align:right">${fmt(t2.exp)}</td></tr>`}${t2.cutPre>0?`<tr><td>端数調整（税抜）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPre)}</td></tr>`:''}<tr><td>消費税（${settings.taxRate}%）</td><td style="text-align:right">${fmt(t2.tax)}</td></tr>${t2.cutPost>0?`<tr><td>端数調整（税込）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPost)}</td></tr>`:''}${t2.disc10>0?`<tr><td>10%値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.disc10)}</td></tr>`:''}${t2.discFree>0?`<tr><td>自由値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.discFree)}</td></tr>`:''}<tr class="grd"><td>合計金額（税込）</td><td style="text-align:right">${fmt(t2.grand)}</td></tr></table>${customer.note?`<div style="margin-top:10px;font-size:10px;">${esc(customer.note)}</div>`:''}</body></html>`;
+  const html=`<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>御見積書</title><style>@page{size:A4;margin:8mm;}body{font-family:'Hiragino Sans',sans-serif;color:#111;padding:8mm;font-size:11px;}table{width:100%;border-collapse:collapse;margin-top:8px;}th,td{border:1px solid #333;padding:4px 6px;font-size:10px;text-align:left;vertical-align:top;}th{background:#eee;}.ti{text-align:center;font-size:18px;font-weight:900;letter-spacing:.3em;margin-bottom:10px;}.top{display:flex;justify-content:space-between;margin-bottom:8px;gap:16px;flex-wrap:wrap;}.tots td{border:none;padding:2px 0;font-size:11px;}.grd td{border-top:2px solid #333;padding-top:4px;font-size:14px;font-weight:900;}</style></head><body><div class="ti">御 見 積 書</div><div class="top"><div><div><b>${esc(customer.name)||'お客様'}</b> 様</div><div>車種：${esc(customer.car)||'-'}（${esc(customer.carType)}）</div>${customer.chassis?`<div>車台番号：${esc(customer.chassis)}</div>`:''}${customer.typeNo?`<div>型式指定番号／類別区分番号：${esc(customer.typeNo.replace('-','／'))}</div>`:''}<div>登録番号：${esc(customer.plate)||'-'}</div>${customer.mileage?`<div>走行距離：${(+customer.mileage).toLocaleString()} km</div>`:''}<div>車体色：${esc(customer.color)||'-'}</div><div>ボディコーティング：${customer.bodyCoat?'あり':'なし'}</div><div>代車：${esc(loanerSummary())}</div><div>支払区分：${esc(paySummary())}</div></div><div style="text-align:right"><div>見積日：${esc(customer.date)}</div><div><b>${esc(settings.shopName)}</b></div>${settings.shopAddress?`<div>${esc(settings.shopAddress)}</div>`:''}${settings.shopTel?`<div>TEL：${esc(settings.shopTel)}</div>`:''}</div></div><table><thead><tr><th style="width:15%">部位</th><th style="width:11%">作業区分</th><th>内容</th><th style="width:6%">数量</th><th style="width:13%">金額</th></tr></thead><tbody>${rows}</tbody></table><table class="tots" style="width:240px;margin-left:auto;margin-top:8px;"><tr><td>作業小計</td><td style="text-align:right">${fmt(t2.sub)}</td></tr>${customer.noExpense?'':`<tr><td>諸経費（${settings.expenseRate}%）</td><td style="text-align:right">${fmt(t2.exp)}</td></tr>`}${t2.cutPre>0?`<tr><td>端数調整（税抜）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPre)}</td></tr>`:''}<tr><td>消費税（${settings.taxRate}%）</td><td style="text-align:right">${fmt(t2.tax)}</td></tr>${t2.cutPost>0?`<tr><td>端数調整（税込）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPost)}</td></tr>`:''}${t2.disc10>0?`<tr><td>10%値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.disc10)}</td></tr>`:''}${t2.discFree>0?`<tr><td>自由値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.discFree)}</td></tr>`:''}<tr class="grd"><td>合計金額（税込）</td><td style="text-align:right">${fmt(t2.grand)}</td></tr></table>${customer.note?`<div style="margin-top:10px;font-size:10px;">${esc(customer.note)}</div>`:''}</body></html>`;
   const safe=(customer.car||'estimate').replace(/[\\/:*?"<>|]/g,'');
   const fname=`見積書_${safe}_${customer.date||todayStr()}.html`;
   const blob=new Blob([html],{type:'text/html'});
@@ -12251,9 +12256,10 @@ function photoTag(id,v){
   // 車検証・コーションラベルを選んだら、その写真から読み取ってアプリに反映
   if(v==='車検証') shakenFromBlob(p.file||p.blob);
   else if(v==='コーションラベル') labelFromBlob(p.file||p.blob);
+  else if(v==='走行距離（メーター）') odoFromBlob(p.file||p.blob);
 }
 function _photoTagOptions(cur){
-  const opts=['車検証','コーションラベル','車両全体'];
+  const opts=['車検証','コーションラベル','走行距離（メーター）','車両全体'];
   items.forEach(it=>{ if(it.part&&!opts.includes(it.part)) opts.push(it.part); });
   opts.push('その他');
   if(cur&&!opts.includes(cur)) opts.push(cur);
@@ -12470,6 +12476,74 @@ function _secInit(){
     if(document.visibilityState==='hidden'){ SEC.hiddenAt=Date.now(); }
     else if(!SEC.locked && SEC.hiddenAt && Date.now()-SEC.hiddenAt>lim()){ lockNow(); }
   });
+}
+
+// ─── 走行距離（オドメーターの写真から読み取り） ─────────────────────────
+function _odoPrep(src){
+  const out=[];
+  const s=Math.min(1,1800/Math.max(src.width,src.height));const w=Math.round(src.width*s),h=Math.round(src.height*s);
+  const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(src,0,0,w,h);
+  const d=ctx.getImageData(0,0,w,h),a=d.data,g=new Uint8Array(w*h);let sum=0;
+  for(let i=0;i<w*h;i++){ const v=Math.max(a[i*4],a[i*4+1],a[i*4+2]); g[i]=v; sum+=v; } // 明るい文字（白・オレンジ・青）を拾うため最大値
+  const dark=sum/(w*h)<128; // メーターは暗い背景に明るい数字が多い → 白黒反転して「白地に黒文字」に
+  const {th}=_otsu(g,{[Symbol.iterator]:function*(){for(let i=0;i<w*h;i++)yield i;}});
+  const mk=(fn)=>{const o=document.createElement('canvas');o.width=w;o.height=h;const x=o.getContext('2d');const id=x.createImageData(w,h);for(let i=0;i<w*h;i++){const v=fn(g[i]);id.data[i*4]=id.data[i*4+1]=id.data[i*4+2]=v;id.data[i*4+3]=255;}x.putImageData(id,0,0);return o;};
+  out.push(mk(v=>{const b=v>th?255:0;return dark?255-b:b;}));          // 白黒化
+  out.push(mk(v=>{const b=v>Math.min(250,th+40)?255:0;return dark?255-b:b;})); // 明るい部分だけ（光の映り込み対策）
+  out.push(mk(v=>dark?255-v:v));                                        // 階調のまま
+  return out;
+}
+function parseOdoText(text){
+  let T=String(text||'').toUpperCase().replace(/(\d)[,，](\d{3})/g,'$1$2').replace(/[|]/g,'1');
+  const ok=n=>n>=1&&n<=1999999;
+  // ① 「ODO 45678」
+  let m=T.match(/[O0]D[O0]\s*[:.]?\s*(\d{1,7})(?![\d.])/); if(m&&ok(+m[1])) return +m[1];
+  // ② 「45678 km」（小数のトリップは除く）
+  const kms=[...T.matchAll(/(?<![\d.:])(\d{2,7})(?![\d.:])\s*K\s*M/g)].map(x=>+x[1]).filter(ok);
+  const lines=T.split('\n');
+  const tripVals=new Set(); lines.forEach(l=>{ if(/TR[I1]P/.test(l)) (l.match(/\d+/g)||[]).forEach(v=>tripVals.add(+v)); });
+  const kms2=kms.filter(v=>!tripVals.has(v));
+  if(kms2.length) return Math.max(...kms2);
+  // ③ 機械式（数字が1つずつ枠に入っている「0 8 7 6 5 4」）
+  for(const l of lines){ const q=l.match(/(?:^|[^\d.])((?:\d\s+){4,6}\d)(?![\d.])/); if(q){ const v=+q[1].replace(/\s+/g,''); if(ok(v)) return v; } }
+  // ④ 4桁以上の数字（時刻・小数は除く）で一番大きいもの
+  const nums=[...T.matchAll(/(?<![\d.:])(\d{4,7})(?![\d.:])/g)].map(x=>+x[1]).filter(v=>ok(v)&&!tripVals.has(v));
+  return nums.length?Math.max(...nums):null;
+}
+async function odoFromFile(input){
+  const f=input.files&&input.files[0]; input.value=''; if(!f) return;
+  photoAttachDoc(f,'走行距離（メーター）');
+  return odoFromBlob(f);
+}
+async function odoFromBlob(f){
+  _busy('文字認識を準備しています…（初回は少し時間がかかります）');
+  let worker=null;
+  try{
+    await _loadTesseract();
+    const src=await _fileToCanvas(f,2600);
+    worker=await _newWorker('eng');
+    let val=null;
+    const cands=_odoPrep(src);
+    for(const psm of ['11','6']){
+      await worker.setParameters({tessedit_char_whitelist:'0123456789.,:ODTRIPKMABkm ',tessedit_pageseg_mode:psm});
+      for(let i=0;i<cands.length&&val==null;i++){
+        _busy(`走行距離を読み取っています…（${psm==='11'?i+1:i+1+cands.length}/${cands.length*2}）`);
+        const {data}=await worker.recognize(cands[i]); val=parseOdoText(data.text);
+      }
+      if(val!=null) break;
+    }
+    _busy(null);
+    const box=document.getElementById('scan-result');
+    if(val!=null){
+      document.getElementById('c-mileage').value=String(val); updateCust();
+      if(box) box.textContent=`読み取り（メーター）：走行距離 ${val.toLocaleString()} km　※数字が合っているか確認してください`;
+      toast(`走行距離 ${val.toLocaleString()} km を入力しました。合っているか確認してください`,6000);
+    } else {
+      if(box) box.textContent='メーターから走行距離を読み取れませんでした';
+      toast('走行距離を読み取れませんでした。数字が大きく写るように撮るか、手で入力してください',6000);
+    }
+  }catch(e){ _busy(null); toast('エラー：'+_errMsg(e),7000); }
+  finally{ if(worker) worker.terminate(); }
 }
 
 // ─── Init ─────────────────────────────────────────────────
