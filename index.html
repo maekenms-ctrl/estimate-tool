@@ -175,6 +175,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .ph-img img{width:100%;height:100%;object-fit:cover;display:block;}
 .ph-no{position:absolute;left:4px;top:4px;background:var(--accent);color:#111;font-weight:900;font-size:11px;border-radius:4px;padding:1px 6px;}
 .ph-del{position:absolute;right:4px;top:4px;width:26px;height:26px;border-radius:50%;border:none;background:rgba(0,0,0,.7);color:#fff;font-size:13px;cursor:pointer;}
+.ph-sub{font-size:11px;color:var(--muted);margin:-2px 0 8px;line-height:1.5;}
+.field label .ph-count{margin-left:auto;}
+.field .ph-btns label.btn{display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.3;color:var(--text);font-size:12px;font-weight:700;margin:0;}
 .ph-note{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;}
 .line-steps{display:grid;gap:8px;margin-top:12px;}
 .line-steps .btn{justify-content:center;min-height:48px;touch-action:manipulation;}
@@ -268,14 +271,21 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div class="rate-hint" id="rate-hint">適用工賃：¥9,800／時間</div>
         </div>
         <div class="field span2">
-          <label>自動入力（お名前・登録番号・車種・車台番号・カラー番号）</label>
+          <label style="display:flex;align-items:center">写真・自動入力<span id="photo-count" class="ph-count">0／10枚</span></label>
+          <div class="ph-sub">車検証・コーションラベルは撮影すると、お名前・登録番号・車種・車台番号・カラー番号を自動入力します</div>
           <div class="scan-row">
-            <button type="button" class="btn" onclick="openQRScanner()">📷 車検証QRを<br>カメラで読む</button>
-            <label class="btn">🖼 車検証<br>（撮影／写真）<input type="file" accept="image/*" style="display:none" onchange="shakenFromFile(this)"></label>
-            <input type="file" id="qr-photo-input" accept="image/*" capture="environment" style="display:none" onchange="shakenFromFile(this)">
+            <label class="btn">🪪 車検証<br>（撮影／写真）<input type="file" accept="image/*" style="display:none" onchange="shakenFromFile(this)"></label>
             <label class="btn">🏷 コーションラベル<br>（撮影／写真）<input type="file" accept="image/*" style="display:none" onchange="labelFromFile(this)"></label>
+            <button type="button" class="btn" onclick="openQRScanner()">📷 車検証QRを<br>カメラで読む</button>
+            <input type="file" id="qr-photo-input" accept="image/*" capture="environment" style="display:none" onchange="shakenFromFile(this)">
+          </div>
+          <div class="ph-btns" style="margin-top:8px">
+            <label class="btn ph-add">📷 撮影する<br>（キズ・作業箇所）<input type="file" accept="image/*" capture="environment" style="display:none" onchange="photoAdd(this)"></label>
+            <label class="btn ph-add">🖼 写真から選ぶ<br>（最大10枚）<input type="file" accept="image/*" multiple style="display:none" onchange="photoAdd(this)"></label>
           </div>
           <div class="scan-result" id="scan-result"></div>
+          <div id="photo-grid" class="ph-grid"></div>
+          <div class="ph-note">写真ごとに項目（車検証・コーションラベル・作業箇所など）を選べます。「車検証」「コーションラベル」を選ぶと、その写真から読み取って入力します。撮影した写真は端末の写真アプリには保存されず、LINE送信・新規見積りで消去されます。</div>
         </div>
         <div class="field span2">
           <label>ボディ形状（塗り数値の基準）</label>
@@ -354,16 +364,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
       <div id="items-empty" class="empty">パーツマップをタップするか、下のボタンで行を追加してください。</div>
       <button class="btn btn-add" onclick="addItem()">＋ 行を追加</button>
-    </div>
-
-    <div class="card" id="photo-card">
-      <div class="card-title"><span class="bar"></span>写真<span id="photo-count" class="ph-count">0／10枚</span></div>
-      <div class="ph-btns">
-        <label class="btn ph-add">📷 撮影する<input type="file" accept="image/*" capture="environment" style="display:none" onchange="photoAdd(this)"></label>
-        <label class="btn ph-add">🖼 写真から選ぶ<input type="file" accept="image/*" multiple style="display:none" onchange="photoAdd(this)"></label>
-      </div>
-      <div id="photo-grid" class="ph-grid"></div>
-      <div class="ph-note">写真ごとに項目（車検証・コーションラベル・作業箇所など）を選べます。撮影した写真は端末の写真アプリには保存されず、LINE送信・新規見積りで消去されます。</div>
     </div>
 
     <div class="card">
@@ -11677,16 +11677,24 @@ function _qrFindCandidates(src){
   }
   return res;
 }
-function _qrScan(src){
-  const found=new Map();
+function _qrScan(src,opt){
+  const found=new Map(); const T0=Date.now(), BUDGET=(opt&&opt.budget)||30000;
   const tmp=document.createElement('canvas');const tctx=tmp.getContext('2d',{willReadFrequently:true});
-  const tryBox=(x,y,w,h)=>{
-    for(const target of (tryBox.fast?[360,520,800]:[320,480,640])){
+  // 読み方のパターン：[大きさ(px), しきい値(0=そのまま)]
+  // 地紋入りの車検証は、そのままでは読めなくても「縮小」「白黒化（しきい値固定）」で読めることが多い
+  const PLAN={raw:[[320,0],[480,0],[640,0]], fast:[[360,0],[520,0]],
+              hard:[[200,0],[200,100],[320,110],[240,125],[480,95]], band:[[200,0],[200,100],[320,110]],
+              more:[[160,0],[260,0],[160,110],[260,90],[260,140],[400,120],[200,80]]};
+  const isFound=(x,y,w,h)=>[...found.values()].some(c=>Math.abs(c.cx-(x+w/2))<w*0.35&&Math.abs(c.cy-(y+h/2))<h*0.35);
+  const tryBox=(x,y,w,h,mode)=>{
+    for(const [target,th] of PLAN[mode]){
       const sc=target/Math.max(w,h);
       tmp.width=Math.round(w*sc)+40;tmp.height=Math.round(h*sc)+40;
+      tctx.imageSmoothingQuality='high';
       tctx.fillStyle='#fff';tctx.fillRect(0,0,tmp.width,tmp.height);
       tctx.drawImage(src,x,y,w,h,20,20,Math.round(w*sc),Math.round(h*sc));
       const d=tctx.getImageData(0,0,tmp.width,tmp.height);
+      if(th){ const a=d.data; for(let i=0;i<a.length;i+=4){ const v=(a[i]*3+a[i+1]*6+a[i+2])/10<th?0:255; a[i]=a[i+1]=a[i+2]=v; } }
       const r=jsQR(d.data,d.width,d.height,{inversionAttempts:'dontInvert'});
       if(r&&r.binaryData&&r.binaryData.length){
         const key=r.binaryData.join(',');
@@ -11697,38 +11705,59 @@ function _qrScan(src){
     return false;
   };
   const cands=_qrFindCandidates(src);
-  // 正方形に近い候補から試す
-  const incomplete0=()=>{const v=[...found.values()];if(v.length<2)return true;const t={};v.forEach(c=>{if(c.sa)t[c.sa.parity]=c.sa.total;});
-    if(Object.keys(t).length<2)return true;return Object.entries(t).some(([p,n])=>v.filter(c=>c.sa&&c.sa.parity==p).length<n);};
-  // QRらしい候補（正方形・ほどほどの大きさ）を優先し、多すぎる場合は上位だけ
-  const sq=cands.filter(b=>b.w/b.h<=1.6&&b.h/b.w<=1.6&&Math.max(b.w,b.h)>=Math.max(src.width,src.height)*0.015);
-  sq.sort((p,q)=>Math.abs(1-p.w/p.h)-Math.abs(1-q.w/q.h));
-  const top=sq.slice(0,40);
-  for(const b of top){
-    if(!incomplete0()) break;
-    for(const mf of [0.3]){
-      const m=Math.max(b.w,b.h)*mf, side=Math.max(b.w,b.h)+2*m;
-      const x=Math.max(0,b.x+b.w/2-side/2),y=Math.max(0,b.y+b.h/2-side/2),w=Math.min(src.width-x,side),h=Math.min(src.height-y,side);
-      if(tryBox(x,y,w,h)) break;
-    }
-  }
-  // 連結QRの欠けがあれば、見つかったQRと同じ高さの帯を横方向に細かく探す
-  const incomplete=()=>{const v=[...found.values()];const t={};v.forEach(c=>{if(c.sa)t[c.sa.parity]=c.sa.total;});
-    if(!v.length) return false; if(!Object.keys(t).length) return v.length<5;
+  // 連結QR（3つ組＋2つ組）がそろっているか
+  const incomplete=()=>{const v=[...found.values()];if(v.length<2)return true;const t={};v.forEach(c=>{if(c.sa)t[c.sa.parity]=c.sa.total;});
+    if(!Object.keys(t).length) return v.length<5;
     return Object.entries(t).some(([p,n])=>v.filter(c=>c.sa&&c.sa.parity==p).length<n) || Object.keys(t).length<2;};
-  if(incomplete()){
+  const timeUp=()=>Date.now()-T0>BUDGET;
+  // 候補：正方形に近いもの＋横に並んでくっついたQR（横長）を正方形に分割したもの
+  const minS=Math.max(src.width,src.height)*0.015, boxes=[];
+  for(const b of cands){
+    const r=b.w/b.h;
+    if(r<=1.6&&r>=1/1.6){ if(Math.max(b.w,b.h)>=minS) boxes.push({...b,q:Math.abs(1-r)}); }
+    else if(r>1.6&&r<=6.5&&b.h>=minS){ const n=Math.round(r), w=b.w/n; for(let i=0;i<n;i++) boxes.push({x:b.x+i*w,y:b.y,w,h:b.h,q:0.5+Math.abs(1-w/b.h)}); }
+  }
+  boxes.sort((p,q)=>p.q-q.q);
+  const top=boxes.slice(0,48);
+  const sq=(b,mf)=>{const m=Math.max(b.w,b.h)*mf, side=Math.max(b.w,b.h)+2*m;const x=Math.max(0,b.x+b.w/2-side/2),y=Math.max(0,b.y+b.h/2-side/2);return [x,y,Math.min(src.width-x,side),Math.min(src.height-y,side)];};
+  // ① そのまま読む
+  for(const b of top){ if(!incomplete()||timeUp()) break; const [x,y,w,h]=sq(b,0.3); if(!isFound(x,y,w,h)) tryBox(x,y,w,h,'raw'); }
+  // ② 読めなかった候補を「縮小・白黒化」で読み直す
+  for(const b of top){ if(!incomplete()||timeUp()) break; const [x,y,w,h]=sq(b,0.3); if(!isFound(x,y,w,h)) tryBox(x,y,w,h,'hard'); }
+  // ③ 欠けがあれば、見つかったQRと同じ高さの帯を横方向に細かく探す
+  if(found.size && incomplete()){
     const v=[...found.values()];
     const size=v.reduce((a,c)=>a+c.size,0)/v.length/1.4; // 余白を除いたQR本体の大きさ
     const cy=v.reduce((a,c)=>a+c.cy,0)/v.length;
-    tryBox.fast=true;
-    for(const k of [1.3,1.7]){
-      const side=size*k, step=size*0.4;
-      for(let x=0;x+side<=src.width&&incomplete();x+=step){
-        const y=Math.max(0,Math.min(src.height-side,cy-side/2));
-        tryBox(x,y,side,side);
+    for(const mode of ['fast','band']){
+      for(const k of [1.3,1.7]){
+        const side=size*k, step=size*0.4;
+        for(let x=0;x+side<=src.width&&incomplete()&&!timeUp();x+=step){
+          const y=Math.max(0,Math.min(src.height-side,cy-side/2));
+          if(!isFound(x,y,side,side)) tryBox(x,y,side,side,mode);
+        }
       }
     }
-    tryBox.fast=false;
+  }
+  // ④ 連結QRの並び順（1/3,2/3,3/3）から欠けている位置を推定して、そこを重点的に読む
+  if(found.size && incomplete() && !timeUp()){
+    const groups={}; for(const c of found.values()) if(c.sa) (groups[c.sa.parity]=groups[c.sa.parity]||[]).push(c);
+    for(const g of Object.values(groups)){
+      const n=g[0].sa.total; if(g.length>=n) continue;
+      g.sort((a,b)=>a.sa.seq-b.sa.seq);
+      const qs=g.reduce((a,c)=>a+c.size,0)/g.length/1.6;
+      const px=g.length>=2?(g[g.length-1].cx-g[0].cx)/(g[g.length-1].sa.seq-g[0].sa.seq):qs*1.08;
+      const py=g.length>=2?(g[g.length-1].cy-g[0].cy)/(g[g.length-1].sa.seq-g[0].sa.seq):0;
+      for(let k=0;k<n&&!timeUp();k++){
+        if(g.some(c=>c.sa.seq===k)) continue;
+        const cx=g[0].cx+(k-g[0].sa.seq)*px, cy=g[0].cy+(k-g[0].sa.seq)*py;
+        let ok=false;
+        for(const m of [1.25,1.45,1.15]){ for(const [dx,dy] of [[0,0],[-0.06,0],[0.06,0],[0,-0.06],[0,0.06]]){
+          const side=qs*m, x=Math.max(0,cx-side/2+dx*qs), y=Math.max(0,cy-side/2+dy*qs);
+          if(tryBox(x,y,Math.min(side,src.width-x),Math.min(side,src.height-y),'hard')||tryBox(x,y,Math.min(side,src.width-x),Math.min(side,src.height-y),'more')){ok=true;break;} }
+          if(ok) break; }
+      }
+    }
   }
   return {codes:[...found.values()],cands:cands.length};
 }
@@ -11986,17 +12015,28 @@ async function openQRScanner(){
     if(!_qrCam) return;
     if(video.videoWidth){
       const vw=video.videoWidth,vh=video.videoHeight;
-      // 中央部分を拡大して読む（小さいQRでも読めるように）
-      for(const f of [1,0.6]){
-        const sw=vw*f,sh=vh*f,sx=(vw-sw)/2,sy=(vh-sh)/2; const sc=Math.min(1.6,1100/sw);
+      // 1回に読めるQRは1つなので、範囲（全体・中央・左右・縦の帯）と読み方（そのまま／白黒化）を毎回切り替える
+      tick.n=(tick.n||0)+1;
+      const REG=[[0,0,1,1],[0.2,0.2,0.6,0.6],[0,0,0.5,1],[0.5,0,0.5,1],[0,0,0.36,1],[0.32,0,0.36,1],[0.64,0,0.36,1],[0.25,0,0.5,1]];
+      const TH=[0,0,105,0,125,90];
+      const regs=[REG[0],REG[1+(tick.n%(REG.length-1))]];
+      for(const [fx,fy,fw,fh] of regs){
+        const th=TH[tick.n%TH.length];
+        const sw=vw*fw,sh=vh*fh,sx=vw*fx,sy=vh*fy; const sc=Math.min(1.6,(th?900:1100)/Math.max(sw,sh));
         c.width=Math.round(sw*sc); c.height=Math.round(sh*sc);
         ctx.drawImage(video,sx,sy,sw,sh,0,0,c.width,c.height);
         const d=ctx.getImageData(0,0,c.width,c.height);
+        if(th){ const a=d.data; for(let i=0;i<a.length;i+=4){ const v=(a[i]*3+a[i+1]*6+a[i+2])/10<th?0:255; a[i]=a[i+1]=a[i+2]=v; } }
         const r=jsQR(d.data,d.width,d.height,{inversionAttempts:'dontInvert'});
         if(r&&r.binaryData&&r.binaryData.length){
           const key=r.binaryData.join(',');
           if(!found.has(key)){ found.set(key,{bytes:Uint8Array.from(r.binaryData),cx:0,cy:0,sa:(r.chunks||[]).find(x=>x.type==='structuredappend')}); if(navigator.vibrate) navigator.vibrate(60); }
         }
+      }
+      // 数秒たっても揃わないときは、今の映像を「写真モード」と同じ方法でじっくり解析
+      if(tick.n%24===0){
+        const fc=document.createElement('canvas'); fc.width=vw; fc.height=vh; fc.getContext('2d').drawImage(video,0,0);
+        try{ const R=_qrScan(fc,{budget:2500}); for(const q of R.codes){ const key=Array.from(q.bytes).join(','); if(!found.has(key)){ found.set(key,q); if(navigator.vibrate) navigator.vibrate(60);} } }catch(e){}
       }
       const vals=[...found.values()];
       const totals={}; vals.forEach(v=>{ if(v.sa) totals[v.sa.parity]=v.sa.total; });
