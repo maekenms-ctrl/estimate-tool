@@ -308,6 +308,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div class="field"><label>お客様名</label><input id="c-name" placeholder="山田 太郎" oninput="updateCust()"></div>
         <div class="field"><label>車種</label><input id="c-car" placeholder="プリウス ZVW30" oninput="updateCust()"></div>
         <div class="field span2"><label>車台番号</label><input id="c-chassis" placeholder="例：ZVW30-5237294" autocapitalize="characters" oninput="updateCust()"></div>
+        <div class="field"><label>型式指定番号</label><input id="c-typeno" inputmode="numeric" placeholder="例：12604" oninput="updateCust()"></div>
+        <div class="field"><label>類別区分番号</label><input id="c-ruino" inputmode="numeric" placeholder="例：0042" oninput="updateCust()"></div>
         <div class="field span2"><label>登録番号</label><input id="c-plate" placeholder="品川 300 あ 12-34" oninput="updateCust()"></div>
         <div class="field"><label>車体色（カラー番号）</label><input id="c-color" placeholder="例：070" oninput="updateCust()"></div>
         <div class="field"><label>塗装タイプ（全部位一括）</label><select id="c-ptype" onchange="setPaintTypeAll(this.value)"></select></div>
@@ -1208,6 +1210,7 @@ function updateCust(){
   customer.name=document.getElementById('c-name').value;
   customer.car=document.getElementById('c-car').value;
   customer.chassis=document.getElementById('c-chassis').value;
+  {const a=document.getElementById('c-typeno').value.trim(),b=document.getElementById('c-ruino').value.trim(); customer.typeNo=a||b?`${a}-${b}`:'';}
   customer.plate=document.getElementById('c-plate').value;
   customer.color=document.getElementById('c-color').value;
   customer.date=document.getElementById('c-date').value;
@@ -1227,6 +1230,7 @@ function fillCustForm(){
   document.getElementById('c-name').value=customer.name||'';
   document.getElementById('c-car').value=customer.car||'';
   document.getElementById('c-chassis').value=customer.chassis||'';
+  {const tn=String(customer.typeNo||'').split('-'); document.getElementById('c-typeno').value=tn[0]||''; document.getElementById('c-ruino').value=tn[1]||'';}
   document.getElementById('c-plate').value=customer.plate||'';
   document.getElementById('c-color').value=customer.color||'';
   document.getElementById('c-date').value=customer.date||todayStr();
@@ -1509,7 +1513,7 @@ function _lineSendText(){
 async function dlFile(){
   const t2=calcTotals();
   const rows=items.map(it=>{const b=calcRow(it);return`<tr><td>${esc(it.part)||'-'}</td><td>${esc(it.type)}</td><td>${esc(b.desc)||'-'}</td><td style="text-align:center">${it.qty}</td><td style="text-align:right">${fmt(b.amount)}</td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center">項目がありません</td></tr>';
-  const html=`<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>御見積書</title><style>@page{size:A4;margin:8mm;}body{font-family:'Hiragino Sans',sans-serif;color:#111;padding:8mm;font-size:11px;}table{width:100%;border-collapse:collapse;margin-top:8px;}th,td{border:1px solid #333;padding:4px 6px;font-size:10px;text-align:left;vertical-align:top;}th{background:#eee;}.ti{text-align:center;font-size:18px;font-weight:900;letter-spacing:.3em;margin-bottom:10px;}.top{display:flex;justify-content:space-between;margin-bottom:8px;gap:16px;flex-wrap:wrap;}.tots td{border:none;padding:2px 0;font-size:11px;}.grd td{border-top:2px solid #333;padding-top:4px;font-size:14px;font-weight:900;}</style></head><body><div class="ti">御 見 積 書</div><div class="top"><div><div><b>${esc(customer.name)||'お客様'}</b> 様</div><div>車種：${esc(customer.car)||'-'}（${esc(customer.carType)}）</div>${customer.chassis?`<div>車台番号：${esc(customer.chassis)}</div>`:''}<div>登録番号：${esc(customer.plate)||'-'}</div><div>車体色：${esc(customer.color)||'-'}</div><div>ボディコーティング：${customer.bodyCoat?'あり':'なし'}</div><div>代車：${esc(loanerSummary())}</div><div>支払区分：${esc(paySummary())}</div></div><div style="text-align:right"><div>見積日：${esc(customer.date)}</div><div><b>${esc(settings.shopName)}</b></div>${settings.shopAddress?`<div>${esc(settings.shopAddress)}</div>`:''}${settings.shopTel?`<div>TEL：${esc(settings.shopTel)}</div>`:''}</div></div><table><thead><tr><th style="width:15%">部位</th><th style="width:11%">作業区分</th><th>内容</th><th style="width:6%">数量</th><th style="width:13%">金額</th></tr></thead><tbody>${rows}</tbody></table><table class="tots" style="width:240px;margin-left:auto;margin-top:8px;"><tr><td>作業小計</td><td style="text-align:right">${fmt(t2.sub)}</td></tr>${customer.noExpense?'':`<tr><td>諸経費（${settings.expenseRate}%）</td><td style="text-align:right">${fmt(t2.exp)}</td></tr>`}${t2.cutPre>0?`<tr><td>端数調整（税抜）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPre)}</td></tr>`:''}<tr><td>消費税（${settings.taxRate}%）</td><td style="text-align:right">${fmt(t2.tax)}</td></tr>${t2.cutPost>0?`<tr><td>端数調整（税込）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPost)}</td></tr>`:''}${t2.disc10>0?`<tr><td>10%値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.disc10)}</td></tr>`:''}${t2.discFree>0?`<tr><td>自由値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.discFree)}</td></tr>`:''}<tr class="grd"><td>合計金額（税込）</td><td style="text-align:right">${fmt(t2.grand)}</td></tr></table>${customer.note?`<div style="margin-top:10px;font-size:10px;">${esc(customer.note)}</div>`:''}</body></html>`;
+  const html=`<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>御見積書</title><style>@page{size:A4;margin:8mm;}body{font-family:'Hiragino Sans',sans-serif;color:#111;padding:8mm;font-size:11px;}table{width:100%;border-collapse:collapse;margin-top:8px;}th,td{border:1px solid #333;padding:4px 6px;font-size:10px;text-align:left;vertical-align:top;}th{background:#eee;}.ti{text-align:center;font-size:18px;font-weight:900;letter-spacing:.3em;margin-bottom:10px;}.top{display:flex;justify-content:space-between;margin-bottom:8px;gap:16px;flex-wrap:wrap;}.tots td{border:none;padding:2px 0;font-size:11px;}.grd td{border-top:2px solid #333;padding-top:4px;font-size:14px;font-weight:900;}</style></head><body><div class="ti">御 見 積 書</div><div class="top"><div><div><b>${esc(customer.name)||'お客様'}</b> 様</div><div>車種：${esc(customer.car)||'-'}（${esc(customer.carType)}）</div>${customer.chassis?`<div>車台番号：${esc(customer.chassis)}</div>`:''}${customer.typeNo?`<div>型式指定番号／類別区分番号：${esc(customer.typeNo.replace('-','／'))}</div>`:''}<div>登録番号：${esc(customer.plate)||'-'}</div><div>車体色：${esc(customer.color)||'-'}</div><div>ボディコーティング：${customer.bodyCoat?'あり':'なし'}</div><div>代車：${esc(loanerSummary())}</div><div>支払区分：${esc(paySummary())}</div></div><div style="text-align:right"><div>見積日：${esc(customer.date)}</div><div><b>${esc(settings.shopName)}</b></div>${settings.shopAddress?`<div>${esc(settings.shopAddress)}</div>`:''}${settings.shopTel?`<div>TEL：${esc(settings.shopTel)}</div>`:''}</div></div><table><thead><tr><th style="width:15%">部位</th><th style="width:11%">作業区分</th><th>内容</th><th style="width:6%">数量</th><th style="width:13%">金額</th></tr></thead><tbody>${rows}</tbody></table><table class="tots" style="width:240px;margin-left:auto;margin-top:8px;"><tr><td>作業小計</td><td style="text-align:right">${fmt(t2.sub)}</td></tr>${customer.noExpense?'':`<tr><td>諸経費（${settings.expenseRate}%）</td><td style="text-align:right">${fmt(t2.exp)}</td></tr>`}${t2.cutPre>0?`<tr><td>端数調整（税抜）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPre)}</td></tr>`:''}<tr><td>消費税（${settings.taxRate}%）</td><td style="text-align:right">${fmt(t2.tax)}</td></tr>${t2.cutPost>0?`<tr><td>端数調整（税込）</td><td style="text-align:right;color:#c00">－${fmt(t2.cutPost)}</td></tr>`:''}${t2.disc10>0?`<tr><td>10%値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.disc10)}</td></tr>`:''}${t2.discFree>0?`<tr><td>自由値引き</td><td style="text-align:right;color:#c00">－${fmt(t2.discFree)}</td></tr>`:''}<tr class="grd"><td>合計金額（税込）</td><td style="text-align:right">${fmt(t2.grand)}</td></tr></table>${customer.note?`<div style="margin-top:10px;font-size:10px;">${esc(customer.note)}</div>`:''}</body></html>`;
   const safe=(customer.car||'estimate').replace(/[\\/:*?"<>|]/g,'');
   const fname=`見積書_${safe}_${customer.date||todayStr()}.html`;
   const blob=new Blob([html],{type:'text/html'});
@@ -11915,7 +11919,7 @@ function applyVehicleInfo(info,source){
   if(info.plate){ document.getElementById('c-plate').value=info.plate; msgs.push('登録番号 '+info.plate); }
   if(info.chassis){ document.getElementById('c-chassis').value=info.chassis; msgs.push('車台番号 '+info.chassis); }
   if(info.kata) customer.kata=info.kata;
-  if(info.typeNo) customer.typeNo=info.typeNo;
+  if(info.typeNo){ const tn=String(info.typeNo).split('-'); document.getElementById('c-typeno').value=tn[0]||''; document.getElementById('c-ruino').value=tn[1]||''; msgs.push(`型式指定番号 ${tn[0]||'-'}／類別区分番号 ${tn[1]||'-'}`); }
   const m=lookupChassis(info.chassis)||lookupChassis(info.kata);
   let candHtml='';
   if(m){
@@ -11980,6 +11984,7 @@ async function shakenFromBlob(f){
       const t=await ocrShakenDoc(c,{plate:!info.plate});
       if(t.name) info.name=t.name;
       if(!info.plate&&t.plate) info.plate=t.plate;
+      if(!info.typeNo&&t.typeNo) info.typeNo=t.typeNo;
     }catch(e){ console.warn(e); }
     _busy(null);
     if(!applyVehicleInfo(info,'車検証の写真')) toast('読み取れませんでした。QRや文字が大きく写るように撮影してください',6000);
@@ -12165,6 +12170,10 @@ function parseShakenText(text){
   out.name = (owner && !(isCo(owner) && user)) ? owner : (user || owner || '');
   if(!out.name) delete out.name;
   // 登録番号：「地名 3桁 かな 4桁」
+  // 型式指定番号（5桁）・類別区分番号（4桁）：見出しの行か、その下の行の数字
+  { const i=lines.findIndex(l=>/型式指定|類別区分|指定番号|区分番号/.test(l.replace(/\s/g,'')));
+    if(i>=0){ const z=_z2h(lines.slice(i,i+3).join(' ')).replace(/[Oo]/g,'0');
+      const m=z.match(/(?<!\d)(\d{5})(?!\d)[^\n]*?(?<!\d)(\d{4})(?!\d)/); if(m) out.typeNo=m[1]+'-'+m[2]; } }
   // 運輸支局名（地名が読めなかった時の補助）
   let office='';
   for(const l of lines){const o=l.replace(/\s/g,'').match(/([一-龠]{2,4})(?:運輸支局|自動車検査登録事務所)/); if(o){const f=_fixPlace(o[1].slice(-3)); if(PLATE_PLACES.includes(f)){office=f;break;}}}
@@ -12199,6 +12208,7 @@ async function ocrShakenDoc(src,need){
       const r2=await worker.recognize(_docPrep(src,th)); const p2=parseShakenText(r2.data.text);
       if(p2.plate && (!res.plate || (res.plateNoPlace && !p2.plateNoPlace))){res.plate=p2.plate;res.plateNoPlace=p2.plateNoPlace;}
       if(!res.name&&p2.name) res.name=p2.name;
+      if(!res.typeNo&&p2.typeNo) res.typeNo=p2.typeNo;
     }
     return res;
   } finally { worker.terminate(); }
