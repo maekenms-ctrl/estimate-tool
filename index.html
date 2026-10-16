@@ -100,8 +100,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
 /* Item rows */
 .items-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.items-header{display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(90px,.9fr) 68px 68px 90px 46px 46px minmax(80px,.8fr) 68px 68px 90px 52px 90px 30px;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700;padding:0 4px 8px;border-bottom:1px solid var(--border);margin-bottom:6px;min-width:1010px;}
-.item-row{display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(90px,.9fr) 68px 68px 90px 46px 46px minmax(80px,.8fr) 68px 68px 90px 52px 90px 30px;gap:5px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--surface3);min-width:1010px;}
+.items-header{display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(90px,.9fr) 68px 68px 68px 90px 46px 46px minmax(80px,.8fr) 84px 68px 90px 52px 90px 30px;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700;padding:0 4px 8px;border-bottom:1px solid var(--border);margin-bottom:6px;min-width:1100px;}
+.item-row{display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(90px,.9fr) 68px 68px 68px 90px 46px 46px minmax(80px,.8fr) 84px 68px 90px 52px 90px 30px;gap:5px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--surface3);min-width:1100px;}
 .item-row:last-child{border-bottom:none;}
 .item-row input,.item-row select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 4px;font-size:15px;font-family:inherit;min-width:0;}
 .item-row input[type=number]{-moz-appearance:textfield;appearance:textfield;}
@@ -112,6 +112,13 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .row-del:active{color:var(--accent);}
 .qcheck{display:flex;align-items:center;justify-content:center;}
 .item-cell.nopaint{visibility:hidden;}
+.ah-wrap{display:flex;flex-direction:column;gap:3px;}
+.item-row input.sealant{background:transparent;border-style:dashed;color:#00E5FF;font-weight:700;}
+.item-row select.wt-parts{color:#00E5FF;font-weight:700;border-color:#00E5FF;text-shadow:none;}
+.item-row select.wt-noparts{color:#FF2BD6;font-weight:700;border-color:#FF2BD6;text-shadow:0 0 6px rgba(255,43,214,.55);}
+.item-row select option.wt-parts{color:#00B8D4;}
+.item-row select option.wt-noparts{color:#E0119F;}
+.item-row input.rh-auto{border-color:var(--accent2);}
 .item-row input.ph-auto{background:transparent;border-style:dashed;color:var(--muted);}
 .item-row input.ph-manual{border-color:var(--accent2);}
 @media(max-width:700px){.item-cell.nopaint{display:none;}}
@@ -132,7 +139,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   .cell-label{font-size:10px;color:var(--muted);margin-bottom:2px;}
   .row-amount{text-align:left;font-size:14px;}
 }
-@media(min-width:701px){.cell-label{display:none;}}
+@media(min-width:701px){.cell-label{display:none;}.cell-label.sl-label{display:block;white-space:nowrap;}}
 
 /* Totals */
 .empty{color:var(--muted);font-size:13px;text-align:center;padding:24px 0;}
@@ -380,8 +387,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <div class="card-title"><span class="bar"></span>作業項目</div>
       <div class="items-scroll">
         <div class="items-header">
-          <div>部位</div><div>作業区分</div><div>鈑金(h)</div><div>塗装(h)</div><div>塗装金額(¥)</div>
-          <div>クォーター</div><div>2トーン</div><div>塗装区分</div>
+          <div>部位</div><div>作業区分</div><div>鈑金(h)</div><div>取替(h)</div><div>塗装(h)</div><div>塗装金額(¥)</div>
+          <div style="white-space:nowrap">クォータ</div><div style="white-space:nowrap">2トーン</div><div>塗装区分</div>
           <div>付属品(h)</div><div>面積(dm²)</div><div>部品代(¥)</div><div>数量</div><div>金額</div><div></div>
         </div>
         <div id="items-list"></div>
@@ -644,7 +651,7 @@ const BODY_SHAPE_DM2 = {
 const PANEL_PH_MAP = {};
 PANEL_PARTS.forEach(p=>{ PANEL_PH_MAP[p.name]=p.ph||{}; });
 
-const WORK_TYPES = ['鈑金','塗装','鈑金+塗装','部品交換','脱着','調整・取付','その他'];
+const WORK_TYPES = ['鈑金','塗装','鈑金+塗装','部品取替','脱着','調整・取付','その他'];
 // 2コートソリッド加算：部位ごとの係数を合計し0.1h単位に切り上げ（ブロードリーフ実測13パターンで一致確認）
 const TWO_COAT_COEF = {hood:0.11, lsill:0.11, rsill:0.11, roof:0.30};
 const TWO_COAT_DEFAULT = 0.10;
@@ -675,7 +682,7 @@ function newItem(part='',isQ=false,dm2=0){
 }
 // 塗装区分が変わったとき塗り数値を自動入力（ボディ形状テーブル参照）
 // ─── ボディ形状別 部品取替工数（ブロードリーフ指数・基準車種の平均） ───────────
-// 塗装区分「取替」を選ぶと鈑金(h)に自動入力（自分で書き換えた値は上書きしない）
+// 作業区分「部品取替」を選ぶと取替(h)に自動入力（自分で書き換えた値は上書きしない）
 const BODY_SHAPE_REPLACE = {
   // コンパクト：トヨタ ヤリス10系G／日産 ノートオーラ FE13系／ホンダ フィット GR系 の平均（0.1h単位で四捨五入）
   'コンパクト': {
@@ -987,9 +994,9 @@ const BODY_SHAPE_PARTS_REF = {
     'フロントガラス':107300, 'リアガラス':52500, '左クォーターガラス':29700, '右クォーターガラス':29700,
   },
 };
-function _partsRef(it){ if(_isGarnish(it)){ const g=BODY_SHAPE_GARNISH[currentBodyShape]; return it.type==='部品交換'&&g?g.parts:0; } if(it.paintWork!=='取替') return 0; const t=BODY_SHAPE_PARTS_REF[currentBodyShape]; if(!t) return 0; return (it.pillar&&_isSill(it)&&t[it.part+'（ピラー関係あり）'])||t[it.part]||0; }
+function _partsRef(it){ if(_isGarnish(it)){ const g=BODY_SHAPE_GARNISH[currentBodyShape]; return it.type==='部品取替'&&g?g.parts:0; } if(it.type!=='部品取替') return 0; const t=BODY_SHAPE_PARTS_REF[currentBodyShape]; if(!t) return 0; return (it.pillar&&_isSill(it)&&t[it.part+'（ピラー関係あり）'])||t[it.part]||0; }
 // ─── サイドシルガーニッシュ（シルカバー・モール）：脱着／取替工数と部品代の目安 ───────────
-// 作業区分「脱着」「部品交換」どちらでも同じ工数（ブロードリーフ指数の平均）。部品代の目安は「部品交換」のときだけ
+// 作業区分「脱着」「部品取替」どちらでも同じ工数（ブロードリーフ指数の平均）。部品代の目安は「部品取替」のときだけ
 const BODY_SHAPE_GARNISH = {
   'コンパクト': {h:0.3, parts:24000},   // ヤリス0.4(モール取替24,000)／オーラ0.3／フィット0.3
   'SサイズSD':  {h:0.3, parts:45000},   // シビック0.3／プリウス60 0.2（部品代はプリウス30のモール45,000）
@@ -1012,14 +1019,30 @@ function _isSill(it){ return /sill$/.test(it.panelArea||'') || (it.part||'').inc
 function _isBumper(it){ return /bumper$/.test(it.panelArea||'') || (it.part||'').includes('バンパー'); }
 // バンパーは塗装を金額で手入力するため、「取替」でも塗装金額欄を使う
 function _manualPaintMode(it){ return it.paintWork==='手入力' || (it.paintWork==='取替' && _isBumper(it)); }
-function applyReplaceHours(it){
-  const tbl=BODY_SHAPE_REPLACE[currentBodyShape];
-  if(it.paintWork==='取替'){
-    const v=tbl&&((it.pillar&&_isSill(it)&&tbl[it.part+'（ピラー関係あり）'])||tbl[it.part]);
-    if(v!=null){ if(!it.panelHours||it.phAuto){ it.panelHours=v; it.phAuto=true; } }
-    else if(it.phAuto){ it.panelHours=0; it.phAuto=false; }
-  } else if(it.phAuto){ it.panelHours=0; it.phAuto=false; }
+// 作業区分「部品取替」→ 取替(h)に取替工数、「脱着」→ 取替工数が1.0以下はそのまま、1.0を超えると1/2（0.1h単位で四捨五入）
+function _replaceBase(it){ const tbl=BODY_SHAPE_REPLACE[currentBodyShape]; if(!tbl) return null; const v=(it.pillar&&_isSill(it)&&tbl[it.part+'（ピラー関係あり）'])||tbl[it.part]; return v!=null?v:null; }
+// ガラスは脱着も取替と同じ工数（違いは部品代の有無だけ）
+function _isGlass(it){ return /glass$/.test(it.panelArea||'') || (it.part||'').includes('ガラス'); }
+function _detachHours(v){ return v<=1.0 ? v : Math.round(v*10/2)/10; }
+// 旧バージョンの行（部品交換・鈑金欄に入った取替工数）を新しい形に直す
+function _migrateItem(it){
+  if(it.type==='部品交換') it.type='部品取替';
+  if(it.phAuto){ it.replaceHours=+it.panelHours||0; it.rhAuto=true; it.panelHours=0; it.phAuto=false; if(it.type!=='脱着') it.type='部品取替'; }
+  if(it.replaceHours==null) it.replaceHours=0;
 }
+function applyReplaceHours(it){
+  _migrateItem(it);
+  const v=_isGarnish(it)?null:_replaceBase(it);
+  let nv=null;
+  if(v!=null){ if(it.type==='部品取替') nv=v; else if(it.type==='脱着') nv=_isGlass(it)?v:_detachHours(v); }
+  if(nv!=null){ if(!it.replaceHours||it.rhAuto){ it.replaceHours=nv; it.rhAuto=true; } }
+  else if(it.rhAuto){ it.replaceHours=0; it.rhAuto=false; }
+}
+// シーラントキット：ガラスを選ぶとセットで計上（固定金額）
+const SEALANT_KIT = {fglass:10000, rglass:6000, lqglass:3000, rqglass:3000};
+function _sealant(it){ return SEALANT_KIT[it.panelArea]||0; }
+// 付属品(h)の選択肢：ドア・トランク/バックドアは0.8／1.0、その他は0.3（どれも手入力可）
+function _ahOptions(it){ return /ドア|トランク/.test(it.part||'') ? [0.8,1.0] : [0.3]; }
 function applyPaintWork(it){
   applyReplaceHours(it);
   if(it.paintWork==='手入力') return;
@@ -1053,7 +1076,7 @@ function getBaseHours(paintType, panelCount){
 // ─── Calc ─────────────────────────────────────────────────
 function calcRow(it){
   const rate = customer.carType==='輸入車'?(settings.laborRateImport||0):(settings.laborRateDomestic||0);
-  const ph = +it.panelHours||0, bh = +it.paintHours||0, ah = +it.accessoryHours||0;
+  const ph = +it.panelHours||0, rh = +it.replaceHours||0, bh = +it.paintHours||0, ah = +it.accessoryHours||0;
   const isCC = it.paintType==='カラークリアー';
   const isBump = it.part&&it.part.includes('バンパー');
   let ex = 0;
@@ -1071,15 +1094,19 @@ function calcRow(it){
   const paintMatCost = manualPaint>0 ? 0 : (paintLaborCost>0 ? ceil100(paintLaborCost*matRate) : 0);
 
   const panelCost = ph>0 ? ceil100(ph*rate) : 0;      // ブロードリーフ同様100円未満切り上げ
+  const replaceCost = rh>0 ? ceil100(rh*rate) : 0;
   const accessoryCost = ah>0 ? ceil100(ah*rate) : 0;
   // 部品代：入力があればその金額、なければ「取替」の目安（平均値）を使う
-  const partsIn = +it.partsCost||0, partsRef = partsIn?0:_partsRef(it);
+  // 部品代は作業区分「部品取替」のときだけ加算（脱着・鈑金などでは入力があっても加算しない）
+  const partsIn = it.type==='部品取替' ? (+it.partsCost||0) : 0, partsRef = partsIn?0:_partsRef(it);
   const partsCost = partsIn||partsRef;
+  const sealant = _sealant(it);
   const qty = +it.qty||0;
-  const amount = (panelCost + paintLaborCost + paintMatCost + accessoryCost + partsCost) * qty;
+  const amount = (panelCost + replaceCost + paintLaborCost + paintMatCost + accessoryCost + partsCost + sealant) * qty;
 
   const dp=[];
-  if(ph) dp.push(`${it.phAuto?'取替工賃':'鈑金'}${it.pillar&&_isSill(it)?'(センターピラー関係あり)':''} ${ph}h×${fmt(rate)}`);
+  if(ph) dp.push(`鈑金 ${ph}h×${fmt(rate)}`);
+  if(rh) dp.push(`${it.type==='脱着'?'脱着工賃':'取替工賃'}${it.pillar&&_isSill(it)?'(センターピラー関係あり)':''} ${rh}h×${fmt(rate)}`);
   if(manualPaint>0){
     dp.push(`塗装金額(手入力) ${fmt(manualPaint)}`);
   } else if(tph>0){
@@ -1089,11 +1116,12 @@ function calcRow(it){
     dp.push(s);
     dp.push(`材料代${Math.round(matRate*100)}%=${fmt(paintMatCost)}`);
   }
-  if(ah) dp.push(`${_isGarnish(it)?(it.type==='部品交換'?'ガーニッシュ取替':'シルカバー・モール脱着'):'付属品脱着'} ${ah}h×${fmt(rate)}`);
+  if(ah) dp.push(`${_isGarnish(it)?(it.type==='部品取替'?'ガーニッシュ取替':'シルカバー・モール脱着'):'付属品脱着'} ${ah}h×${fmt(rate)}`);
   if(partsCost) dp.push(`部品代${partsRef?'(目安)':''} ${fmt(partsCost)}`);
+  if(sealant) dp.push(`シーラントキット ${fmt(sealant)}`);
   let desc = dp.join(' + ');
   if(it.note) desc += desc?` ／ ${it.note}`:it.note;
-  return {amount, desc, rate, parts:partsCost*qty, partsRef:partsRef*qty, paintH:(manualPaint>0?0:tph)*qty, paintLabor:paintLaborCost*qty, paintMat:paintMatCost*qty};
+  return {amount, desc, rate, parts:(partsCost+sealant)*qty, partsRef:partsRef*qty, paintH:(manualPaint>0?0:tph)*qty, paintLabor:paintLaborCost*qty, paintMat:paintMatCost*qty};
 }
 
 // 加算基礎数値の計算（全パネルの塗装タイプ・枚数を集計）
@@ -1238,22 +1266,26 @@ function renderItems(){
   empty.style.display = items.length?'none':'block';
 
   items.forEach(it => {
+    _migrateItem(it);
     const {amount, desc} = calcRow(it);
+    const ahOpts=_ahOptions(it), ahv=+it.accessoryHours||0;
+    const ahSel = it.ahManual ? '手入力' : (!ahv ? '0' : ahOpts.includes(ahv) ? String(ahv) : '手入力');
     const noPaint = ['lhead','rhead','ltail','rtail','fglass','rglass','lqglass','rqglass','lgarn','rgarn'].includes(it.panelArea);
     const div = document.createElement('div');
     div.className = 'item-row';
     div.innerHTML = `
       <div class="item-cell col-part"><span class="cell-label">部位</span><input value="${esc(it.part)}" placeholder="部位名" data-id="${it.id}" data-f="part"></div>
-      <div class="item-cell"><span class="cell-label">作業区分</span><select data-id="${it.id}" data-f="type">${WORK_TYPES.map(t=>`<option${t===it.type?' selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="item-cell"><span class="cell-label">作業区分</span><select data-id="${it.id}" data-f="type" class="${it.type==='部品取替'?'wt-parts':'wt-noparts'}" title="青＝部品代が入る作業／ピンク＝部品代が入らない作業">${WORK_TYPES.map(t=>`<option class="${t==='部品取替'?'wt-parts':'wt-noparts'}"${t===it.type?' selected':''}>${t}</option>`).join('')}</select></div>
       <div class="item-cell"><span class="cell-label">鈑金(h)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.panelHours||''}" placeholder="0" data-id="${it.id}" data-f="panelHours"></div>
+      <div class="item-cell"><span class="cell-label">${it.type==='脱着'?'脱着(h)':'取替(h)'}</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.replaceHours||''}" placeholder="0" data-id="${it.id}" data-f="replaceHours" ${it.rhAuto?'class="rh-auto"':''} title="作業区分「部品取替」で取替工数、「脱着」で脱着工数が入ります"></div>
       ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">塗装(h)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.paintHours||''}" placeholder="0" data-id="${it.id}" data-f="paintHours"></div>`}
       ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">塗装金額(¥)</span><input type="text" inputmode="numeric" pattern="[0-9]*" value="${_manualPaintMode(it)?(it.paintAmount||''):''}" placeholder="${_manualPaintMode(it)?'金額':'—'}" data-id="${it.id}" data-f="paintAmount" ${_manualPaintMode(it)?'class="ph-manual"':'readonly tabindex="-1" class="ph-auto" title="塗装区分を「手入力」にすると入力できます"'}></div>`}
-      ${noPaint?'<div class="item-cell nopaint"></div>':_isSill(it)?`<div class="item-cell qcheck"><span class="cell-label">ピラー関係</span><input type="checkbox" ${it.pillar?'checked':''} data-id="${it.id}" data-f="pillar" title="センターピラー関係あり"></div>`:`<div class="item-cell qcheck"><span class="cell-label">クォーター</span><input type="checkbox" ${it.includesQuarterPanel?'checked':''} data-id="${it.id}" data-f="includesQuarterPanel"></div>`}
+      ${noPaint?'<div class="item-cell nopaint"></div>':_isSill(it)?`<div class="item-cell qcheck"><span class="cell-label">ピラー関係</span><input type="checkbox" ${it.pillar?'checked':''} data-id="${it.id}" data-f="pillar" title="センターピラー関係あり"></div>`:`<div class="item-cell qcheck"><span class="cell-label" style="white-space:nowrap">クォータ</span><input type="checkbox" ${it.includesQuarterPanel?'checked':''} data-id="${it.id}" data-f="includesQuarterPanel"></div>`}
       ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell qcheck"><span class="cell-label">2トーン</span><input type="checkbox" ${it.twoTone?'checked':''} data-id="${it.id}" data-f="twoTone"></div>`}
       ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">塗装区分</span><select data-id="${it.id}" data-f="paintWork">${PAINT_WORK_TYPES.map(t=>`<option${t===(it.paintWork||'取替')?' selected':''}>${t}</option>`).join('')}</select></div>`}
-      <div class="item-cell"><span class="cell-label">付属品(h)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.accessoryHours||''}" placeholder="0" data-id="${it.id}" data-f="accessoryHours"></div>
-      ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">面積(dm²)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.paintArea||''}" placeholder="0" data-id="${it.id}" data-f="paintArea" style="background:var(--accent-soft);border-color:var(--accent)"></div>`}
-      <div class="item-cell"><span class="cell-label">部品代(¥)</span><input type="text" inputmode="numeric" pattern="[0-9]*" value="${it.partsCost||''}" placeholder="${_partsRef(it)?'目安'+_partsRef(it).toLocaleString():'0'}" data-id="${it.id}" data-f="partsCost" class="${_partsRef(it)&&!it.partsCost?'parts-ref':''}"></div>
+      <div class="item-cell"><span class="cell-label">付属品(h)</span><div class="ah-wrap"><select data-id="${it.id}" data-f="ahSel"><option value="0"${ahSel==='0'?' selected':''}>なし</option>${ahOpts.map(o=>`<option value="${o}"${ahSel===String(o)?' selected':''}>${o.toFixed(1)}</option>`).join('')}<option value="手入力"${ahSel==='手入力'?' selected':''}>手入力</option></select>${ahSel==='手入力'?`<input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.accessoryHours||''}" placeholder="0" data-id="${it.id}" data-f="accessoryHours">`:''}</div></div>
+      ${_sealant(it)?`<div class="item-cell"><span class="cell-label sl-label">シーラント(¥)</span><input type="text" value="${_sealant(it).toLocaleString()}" readonly tabindex="-1" class="sealant" title="ガラスとセットで計上（固定）"></div>`:noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">面積(dm²)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.paintArea||''}" placeholder="0" data-id="${it.id}" data-f="paintArea" style="background:var(--accent-soft);border-color:var(--accent)"></div>`}
+      <div class="item-cell"><span class="cell-label">部品代(¥)</span>${it.type==='部品取替'?`<input type="text" inputmode="numeric" pattern="[0-9]*" value="${it.partsCost||''}" placeholder="${_partsRef(it)?'目安'+_partsRef(it).toLocaleString():'0'}" data-id="${it.id}" data-f="partsCost" class="${_partsRef(it)&&!it.partsCost?'parts-ref':''}">`:`<input type="text" value="" placeholder="—" readonly tabindex="-1" class="ph-auto" title="作業区分を「部品取替」にすると部品代を入力できます">`}</div>
       <div class="item-cell"><span class="cell-label">数量</span><input type="text" inputmode="numeric" pattern="[0-9]*" value="${it.qty||''}" placeholder="1" data-id="${it.id}" data-f="qty"></div>
       <div class="item-cell col-amt"><span class="cell-label">金額</span><div class="row-amount">${fmt(amount)}</div></div>
       <button class="row-del" data-del="${it.id}" title="削除">✕</button>
@@ -1282,7 +1314,7 @@ function renderItems(){
   });
 }
 
-const NUM_FIELDS = ['panelHours','paintHours','accessoryHours','paintArea','paintAmount','partsCost','qty'];
+const NUM_FIELDS = ['panelHours','replaceHours','paintHours','accessoryHours','paintArea','paintAmount','partsCost','qty'];
 
 function onItemInput(e){
   // inputイベント：値だけ更新、DOMは再生成しない（キーボードが閉じないように）
@@ -1297,6 +1329,7 @@ function onItemInput(e){
     it[f] = el.value;
   }
   if(f==='panelHours') it.phAuto=false;
+  if(f==='replaceHours') it.rhAuto=false;
   if(f==='accessoryHours') it.ahAuto=false;
   // 金額欄だけ更新（DOM再生成なし）
   const row = el.closest('.item-row');
@@ -1315,6 +1348,14 @@ function onItemChange(e){
   const id = el.dataset.id, f = el.dataset.f;
   const it = items.find(i=>i.id===id);
   if(!it) return;
+  if(f==='ahSel'){
+    if(el.value==='手入力'){ it.ahManual=true; }
+    else { it.ahManual=false; it.accessoryHours=parseFloat(el.value)||0; }
+    it.ahAuto=false;
+    render();
+    if(it.ahManual){ const ai=document.querySelector(`input[data-id="${it.id}"][data-f="accessoryHours"]`); if(ai){ ai.focus(); ai.select(); } }
+    return;
+  }
   if(el.type==='checkbox'){
     it[f]=el.checked;
   } else if(NUM_FIELDS.includes(f)){
@@ -1324,10 +1365,17 @@ function onItemChange(e){
     it[f]=el.value;
   }
   if(f==='panelHours') it.phAuto=false;
+  if(f==='replaceHours') it.rhAuto=false;
   if(f==='accessoryHours') it.ahAuto=false;
-  // 塗装区分または部位が変わったら塗り数値を自動更新
+  // 部品取替を選んだら塗装区分も「取替」にする（塗装のない部位・ガーニッシュは除く）
+  if(f==='type' && it.type==='部品取替' && !_isGarnish(it) && it.paintWork!=='取替' && !['lhead','rhead','ltail','rtail','fglass','rglass','lqglass','rqglass'].includes(it.panelArea)){
+    it.paintWork='取替';
+  }
+  // 塗装区分・部位・作業区分が変わったら塗り数値・取替工数を自動更新
   if(f==='paintWork'||f==='part'||f==='pillar'){
     applyPaintWork(it);
+  } else if(f==='type'){
+    if(it.paintWork==='取替') applyPaintWork(it); else applyReplaceHours(it);
   }
   render();
   // 「手入力」に切り替えたら塗装金額欄にすぐ入力できるようにする
@@ -1649,7 +1697,7 @@ function setBodyShape(btn){
   // 既存の選択済みパネル行の塗り数値・面積を更新
   const dm2Table = BODY_SHAPE_DM2[currentBodyShape];
   items.forEach(it=>{
-    if(it.paintWork && it.paintWork!=='手入力') applyPaintWork(it);
+    if(it.paintWork && it.paintWork!=='手入力') applyPaintWork(it); else applyReplaceHours(it);
     if(_isGarnish(it) && it.ahAuto) applyGarnish(it);
     // 面積も更新（パネルマップから追加された行のみ）
     if(it.panelArea && dm2Table){
@@ -1694,7 +1742,7 @@ function buildPanelMap(){
         it.panelArea=p.area;
         if(p.area.endsWith('bumper')) it.paintWork='手入力';
         if(p.detach){ it.type='脱着'; it.paintWork='手入力'; it.paintHours=0; it.accessoryHours=p.detach; }
-        if(p.glass){ it.type='部品交換'; it.paintWork='取替'; it.paintHours=0; it.paintArea=0; }
+        if(p.glass){ it.type='部品取替'; it.paintWork='取替'; it.paintHours=0; it.paintArea=0; }
         if(p.garnish){ it.type='脱着'; it.paintWork='手入力'; it.paintHours=0; it.paintArea=0; it.accessoryHours=0; it.ahAuto=true; applyGarnish(it); }
         applyPaintWork(it);
         items.push(it);
@@ -1954,8 +2002,8 @@ function buildLineText(){
   ];
   if(!items.length) lines.push('・（未入力）');
   items.forEach(it=>{
-    const w=(+it.paintHours||0)>0?pw(it.paintWork):(it.phAuto&&(+it.panelHours||0)>0)?'取替':(_isGarnish(it)&&it.type==='部品交換')?'取替':((+it.accessoryHours||0)>0&&it.type==='脱着'?'脱着':'');
-    lines.push(`・${it.part||'-'}${it.pillar&&_isSill(it)?'（センターピラー関係あり）':''}${w?`［${w}］`:''}`);
+    _migrateItem(it); const _pw=(+it.paintHours||0)>0?pw(it.paintWork):''; const w=it.type==='部品取替'?'取替':it.type==='脱着'&&((+it.replaceHours||0)>0||(+it.accessoryHours||0)>0)?(_pw&&_pw!=='取替'?'脱着・'+_pw:'脱着'):_pw;
+    lines.push(`・${it.part||'-'}${it.pillar&&_isSill(it)?'（センターピラー関係あり）':''}${w?`［${w}］`:''}${_sealant(it)?'＋シーラントキット':''}`);
   });
   if(photos.length) lines.push(`📷 写真 ${photos.length}枚`);
   lines.push(L);
