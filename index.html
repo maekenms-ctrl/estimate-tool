@@ -100,8 +100,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 
 /* Item rows */
 .items-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.items-header{display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(90px,.9fr) 68px 68px 68px 90px 46px 46px minmax(80px,.8fr) 84px 68px 90px 52px 90px 30px;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700;padding:0 4px 8px;border-bottom:1px solid var(--border);margin-bottom:6px;min-width:1100px;}
-.item-row{display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(90px,.9fr) 68px 68px 68px 90px 46px 46px minmax(80px,.8fr) 84px 68px 90px 52px 90px 30px;gap:5px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--surface3);min-width:1100px;}
+.items-header{display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(90px,.9fr) 68px 68px 68px 90px 46px 46px minmax(80px,.8fr) 84px 68px 84px 90px 52px 90px 30px;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700;padding:0 4px 8px;border-bottom:1px solid var(--border);margin-bottom:6px;min-width:1190px;}
+.item-row{display:grid;grid-template-columns:minmax(100px,1.2fr) minmax(90px,.9fr) 68px 68px 68px 90px 46px 46px minmax(80px,.8fr) 84px 68px 84px 90px 52px 90px 30px;gap:5px;align-items:center;padding:6px 4px;border-bottom:1px solid var(--surface3);min-width:1190px;}
 .item-row:last-child{border-bottom:none;}
 .item-row input,.item-row select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 4px;font-size:15px;font-family:inherit;min-width:0;}
 .item-row input[type=number]{-moz-appearance:textfield;appearance:textfield;}
@@ -139,7 +139,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   .cell-label{font-size:10px;color:var(--muted);margin-bottom:2px;}
   .row-amount{text-align:left;font-size:14px;}
 }
-@media(min-width:701px){.cell-label{display:none;}.cell-label.sl-label{display:block;white-space:nowrap;}}
+@media(min-width:701px){.cell-label{display:none;}}
 
 /* Totals */
 .empty{color:var(--muted);font-size:13px;text-align:center;padding:24px 0;}
@@ -389,7 +389,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div class="items-header">
           <div>部位</div><div>作業区分</div><div>鈑金(h)</div><div>取替(h)</div><div>塗装(h)</div><div>塗装金額(¥)</div>
           <div style="white-space:nowrap">クォータ</div><div style="white-space:nowrap">2トーン</div><div>塗装区分</div>
-          <div>付属品(h)</div><div>面積(dm²)</div><div>部品代(¥)</div><div>数量</div><div>金額</div><div></div>
+          <div>付属品(h)</div><div>面積(dm²)</div><div style="white-space:nowrap">シーラント(¥)</div><div>部品代(¥)</div><div>数量</div><div>金額</div><div></div>
         </div>
         <div id="items-list"></div>
       </div>
@@ -1284,7 +1284,8 @@ function renderItems(){
       ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell qcheck"><span class="cell-label">2トーン</span><input type="checkbox" ${it.twoTone?'checked':''} data-id="${it.id}" data-f="twoTone"></div>`}
       ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">塗装区分</span><select data-id="${it.id}" data-f="paintWork">${PAINT_WORK_TYPES.map(t=>`<option${t===(it.paintWork||'取替')?' selected':''}>${t}</option>`).join('')}</select></div>`}
       <div class="item-cell"><span class="cell-label">付属品(h)</span><div class="ah-wrap"><select data-id="${it.id}" data-f="ahSel"><option value="0"${ahSel==='0'?' selected':''}>なし</option>${ahOpts.map(o=>`<option value="${o}"${ahSel===String(o)?' selected':''}>${o.toFixed(1)}</option>`).join('')}<option value="手入力"${ahSel==='手入力'?' selected':''}>手入力</option></select>${ahSel==='手入力'?`<input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.accessoryHours||''}" placeholder="0" data-id="${it.id}" data-f="accessoryHours">`:''}</div></div>
-      ${_sealant(it)?`<div class="item-cell"><span class="cell-label sl-label">シーラント(¥)</span><input type="text" value="${_sealant(it).toLocaleString()}" readonly tabindex="-1" class="sealant" title="ガラスとセットで計上（固定）"></div>`:noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">面積(dm²)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.paintArea||''}" placeholder="0" data-id="${it.id}" data-f="paintArea" style="background:var(--accent-soft);border-color:var(--accent)"></div>`}
+      ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">面積(dm²)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.paintArea||''}" placeholder="0" data-id="${it.id}" data-f="paintArea" style="background:var(--accent-soft);border-color:var(--accent)"></div>`}
+      ${_sealant(it)?`<div class="item-cell"><span class="cell-label">シーラント(¥)</span><input type="text" value="${_sealant(it).toLocaleString()}" readonly tabindex="-1" class="sealant" title="ガラスとセットで計上（固定）"></div>`:'<div class="item-cell nopaint"></div>'}
       <div class="item-cell"><span class="cell-label">部品代(¥)</span>${it.type==='部品取替'?`<input type="text" inputmode="numeric" pattern="[0-9]*" value="${it.partsCost||''}" placeholder="${_partsRef(it)?'目安'+_partsRef(it).toLocaleString():'0'}" data-id="${it.id}" data-f="partsCost" class="${_partsRef(it)&&!it.partsCost?'parts-ref':''}">`:`<input type="text" value="" placeholder="—" readonly tabindex="-1" class="ph-auto" title="作業区分を「部品取替」にすると部品代を入力できます">`}</div>
       <div class="item-cell"><span class="cell-label">数量</span><input type="text" inputmode="numeric" pattern="[0-9]*" value="${it.qty||''}" placeholder="1" data-id="${it.id}" data-f="qty"></div>
       <div class="item-cell col-amt"><span class="cell-label">金額</span><div class="row-amount">${fmt(amount)}</div></div>
