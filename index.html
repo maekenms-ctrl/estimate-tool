@@ -189,15 +189,50 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .lc-head .lc-title{font-size:17px;font-weight:700;min-width:120px;text-align:center;}
 .lc-head .btn{min-height:40px;padding:6px 12px;}
 .lc-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:8px;}
-.lc-grid{border-collapse:collapse;font-size:12px;}
+.lc-grid{border-collapse:collapse;font-size:12px;table-layout:fixed;}
+.lc-grid th{width:30px;} .lc-grid th.lc-car{width:92px;}
+.lc-grid td.bk{max-width:0;}
 .lc-grid th,.lc-grid td{border:1px solid var(--surface3);min-width:30px;height:38px;text-align:center;padding:0;}
 .lc-grid th{background:var(--surface2);font-weight:600;color:var(--muted);height:34px;}
 .lc-grid th.sat{color:#4ea1ff;} .lc-grid th.sun{color:#ff6b6b;} .lc-grid th.today{background:var(--accent-soft);color:var(--accent);}
 .lc-grid td.today{box-shadow:inset 0 0 0 2px var(--accent);}
 .lc-grid .lc-car{position:sticky;left:0;z-index:2;background:var(--surface2);min-width:92px;text-align:left;padding:0 8px;font-weight:700;color:var(--text);white-space:nowrap;}
 .lc-grid .lc-car.low{color:#FF2BD6;} .lc-grid .lc-car small{display:block;font-size:9px;font-weight:700;}
-.lc-grid td.bk{background:rgba(0,229,255,.22);cursor:pointer;color:#00E5FF;font-size:10px;font-weight:700;white-space:nowrap;overflow:visible;text-align:left;}
-.lc-grid td.bk.st{border-left:3px solid #00E5FF;}
+.lc-grid td.bk{cursor:pointer;padding:3px 1px;}
+.lc-grid .bk-bar{height:100%;min-height:30px;border-radius:6px;color:#0b0d10;font-size:12px;font-weight:800;display:flex;align-items:center;padding:0 6px;white-space:nowrap;overflow:clip;overflow-clip-margin:0;box-shadow:0 1px 2px rgba(0,0,0,.4);}
+.lc-grid td.bk.sh .bk-bar{outline:2px dashed rgba(255,255,255,.85);outline-offset:-3px;}
+.lc-grid .bk-t{position:sticky;left:100px;display:inline-flex;gap:6px;align-items:center;}
+.lc-grid .bk-n,.lc-grid .bk-t small{background:rgba(255,255,255,.82);border-radius:4px;padding:1px 5px;}
+@media(min-width:1000px){
+  .lc-ov{padding:16px 1vw;}
+  .lc-box{max-width:none;width:98vw;padding:18px 20px;}
+  .lc-head .lc-title{font-size:22px;}
+  .lc-head .btn{font-size:16px;min-height:48px;padding:8px 18px;}
+  .lc-legend i{width:18px;height:13px;}
+  .lc-grid{font-size:14px;width:100%;}
+  .lc-grid th,.lc-grid td{min-width:40px;height:54px;}
+  .lc-grid th{height:48px;font-size:14px;}
+  .lc-grid .lc-car{min-width:130px;font-size:16px;}
+  .lc-grid th{width:auto;} .lc-grid th.lc-car{width:130px;}
+  .lc-grid .lc-car small{font-size:11px;}
+  .lc-grid .bk-bar{min-height:42px;font-size:15px;}
+  .lc-grid .bk-t{left:140px;}
+  .lc-grid .bk-t small{font-size:12px;}
+  .lc-legend{font-size:13px;}
+  .lc-list{font-size:15px;}
+}
+.lc-grid .bk-bar small{font-size:10px;font-weight:700;opacity:.8;}
+.lc-grid th{cursor:pointer;position:relative;}
+.lc-grid th .hol{display:block;font-size:9px;line-height:1;}
+.lc-grid th .hol.cl{color:#bbb;}
+.lc-grid th.closed,.lc-grid td.closed{background:repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 4px,rgba(255,255,255,.10) 4px 8px);}
+.lc-grid th.closed{color:#999;}
+.lc-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--muted);margin-bottom:6px;}
+.lc-legend span{display:inline-flex;align-items:center;gap:4px;}
+.lc-legend i{display:inline-block;width:14px;height:10px;border-radius:3px;}
+.lc-legend i.lg-closed{background:repeating-linear-gradient(45deg,#555 0 3px,#888 3px 6px);}
+.lc-list i.kd{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none;}
+.selbtn.kd-btn.on{background:var(--kc);border-color:var(--kc);color:#0b0d10;}
 .lc-grid td.free{cursor:pointer;}
 .lc-list{margin-top:12px;font-size:13px;}
 .lc-list .lc-item{display:flex;gap:8px;align-items:center;padding:8px 4px;border-bottom:1px solid var(--surface3);cursor:pointer;}
@@ -517,6 +552,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-primary" onclick="cloudLogin()">ログイン</button><button type="button" class="btn" onclick="cloudResetPw()">パスワードを忘れた</button><button type="button" class="btn" onclick="cloudEditCfg()">共有の設定を変更</button></div>
       </div>
+      <div class="sg-note" style="margin-top:10px"><b>入庫管理表（スプレッドシート）との連動</b>：代車（K列）が入っている行を代車カレンダーに表示します（読み取りのみ）。</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input id="sheet-url" placeholder="Apps Script のウェブアプリURL" style="flex:1;min-width:200px" onfocus="if(this.value==='（設定済み）')this.value=''"><button type="button" class="btn" onclick="sheetSaveUrl()">保存</button><button type="button" class="btn" onclick="sheetLoad(true)">今すぐ読み込む</button></div>
+      <div id="sheet-status" style="font-size:12px;color:var(--muted);margin:4px 0 10px">未設定</div>
       <div id="cloud-user-box" style="display:none">
         <div style="margin-bottom:8px">ログイン中：<b id="cloud-user"></b></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" onclick="cloudLogout()">ログアウト</button><button type="button" class="btn" onclick="cloudUploadLocal(true)">この端末の覚えた内容を共有に送る</button></div>
@@ -1965,8 +2003,9 @@ function cloudStart(){
     LEARNED_MODELS={..._cloudLocalOnly('models'),...L}; _saveLearned(); try{renderLearned();}catch(e){} });
   listen('colors',m=>{ const L={}; for(const k in m){ const v=m[k]; if(v&&v.type) L[v.code||k]=v.type; }
     LEARNED_COLORS={..._cloudLocalOnly('colors'),...L}; try{localStorage.setItem('est-colors',JSON.stringify(LEARNED_COLORS));}catch(e){} });
-  listen('loaner',m=>{ const L=[]; for(const k in m){ const v=m[k]; if(v&&v.car&&v.from&&v.to) L.push({id:k,car:v.car,from:v.from,to:v.to,name:v.name||'',memo:v.memo||''}); }
-    const local=CLOUD.first.loaner?[]:LOANER_BOOK.filter(b=>!m[b.id]);   // 初回だけ、この端末にしかない予約を残して送る
+  listen('loaner',m=>{ const L=[]; for(const k in m){ const v=m[k]; if(v&&v.sheet){ if(v.url!==SHEET.url){ SHEET.url=v.url||''; try{ SHEET.url?localStorage.setItem('est-sheet-url',SHEET.url):localStorage.removeItem('est-sheet-url'); }catch(e){} SHEET.rows=[]; if(SHEET.url) setTimeout(()=>sheetLoad(false),0); try{renderSheetUI();}catch(e){} } continue; } if(v&&v.shop){ SHOP_CLOSED={w:v.closedW||[],d:v.closedD||[]}; try{localStorage.setItem('est-shop-closed',JSON.stringify(SHOP_CLOSED));}catch(e){} continue; } if(v&&v.car&&v.from&&v.to) L.push({id:k,car:v.car,from:v.from,to:v.to,name:v.name||'',kinds:Array.isArray(v.kinds)?v.kinds:[],kind:v.kind||'',memo:v.memo||''}); }
+    const local=CLOUD.first.loaner?[]:LOANER_BOOK.filter(b=>!m[b.id]);
+    if(!CLOUD.first.loaner && !m['_shop'] && (SHOP_CLOSED.w.length||SHOP_CLOSED.d.length)) setTimeout(_saveShopClosed,0);   // 初回だけ、この端末にしかない予約を残して送る
     LOANER_BOOK=[...L,...local]; _saveLoanerBook(); try{renderLoanerCars();}catch(e){} if(document.getElementById('lc-ov')) _renderLoanerCal(); });
   renderCloudUI();
 }
@@ -1984,15 +2023,71 @@ function cloudUploadLocal(manual){
   const has=(name,k)=>!manual&&CLOUD.keys[name]&&CLOUD.keys[name].has(_cloudKey(k));   // 自動のときは共有に無いものだけ送る
   for(const k in LEARNED_MODELS){ if(has('models',k)) continue; const v=LEARNED_MODELS[k]; _cloudPut('models',k,{name:v.name,shape:v.shape,kata:v.kata||'',typeNo:v.typeNo||'',count:v.count||1,updated:v.updated||''}); }
   for(const k in LEARNED_COLORS){ if(has('colors',k)) continue; _cloudPut('colors',k,{type:LEARNED_COLORS[k]}); }
-  for(const b of LOANER_BOOK){ if(has('loaner',b.id)) continue; _cloudPut('loaner',b.id,{car:b.car,from:b.from,to:b.to,name:b.name||'',memo:b.memo||''}); }
+  for(const b of LOANER_BOOK){ if(has('loaner',b.id)) continue; _cloudPut('loaner',b.id,{car:b.car,from:b.from,to:b.to,name:b.name||'',kinds:_kinds(b),kind:b.kind||'',memo:b.memo||''}); }
   if(manual) toast('この端末の覚えた内容を共有に送りました');
+}
+// ─── スプレッドシート連動（入庫管理表 → 代車カレンダー、読み取りのみ） ─────────
+// 列：B 納期（返却）／D 入庫日（貸出）／F お客様名／G 車種／J 区分（鈑・作・車）／K 代車
+const SHEET={url:'',rows:[],bad:[],at:0,err:'',loading:false};
+try{ SHEET.url=localStorage.getItem('est-sheet-url')||''; }catch(e){}
+function _sheetDate(v){
+  v=String(v||'').normalize('NFKC').trim(); if(!v) return '';
+  let m=v.match(/^(\d{4})[-\/.年](\d{1,2})[-\/.月](\d{1,2})/); if(m) return _ymd(new Date(+m[1],+m[2]-1,+m[3]));
+  m=v.match(/^(\d{1,2})[\/.月](\d{1,2})/); if(m){ const t=new Date(); let best=null;
+    for(const y of [t.getFullYear()-1,t.getFullYear(),t.getFullYear()+1]){ const d=new Date(y,+m[1]-1,+m[2]); if(!best||Math.abs(d-t)<Math.abs(best-t)) best=d; } return _ymd(best); }
+  return '';
+}
+function _sheetCar(v){
+  const z=String(v||'').normalize('NFKC').replace(/\s/g,'').toUpperCase().replace(/[‐－−ー](?=BOX)/g,'-');
+  if(!z||/^(なし|無|無し|-|×|X|✕|不要)$/.test(z)) return null;
+  if(/トヨレン|レンタ|ニコニコ|オリックス|タイムズ|ニッポン/.test(z)) return 'レンタカー';
+  const T=[['フリード',/フリード/],['プリウス',/プリウス/],['フィット',/フィット/],['ミライース',/ミラ/],['ムーブ',/ムーヴ|ムーブ/],['ラパン',/ラパン/],['N-BOX',/N-?BOX|NBOX|エヌボックス|Nボックス/]];
+  for(const [n,re] of T) if(re.test(z)) return n;
+  return '?';
+}
+function _sheetKinds(v){ const z=String(v||''); const k=[]; if(/鈑|板/.test(z)) k.push('鈑金塗装'); if(/作|整/.test(z)) k.push('整備'); if(/車/.test(z)) k.push('車検点検'); return k; }
+async function sheetLoad(manual){
+  if(!SHEET.url||SHEET.loading||SEC.locked) return;
+  SHEET.loading=true;
+  try{
+    const r=await fetch(SHEET.url,{cache:'no-store',redirect:'follow'}); const j=await r.json();
+    if(j.error) throw new Error(j.error==='forbidden'?'合言葉が違います':j.error);
+    const rows=[], bad=[];
+    for(const x of (j.rows||[])){
+      const car=_sheetCar(x.car); if(car===null) continue;
+      const from=_sheetDate(x.inDate); let to=_sheetDate(x.out)||_sheetDate(x.due), open=false;   // 返却：出庫日（C）→ なければ納期（B）
+      if(!to && from){ const td=_ymd(new Date()); to=from<td?td:from; open=true; }   // 返却日未定：今日まで貸出中として表示
+      const name=[x.name,x.model].filter(Boolean).join(' ');
+      const where=(x.tab?x.tab+' ':'')+x.row+'行目';
+      if(car==='?'||!from){ bad.push(`${where}：${x.car||''} ${name}${!from?'（入庫日が読めません）':''}`); continue; }
+      rows.push({id:'sheet-'+(x.tab||'')+'-'+x.row,car,from:from<=to?from:to,to:from<=to?to:from,name,kinds:_sheetKinds(x.kind),kind:_sheetKinds(x.kind).join('・'),memo:`入庫管理表 ${where}${x.car?'（'+x.car+'）':''}${open?'・返却日未定':''}`,src:'sheet'});
+    }
+    SHEET.rows=rows; SHEET.bad=bad; SHEET.at=Date.now(); SHEET.err='';
+    if(manual) toast(`入庫管理表から代車${rows.length}件を読み込みました`);
+  }catch(e){ SHEET.err=_errMsg(e); if(manual) toast('入庫管理表を読み込めませんでした：'+SHEET.err,7000); }
+  finally{ SHEET.loading=false; try{renderLoanerCars();}catch(e){} try{renderSheetUI();}catch(e){} if(document.getElementById('lc-ov')) _renderLoanerCal(); }
+}
+function _allBookings(){ return SHEET.rows.length?[...LOANER_BOOK,...SHEET.rows]:LOANER_BOOK; }
+function renderSheetUI(){
+  const st=document.getElementById('sheet-status'); if(!st) return;
+  document.getElementById('sheet-url').value=SHEET.url?'（設定済み）':'';
+  st.textContent=!SHEET.url?'未設定':SHEET.err?'読み込めません：'+SHEET.err:SHEET.at?`読み込み済み：代車${SHEET.rows.length}件（${new Date(SHEET.at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}）`:'設定済み';
+}
+function sheetSaveUrl(){
+  const v=document.getElementById('sheet-url').value.trim();
+  if(v==='（設定済み）') return;
+  if(v && !/^https:\/\/script\.google(usercontent)?\.com\//.test(v)){ toast('Apps Scriptの「ウェブアプリのURL」（https://script.google.com/…）を貼り付けてください',7000); return; }
+  SHEET.url=v; try{ v?localStorage.setItem('est-sheet-url',v):localStorage.removeItem('est-sheet-url'); }catch(e){}
+  try{ _cloudPut('loaner','_sheet',{sheet:true,url:v}); }catch(e){}
+  if(!v){ SHEET.rows=[]; SHEET.bad=[]; }
+  renderSheetUI(); if(v) sheetLoad(true); else toast('連動を解除しました');
 }
 // ─── 代車の車両とカレンダー ───────────────────────────────
 // low：全高1550mm以下（立体駐車場などの高さ制限に対応）
 const LOANER_CARS=[{n:'フリード'},{n:'プリウス',low:1},{n:'フィット',low:1},{n:'ミライース',low:1},{n:'ムーブ'},{n:'ラパン',low:1},{n:'N-BOX'}];
 let LOANER_BOOK=[];   // {id,car,from:'YYYY-MM-DD',to:'YYYY-MM-DD',name,memo}
 function _ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function _loanerBusy(car,day){ return LOANER_BOOK.find(b=>b.car===car&&b.from<=day&&day<=b.to); }
+function _loanerBusy(car,day){ return _allBookings().find(b=>b.car===car&&b.from<=day&&day<=b.to); }
 function renderLoanerCars(){
   const el=document.getElementById('loaner-cars'); if(!el) return;
   const today=_ymd(new Date());
@@ -2008,63 +2103,138 @@ function _saveLoanerBook(){
   return true;
 }
 let _lcMonth=null;
-function openLoanerCal(){ const d=new Date(); _lcMonth=new Date(d.getFullYear(),d.getMonth(),1); _renderLoanerCal(); }
+function openLoanerCal(){ const d=new Date(); _lcMonth=new Date(d.getFullYear(),d.getMonth(),1); _renderLoanerCal(); if(SHEET.url&&Date.now()-SHEET.at>60000) sheetLoad(false); }
 function _lcShift(n){ _lcMonth=new Date(_lcMonth.getFullYear(),_lcMonth.getMonth()+n,1); _renderLoanerCal(); }
 function _closeLoanerCal(){ const o=document.getElementById('lc-ov'); if(o) o.remove(); renderLoanerCars(); }
+// ─── 祝日（内閣府の祝日法に沿って計算：振替休日・国民の休日を含む） ───────────
+const _HOL_CACHE={};
+function jpHolidays(y){
+  if(_HOL_CACHE[y]) return _HOL_CACHE[y];
+  const H={}, k=(m,d)=>_ymd(new Date(y,m-1,d));
+  const nthMon=(m,n)=>{const f=new Date(y,m-1,1).getDay();return 1+((8-f)%7)+(n-1)*7;};
+  const add=(m,d,n)=>{H[k(m,d)]=n;};
+  add(1,1,'元日'); add(1,nthMon(1,2),'成人の日'); add(2,11,'建国記念の日');
+  if(y>=2020) add(2,23,'天皇誕生日');
+  const sp=Math.floor(20.8431+0.242194*(y-1980)-Math.floor((y-1980)/4)); add(3,sp,'春分の日');
+  add(4,29,'昭和の日'); add(5,3,'憲法記念日'); add(5,4,'みどりの日'); add(5,5,'こどもの日');
+  add(7,nthMon(7,3),'海の日'); add(8,11,'山の日'); add(9,nthMon(9,3),'敬老の日');
+  const au=Math.floor(23.2488+0.242194*(y-1980)-Math.floor((y-1980)/4)); add(9,au,'秋分の日');
+  add(10,nthMon(10,2),'スポーツの日'); add(11,3,'文化の日'); add(11,23,'勤労感謝の日');
+  // 国民の休日（祝日に挟まれた平日）
+  for(let d=new Date(y,0,2);d.getFullYear()===y;d.setDate(d.getDate()+1)){
+    const a=new Date(d);a.setDate(a.getDate()-1);const b=new Date(d);b.setDate(b.getDate()+1);
+    if(!H[_ymd(d)]&&d.getDay()!==0&&H[_ymd(a)]&&H[_ymd(b)]) H[_ymd(d)]='国民の休日';
+  }
+  // 振替休日（祝日が日曜なら、次の祝日でない日）
+  for(const ds of Object.keys(H).sort()){
+    const d=new Date(ds+'T00:00:00'); if(d.getDay()!==0) continue;
+    const n=new Date(d); do{ n.setDate(n.getDate()+1); }while(H[_ymd(n)]);
+    if(n.getFullYear()===y) H[_ymd(n)]='振替休日';
+  }
+  return _HOL_CACHE[y]=H;
+}
+// ─── 店休日（曜日・日付）：チーム共有（loaner の '_shop' に保存） ───────────
+let SHOP_CLOSED={w:[],d:[]};
+try{ SHOP_CLOSED={w:[],d:[],...JSON.parse(localStorage.getItem('est-shop-closed')||'{}')}; }catch(e){}
+function _isClosed(ds,w){ return SHOP_CLOSED.w.includes(w)||SHOP_CLOSED.d.includes(ds); }
+function _saveShopClosed(){ try{localStorage.setItem('est-shop-closed',JSON.stringify(SHOP_CLOSED));}catch(e){} try{_cloudPut('loaner','_shop',{shop:true,closedW:SHOP_CLOSED.w,closedD:SHOP_CLOSED.d});}catch(e){} }
+function _toggleClosedDay(ds){ const i=SHOP_CLOSED.d.indexOf(ds); if(i>=0) SHOP_CLOSED.d.splice(i,1); else SHOP_CLOSED.d.push(ds); _saveShopClosed(); _renderLoanerCal(); }
+function _shopClosedForm(){
+  const W='日月火水木金土';
+  const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9500;
+  const draw=()=>{ ov.innerHTML=`<div class="cf-box lc-form" style="max-width:380px"><div style="font-weight:700;margin-bottom:10px">店休日の設定</div>
+    <label>毎週の定休日</label><div class="check-group" style="margin-bottom:12px">${[...W].map((c,i)=>`<button type="button" class="selbtn${SHOP_CLOSED.w.includes(i)?' on':''}" data-w="${i}">${c}</button>`).join('')}</div>
+    <label>臨時休業・お盆・年末年始など</label><div style="display:flex;gap:6px;margin-bottom:8px"><input type="date" id="sc-date"><button type="button" class="btn" id="sc-add" style="white-space:nowrap;flex:none">追加</button></div>
+    <div style="font-size:13px;margin-bottom:12px">${SHOP_CLOSED.d.slice().sort().map(d=>`<span class="selbtn on" style="display:inline-flex;gap:6px;margin:2px">${d.slice(5).replace('-','/')}<b data-del="${d}" style="cursor:pointer">✕</b></span>`).join('')||'<span style="color:var(--muted)">まだありません（カレンダーの日付をタップしても切り替えられます）</span>'}</div>
+    <div class="cf-btns" style="grid-template-columns:1fr"><button type="button" class="btn btn-primary sc-close">閉じる</button></div></div>`;
+    ov.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{const w=+b.dataset.w;const i=SHOP_CLOSED.w.indexOf(w);if(i>=0)SHOP_CLOSED.w.splice(i,1);else SHOP_CLOSED.w.push(w);_saveShopClosed();draw();});
+    ov.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{SHOP_CLOSED.d=SHOP_CLOSED.d.filter(x=>x!==b.dataset.del);_saveShopClosed();draw();});
+    ov.querySelector('#sc-add').onclick=()=>{const v=ov.querySelector('#sc-date').value;if(v&&!SHOP_CLOSED.d.includes(v)){SHOP_CLOSED.d.push(v);_saveShopClosed();}draw();};
+    ov.querySelector('.sc-close').onclick=()=>{ov.remove();_renderLoanerCal();};
+  };
+  draw(); ov.addEventListener('click',e=>{if(e.target===ov){ov.remove();_renderLoanerCal();}}); document.body.appendChild(ov);
+}
+// 用途（メモの区分）と色
+const LOANER_KINDS=[{k:'鈑金塗装',c:'#E6FF1A'},{k:'整備',c:'#FF2BD6'},{k:'車検点検',c:'#00E5FF'}];   // ネオンイエロー／ネオンピンク／ネオンブルー
+function _kindColor(k){ const x=LOANER_KINDS.find(v=>v.k===k); return x?x.c:'#9AA4B2'; }
+// 作業区分（複数可）：kinds 配列。古いデータの kind（文字列）も読む
+function _kinds(b){ if(Array.isArray(b.kinds)&&b.kinds.length) return b.kinds.filter(k=>LOANER_KINDS.some(x=>x.k===k)); return String(b.kind||'').split('・').filter(k=>LOANER_KINDS.some(x=>x.k===k)); }
+function _kindBg(b,w=12){ const ks=_kinds(b); if(!ks.length) return '#9AA4B2'; if(ks.length===1) return _kindColor(ks[0]);
+  const n=ks.length; return 'linear-gradient(110deg,'+ks.map((k,i)=>`${_kindColor(k)} ${Math.round(i*100/n)}% ${Math.round((i+1)*100/n)}%`).join(',')+')'; }   // 複数は斜めに区切って各色1回ずつ
 function _renderLoanerCal(){
   let ov=document.getElementById('lc-ov');
   if(!ov){ ov=document.createElement('div'); ov.id='lc-ov'; ov.className='lc-ov'; ov.addEventListener('click',e=>{if(e.target===ov)_closeLoanerCal();}); document.body.appendChild(ov); }
-  const y=_lcMonth.getFullYear(), m=_lcMonth.getMonth(), N=new Date(y,m+1,0).getDate(), today=_ymd(new Date());
-  const days=[...Array(N)].map((_,i)=>{const d=new Date(y,m,i+1);return {d:_ymd(d),n:i+1,w:d.getDay()};});
+  const y=_lcMonth.getFullYear(), m=_lcMonth.getMonth(), N=new Date(y,m+1,0).getDate(), today=_ymd(new Date()), HOL=jpHolidays(y);
+  const days=[...Array(N)].map((_,i)=>{const d=new Date(y,m,i+1);const ds=_ymd(d);return {d:ds,n:i+1,w:d.getDay(),hol:HOL[ds]||'',closed:_isClosed(ds,d.getDay())};});
   const W='日月火水木金土';
+  const cls=x=>[x.w===0||x.hol?'sun':x.w===6?'sat':'',x.closed?'closed':'',x.d===today?'today':''].filter(Boolean).join(' ');
   let h=`<div class="lc-box"><div class="lc-head">
     <button class="btn" type="button" onclick="_lcShift(-1)">◀</button><div class="lc-title">${y}年${m+1}月</div><button class="btn" type="button" onclick="_lcShift(1)">▶</button>
     <button class="btn btn-primary" type="button" onclick="_loanerForm()">＋ 予約を追加</button>
+    <button class="btn" type="button" onclick="_shopClosedForm()">🏪 店休日</button>
+    ${SHEET.url?`<button class="btn" type="button" onclick="sheetLoad(true)">🔄 入庫管理表${SHEET.loading?'（読込中）':''}</button>`:''}
     <button class="btn" type="button" style="margin-left:auto" onclick="_closeLoanerCal()">✕ 閉じる</button></div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:6px">空いているマスをタップすると予約、色のついたマスをタップすると変更・削除できます。予定はこの端末だけに保存されます。</div>
-    <div class="lc-scroll"><table class="lc-grid"><tr><th class="lc-car">車両</th>${days.map(x=>`<th class="${x.w===0?'sun':x.w===6?'sat':''}${x.d===today?' today':''}">${x.n}<br>${W[x.w]}</th>`).join('')}</tr>`;
-  for(const c of LOANER_CARS){
-    h+=`<tr><td class="lc-car${c.low?' low':''}">${c.n}${c.low?'<small>1550mm以下</small>':''}</td>`;
-    for(const x of days){
-      const b=_loanerBusy(c.n,x.d);
-      if(b){ const st=b.from===x.d||x.n===1; h+=`<td class="bk${st?' st':''}${x.d===today?' today':''}" onclick="_loanerForm('${b.id}')" title="${esc(b.name||'')}">${st?esc((b.name||'予約').slice(0,6)):''}</td>`; }
-      else h+=`<td class="free${x.d===today?' today':''}" onclick="_loanerForm(null,'${c.n}','${x.d}')"></td>`;
+    <div class="lc-legend">${LOANER_KINDS.map(x=>`<span><i style="background:${x.c}"></i>${x.k}</span>`).join('')}<span><i style="background:#9AA4B2"></i>その他</span><span><i class="lg-closed"></i>店休日</span><span style="color:#ff6b6b">赤字＝日曜・祝日</span></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px">空いているマスで予約、色の帯で変更・削除。日付をタップすると店休日に切り替わります。</div>
+    <div class="lc-scroll"><table class="lc-grid"><tr><th class="lc-car">車両</th>${days.map(x=>`<th class="${cls(x)}" onclick="_toggleClosedDay('${x.d}')" title="${x.hol?esc(x.hol):''}${x.closed?' 店休日':''}">${x.n}<br>${W[x.w]}${x.hol?'<span class="hol">祝</span>':x.closed?'<span class="hol cl">休</span>':''}</th>`).join('')}</tr>`;
+  const _rows=_allBookings().some(b=>b.car==='レンタカー'&&b.to>=days[0].d&&b.from<=days[N-1].d)?[...LOANER_CARS,{n:'レンタカー',ext:1}]:LOANER_CARS;
+  for(const c of _rows){
+    h+=`<tr><td class="lc-car${c.low?' low':''}">${c.ext?'他社':''}${c.n}${c.low?'<small>1550mm以下</small>':''}</td>`;
+    for(let i=0;i<days.length;){
+      const x=days[i]; const b=_loanerBusy(c.n,x.d);
+      if(b){
+        let span=1; while(i+span<days.length && _loanerBusy(c.n,days[i+span].d)===b) span++;
+        const kt=_kinds(b).join('・'); const lab=[b.name||'予約',kt].filter(Boolean).join(' ');
+        h+=`<td class="bk${b.src==='sheet'?' sh':''}" colspan="${span}" onclick="_loanerForm('${b.id}')" title="${esc(lab+(b.memo?' ／ '+b.memo:''))}"><div class="bk-bar" style="background:${_kindBg(b)}"><span class="bk-t"><span class="bk-n">${b.src==='sheet'?'📄':''}${esc(b.name||'予約')}</span>${kt?`<small>${esc(kt)}</small>`:''}</span></div></td>`;
+        i+=span;
+      } else { h+=`<td class="free ${cls(x)}" onclick="_loanerForm(null,'${c.n}','${x.d}')"></td>`; i++; }
     }
     h+='</tr>';
   }
   h+='</table></div>';
   const from=days[0].d, to=days[N-1].d;
-  const list=LOANER_BOOK.filter(b=>b.to>=from&&b.from<=to).sort((a,b)=>a.from<b.from?-1:1);
-  h+=`<div class="lc-list">${list.length?list.map(b=>`<div class="lc-item" onclick="_loanerForm('${b.id}')"><b>${esc(b.car)}</b><span>${b.from.slice(5).replace('-','/')}〜${b.to.slice(5).replace('-','/')}</span><span>${esc(b.name||'')}</span><span style="color:var(--muted)">${esc(b.memo||'')}</span></div>`).join(''):'<div style="color:var(--muted)">この月の予約はありません</div>'}</div></div>`;
+  const list=_allBookings().filter(b=>b.to>=from&&b.from<=to).sort((a,b)=>a.from<b.from?-1:1);
+  const hols=days.filter(x=>x.hol).map(x=>`${x.n}日 ${x.hol}`);
+  h+=`<div class="lc-list">${list.length?list.map(b=>`<div class="lc-item" onclick="_loanerForm('${b.id}')"><i class="kd" style="background:${_kindBg(b,3)}"></i><b>${esc(b.car)}</b><span>${b.from.slice(5).replace('-','/')}〜${b.to.slice(5).replace('-','/')}</span><span>${esc(b.name||'')}</span><span>${esc(_kinds(b).join('・'))}</span><span style="color:var(--muted)">${esc(b.memo||'')}</span></div>`).join(''):'<div style="color:var(--muted)">この月の予約はありません</div>'}
+    ${hols.length?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">祝日：${hols.join('、')}</div>`:''}
+    ${SHEET.err?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">入庫管理表を読み込めません：${esc(SHEET.err)}</div>`:''}
+    ${SHEET.bad.length?`<div style="margin-top:8px;color:#ffb020;font-size:12px">入庫管理表で代車名か入庫日が読み取れない行：${esc(SHEET.bad.slice(0,10).join('／'))}${SHEET.bad.length>10?' ほか':''}</div>`:''}</div></div>`;
   ov.innerHTML=h;
   const sc=ov.querySelector('.lc-scroll'); const td=ov.querySelector('th.today'); if(sc&&td) sc.scrollLeft=Math.max(0,td.offsetLeft-140);
 }
 function _loanerForm(id,car,day){
+  const sb=id&&SHEET.rows.find(x=>x.id===id);
+  if(sb){ const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9500;
+    ov.innerHTML=`<div class="cf-box"><div style="font-weight:700;margin-bottom:8px">📄 入庫管理表の予約</div><div style="line-height:1.9;font-size:14px">車両：${esc(sb.car)}<br>入庫日（貸出）：${sb.from}<br>納期（返却）：${sb.to}<br>お客様：${esc(sb.name)}<br>区分：${esc(sb.kind||'-')}<br><span style="color:var(--muted)">${esc(sb.memo)}</span></div><div style="font-size:12px;color:var(--muted);margin:8px 0">この予約はスプレッドシートから読み込んでいます。変更はシートで行ってください。</div><div class="cf-btns" style="grid-template-columns:1fr"><button type="button" class="btn btn-primary">閉じる</button></div></div>`;
+    ov.querySelector('button').onclick=()=>ov.remove(); ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();}); document.body.appendChild(ov); return; }
   const b=id?LOANER_BOOK.find(x=>x.id===id):null;
   const curName=[customer.name,customer.car,customer.plate].filter(Boolean).join(' ');
   const d0=day||_ymd(new Date());
-  const v=b?{...b}:{car:car||customer.loanerVehicle||LOANER_CARS[0].n,from:d0,to:d0,name:curName,memo:''};
+  const v=b?{...b}:{car:car||customer.loanerVehicle||LOANER_CARS[0].n,from:d0,to:d0,name:curName,kind:'',memo:''};
   const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9500;
   ov.innerHTML=`<div class="cf-box lc-form" style="max-width:380px"><div style="font-weight:700;margin-bottom:10px">${b?'代車の予約を変更':'代車の予約を追加'}</div>
     <div class="field"><label>車両</label><select id="lf-car">${LOANER_CARS.map(c=>`<option${c.n===v.car?' selected':''}>${c.n}</option>`).join('')}</select></div>
     <div class="field"><label>貸出日</label><input type="date" id="lf-from" value="${v.from}"></div>
     <div class="field"><label>返却予定日</label><input type="date" id="lf-to" value="${v.to}"></div>
     <div class="field"><label>お客様・車両</label><input id="lf-name" value="${esc(v.name||'')}" placeholder="例：山田様 プリウス 品川300あ1234"></div>
-    <div class="field"><label>メモ</label><input id="lf-memo" value="${esc(v.memo||'')}" placeholder="例：保険会社手配／ガソリン満タン"></div>
+    <div class="field"><label>メモ（作業の区分）</label><div class="check-group" id="lf-kind">${LOANER_KINDS.map(x=>`<button type="button" class="selbtn kd-btn${_kinds(v).includes(x.k)?' on':''}" data-k="${x.k}" style="--kc:${x.c}">${x.k}</button>`).join('')}</div><div style="font-size:11px;color:var(--muted);margin-top:3px">複数選べます</div>
+      <input id="lf-memo" value="${esc(v.memo||'')}" placeholder="例：保険会社手配／ガソリン満タン" style="margin-top:6px"></div>
     <div class="cf-btns" style="grid-template-columns:${b?'1fr 1fr 1fr':'1fr 1fr'}">${b?'<button type="button" class="btn cf-yes lf-del">削除</button>':''}<button type="button" class="btn lf-cancel">キャンセル</button><button type="button" class="btn btn-primary lf-ok">保存</button></div></div>`;
+  let kinds=_kinds(v);
+  ov.querySelectorAll('.kd-btn').forEach(bt=>bt.onclick=()=>{ const k=bt.dataset.k; kinds=kinds.includes(k)?kinds.filter(x=>x!==k):LOANER_KINDS.map(x=>x.k).filter(x=>x===k||kinds.includes(x)); bt.classList.toggle('on',kinds.includes(k)); });
   const close=()=>ov.remove();
   ov.querySelector('.lf-cancel').onclick=close;
   ov.addEventListener('click',e=>{if(e.target===ov)close();});
   if(b) ov.querySelector('.lf-del').onclick=async()=>{ if(!await askConfirm(`${b.car}（${b.from.slice(5)}〜${b.to.slice(5)}）の予約を削除しますか？`)) return; LOANER_BOOK=LOANER_BOOK.filter(x=>x.id!==b.id); _saveLoanerBook(); _cloudDel('loaner',b.id); close(); _renderLoanerCal(); };
   ov.querySelector('.lf-ok').onclick=async()=>{
-    const n={id:b?b.id:genId(),car:ov.querySelector('#lf-car').value,from:ov.querySelector('#lf-from').value,to:ov.querySelector('#lf-to').value,name:ov.querySelector('#lf-name').value.trim(),memo:ov.querySelector('#lf-memo').value.trim()};
+    const n={id:b?b.id:genId(),car:ov.querySelector('#lf-car').value,from:ov.querySelector('#lf-from').value,to:ov.querySelector('#lf-to').value,name:ov.querySelector('#lf-name').value.trim(),kinds,kind:kinds.join('・'),memo:ov.querySelector('#lf-memo').value.trim()};
     if(!n.from||!n.to){ toast('貸出日と返却予定日を入れてください'); return; }
     if(n.to<n.from){ const t=n.from; n.from=n.to; n.to=t; }
-    const clash=LOANER_BOOK.find(x=>x.id!==n.id&&x.car===n.car&&x.from<=n.to&&n.from<=x.to);
+    const clash=_allBookings().find(x=>x.id!==n.id&&x.car===n.car&&x.from<=n.to&&n.from<=x.to);
     if(clash && !await askConfirm(`${n.car}は ${clash.from.slice(5)}〜${clash.to.slice(5)}（${clash.name||'予約'}）と重なっています。このまま保存しますか？`,'保存する')) return;
     LOANER_BOOK=LOANER_BOOK.filter(x=>x.id!==n.id); LOANER_BOOK.push(n);
     if(!_saveLoanerBook()) toast('ロック中のため保存できませんでした',5000);
-    _cloudPut('loaner',n.id,{car:n.car,from:n.from,to:n.to,name:n.name,memo:n.memo});
+    _cloudPut('loaner',n.id,{car:n.car,from:n.from,to:n.to,name:n.name,kinds:n.kinds,kind:n.kind,memo:n.memo});
     close(); _renderLoanerCal();
   };
   document.body.appendChild(ov);
@@ -13481,7 +13651,7 @@ async function _setupPin(pin){
 function _failState(){try{return JSON.parse(_lsGet('est-lock-fail')||'{"n":0,"until":0}');}catch(e){return {n:0,until:0};}}
 function lockNow(){
   if(!SEC.ok||!_lockInfo()) return;
-  cloudStop(); SEC.key=null; SEC.locked=true; history=[]; LOANER_BOOK=[]; try{renderHistory();}catch(e){}
+  cloudStop(); SEC.key=null; SEC.locked=true; history=[]; LOANER_BOOK=[]; SHEET.rows=[]; SHEET.bad=[]; try{renderHistory();}catch(e){}
   try{const o=document.getElementById('lc-ov'); if(o) o.remove();}catch(e){}
   try{renderLoanerCars();}catch(e){}
   document.querySelectorAll('.cf-ov:not(#lock-ov)').forEach(o=>{ if(o.id!=='busy') o.remove(); });
@@ -13542,13 +13712,13 @@ function _showLock(mode){
   });
   paint();
 }
-function _unlocked(ov){ SEC.locked=false; SEC.lastAct=Date.now(); ov.remove(); try{renderHistory();}catch(e){} try{ if(CLOUD.user) cloudStart(); else cloudInit(); renderCloudUI(); }catch(e){} }
+function _unlocked(ov){ SEC.locked=false; SEC.lastAct=Date.now(); ov.remove(); try{renderHistory();}catch(e){} try{renderSheetUI(); sheetLoad(false);}catch(e){} try{ if(CLOUD.user) cloudStart(); else cloudInit(); renderCloudUI(); }catch(e){} }
 function changePin(){ if(!SEC.ok){toast('この画面では暗証番号を使えません',5000);return;} _showLock('change-old'); }
 function _secInit(){
   if(!SEC.ok){ // 暗号化が使えない画面（プレビュー等）
     try{const h=_lsGet('est-history');if(h)history=JSON.parse(h);}catch(e){}
     try{const l=_lsGet('est-loaner');if(l)LOANER_BOOK=JSON.parse(l);}catch(e){}
-    SEC.locked=false; try{renderLoanerCars();}catch(e){} try{cloudInit();}catch(e){} return;
+    SEC.locked=false; try{renderLoanerCars();}catch(e){} try{cloudInit();}catch(e){} try{renderSheetUI(); sheetLoad(false);}catch(e){} return;
   }
   _showLock(_lockInfo()?'unlock':'setup');
   // 自動ロック：一定時間操作がない／アプリを離れて一定時間たったらロック
