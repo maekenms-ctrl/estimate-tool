@@ -183,7 +183,13 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .selbtn.lcar.low{color:#FF2BD6;border-color:#FF2BD6;}
 .selbtn.lcar.low.on{background:rgba(255,43,214,.16);color:#FF2BD6;border-color:#FF2BD6;}
 .selbtn.lcar small.busy{color:#ffb020;}
-.lc-ov{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9000;display:flex;align-items:flex-start;justify-content:center;padding:12px;overflow:auto;}
+.lc-ov{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9000;display:flex;align-items:flex-start;justify-content:center;padding:12px;padding-top:calc(12px + env(safe-area-inset-top));overflow:auto;}
+.btn.lc-add-fab{display:none;}
+@media(max-width:700px){
+  .btn.lc-add-top{display:none;}
+  .btn.lc-add-fab{display:flex;position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:9100;justify-content:center;min-height:56px;font-size:18px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.6);}
+  .lc-box{margin-bottom:90px;}
+}
 .lc-box{background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:14px;width:100%;max-width:1100px;box-shadow:0 10px 30px rgba(0,0,0,.6);}
 .lc-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
 .lc-head .lc-title{font-size:17px;font-weight:700;min-width:120px;text-align:center;}
@@ -2061,7 +2067,10 @@ async function sheetLoad(manual){
     const r=await fetch(SHEET.url,{cache:'no-store',redirect:'follow'}); const j=await r.json();
     if(j.error) throw new Error(j.error==='forbidden'?'合言葉が違います':j.error);
     const rows=[], bad=[];
+    // 納期（B）に年だけ（例：2026）書かれた行から下は読まない（タブごと）
+    const cut={}; for(const x of (j.rows||[])){ if(/^\s*20\d\d\s*$/.test(String(x.due||'').normalize('NFKC'))){ const t=x.tab||''; if(cut[t]==null||x.row<cut[t]) cut[t]=x.row; } }
     for(const x of (j.rows||[])){
+      if(cut[x.tab||'']!=null && x.row>=cut[x.tab||'']) continue;
       const car=_sheetCar(x.car); if(car===null) continue;
       const from=_sheetDate(x.inDate); let to=_sheetDate(x.out)||_sheetDate(x.due), open=false;   // 返却：出庫日（C）→ なければ納期（B）
       if(!to && from){ to=OPEN_END; open=true; }   // 納期・出庫日が空欄：返却日が決まるまでずっと貸出中（二重貸し出し防止）
@@ -2195,7 +2204,7 @@ function _renderLoanerCal(){
   const cls=x=>[x.w===0||x.hol?'sun':x.w===6?'sat':'',x.closed?'closed':'',x.d===today?'today':''].filter(Boolean).join(' ');
   let h=`<div class="lc-box"><div class="lc-head">
     <button class="btn" type="button" onclick="_lcShift(-1)">◀</button><div class="lc-title">${y}年${m+1}月</div><button class="btn" type="button" onclick="_lcShift(1)">▶</button>
-    <button class="btn btn-primary" type="button" onclick="_loanerForm()">＋ 予約を追加</button>
+    <button class="btn btn-primary lc-add-top" type="button" onclick="_loanerForm()">＋ 予約を追加</button>
     <button class="btn" type="button" onclick="_shopClosedForm()">🏪 店休日</button>
     ${SHEET.url?`<button class="btn" type="button" onclick="sheetLoad(true)">🔄 入庫管理表${SHEET.loading?'（読込中）':''}</button>`:''}
     <button class="btn" type="button" style="margin-left:auto" onclick="_closeLoanerCal()">✕ 閉じる</button></div>
@@ -2224,7 +2233,8 @@ function _renderLoanerCal(){
   h+=`<div class="lc-list">${list.length?list.map(b=>`<div class="lc-item" onclick="_loanerForm('${b.id}')"><i class="kd" style="background:${_kindBg(b,3)}"></i><b>${esc(b.car)}</b><span>${b.from.slice(5).replace('-','/')}〜${_toLabel(b.to)}</span><span>${esc(b.name||'')}</span><span>${esc(_kinds(b).join('・'))}</span><span style="color:var(--muted)">${esc(b.memo||'')}</span></div>`).join(''):'<div style="color:var(--muted)">この月の予約はありません</div>'}
     ${hols.length?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">祝日：${hols.join('、')}</div>`:''}
     ${SHEET.err?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">入庫管理表を読み込めません：${esc(SHEET.err)}</div>`:''}
-    ${SHEET.bad.length?`<div style="margin-top:8px;color:#ffb020;font-size:12px">入庫管理表で代車名か入庫日が読み取れない行：${esc(SHEET.bad.slice(0,10).join('／'))}${SHEET.bad.length>10?' ほか':''}</div>`:''}</div></div>`;
+    ${SHEET.bad.length?`<div style="margin-top:8px;color:#ffb020;font-size:12px">入庫管理表で代車名か入庫日が読み取れない行：${esc(SHEET.bad.slice(0,10).join('／'))}${SHEET.bad.length>10?' ほか':''}</div>`:''}</div>
+    <button class="btn btn-primary lc-add-fab" type="button" onclick="_loanerForm()">＋ 予約を追加</button></div>`;
   ov.innerHTML=h;
   const sc=ov.querySelector('.lc-scroll'); const td=ov.querySelector('th.today'); if(sc&&td) sc.scrollLeft=Math.max(0,td.offsetLeft-140);
 }
