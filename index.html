@@ -1961,7 +1961,7 @@ async function cloudInit(showErr){
     CLOUD.db=fs.getFirestore(CLOUD.app);
     CLOUD.ready=true;
     auth.onAuthStateChanged(CLOUD.auth,u=>{ CLOUD.user=u||null; if(u&&!SEC.locked) cloudStart(); else if(!u) cloudStop(); renderCloudUI(); });
-  }catch(e){ if(showErr) toast('チーム共有に接続できませんでした（電波を確認してください）：'+_errMsg(e),7000); }
+  }catch(e){ if(showErr) toast('チーム共有に接続できませんでした（電波を確認してください）：'+_netMsg(e),7000); }
 }
 function cloudSaveCfg(){
   const c=_cloudCfgParse(document.getElementById('cloud-cfg').value);
@@ -1976,11 +1976,11 @@ async function cloudLogin(){
   const em=document.getElementById('cloud-email').value.trim(), pw=document.getElementById('cloud-pw').value;
   if(!em||!pw){ toast('メールアドレスとパスワードを入れてください'); return; }
   try{ await CLOUD.fb.auth.signInWithEmailAndPassword(CLOUD.auth,em,pw); document.getElementById('cloud-pw').value=''; toast('ログインしました。チームで共有します'); }
-  catch(e){ const c=String(e&&e.code||''); toast(/api-key/.test(c)?'共有の設定（apiKey）が正しくありません。設定画面の「共有の設定を変更」から貼り付け直してください':/invalid|wrong|not-found|credential/.test(c)?'メールアドレスかパスワードが違います':/too-many/.test(c)?'失敗が続いたため、しばらく待ってから試してください':'ログインできませんでした：'+_errMsg(e),7000); }
+  catch(e){ const c=String(e&&e.code||''); toast(/api-key/.test(c)?'共有の設定（apiKey）が正しくありません。設定画面の「共有の設定を変更」から貼り付け直してください':/invalid|wrong|not-found|credential/.test(c)?'メールアドレスかパスワードが違います':/too-many/.test(c)?'失敗が続いたため、しばらく待ってから試してください':'ログインできませんでした：'+_netMsg(e),7000); }
 }
 async function cloudResetPw(){
   const em=document.getElementById('cloud-email').value.trim(); if(!em){ toast('メールアドレスを入れてから押してください'); return; }
-  try{ await CLOUD.fb.auth.sendPasswordResetEmail(CLOUD.auth,em); toast('パスワード再設定のメールを送りました',6000); }catch(e){ toast('送れませんでした：'+_errMsg(e),6000); }
+  try{ await CLOUD.fb.auth.sendPasswordResetEmail(CLOUD.auth,em); toast('パスワード再設定のメールを送りました',6000); }catch(e){ toast('送れませんでした：'+_netMsg(e),6000); }
 }
 async function cloudLogout(silent){
   cloudStop();
@@ -1997,7 +1997,7 @@ function cloudStart(){
       CLOUD.keys[name]=new Set(Object.keys(m));
       apply(m);
       if(!CLOUD.first[name]){ CLOUD.first[name]=true; if(CLOUD.first.models&&CLOUD.first.colors&&CLOUD.first.loaner) cloudUploadLocal(false); }
-    },err=>{ toast('共有データを読めませんでした：'+(/permission/.test(String(err&&err.code))?'このアカウントには権限がありません':_errMsg(err)),8000); cloudStop(); renderCloudUI(); }));
+    },err=>{ toast('共有データを読めませんでした：'+(/permission/.test(String(err&&err.code))?'このアカウントには権限がありません':_netMsg(err)),8000); cloudStop(); renderCloudUI(); }));
   };
   listen('models',m=>{ const L={}; for(const k in m){ const v=m[k]; L[v.code||k]={name:v.name,shape:v.shape,kata:v.kata||'',typeNo:v.typeNo||'',count:v.count||1,updated:v.updated||''}; }
     LEARNED_MODELS={..._cloudLocalOnly('models'),...L}; _saveLearned(); try{renderLearned();}catch(e){} });
@@ -2014,9 +2014,9 @@ function _cloudLocalOnly(name){ return CLOUD.first[name]?{}:(name==='models'?{..
 function _cloudPut(name,id,data){
   if(!CLOUD.started) return;
   const {fs}=CLOUD.fb;
-  fs.setDoc(fs.doc(CLOUD.db,name,_cloudKey(id)),{...data,code:String(id),by:(CLOUD.user&&CLOUD.user.email)||'',at:fs.serverTimestamp()},{merge:true}).catch(e=>toast('共有に保存できませんでした：'+_errMsg(e),6000));
+  fs.setDoc(fs.doc(CLOUD.db,name,_cloudKey(id)),{...data,code:String(id),by:(CLOUD.user&&CLOUD.user.email)||'',at:fs.serverTimestamp()},{merge:true}).catch(e=>toast('共有に保存できませんでした：'+_netMsg(e),6000));
 }
-function _cloudDel(name,id){ if(!CLOUD.started) return; const {fs}=CLOUD.fb; fs.deleteDoc(fs.doc(CLOUD.db,name,_cloudKey(id))).catch(e=>toast('共有から削除できませんでした：'+_errMsg(e),6000)); }
+function _cloudDel(name,id){ if(!CLOUD.started) return; const {fs}=CLOUD.fb; fs.deleteDoc(fs.doc(CLOUD.db,name,_cloudKey(id))).catch(e=>toast('共有から削除できませんでした：'+_netMsg(e),6000)); }
 // 端末で覚えていた内容のうち、共有に無いものを送る（ログイン直後に自動／設定画面のボタンで手動）
 function cloudUploadLocal(manual){
   if(!CLOUD.started){ if(manual) toast('ログインしてから押してください'); return; }
@@ -2064,9 +2064,18 @@ async function sheetLoad(manual){
     }
     SHEET.rows=rows; SHEET.bad=bad; SHEET.at=Date.now(); SHEET.err='';
     if(manual) toast(`入庫管理表から代車${rows.length}件を読み込みました`);
-  }catch(e){ SHEET.err=_errMsg(e); if(manual) toast('入庫管理表を読み込めませんでした：'+SHEET.err,7000); }
+  }catch(e){ SHEET.err=_sheetErr(e); if(manual) toast('入庫管理表を読み込めませんでした：'+SHEET.err,7000); }
   finally{ SHEET.loading=false; try{renderLoanerCars();}catch(e){} try{renderSheetUI();}catch(e){} if(document.getElementById('lc-ov')) _renderLoanerCal(); }
 }
+function _sheetErr(e){
+  const m=String((e&&(e.message||e))||'');
+  if(/合言葉/.test(m)) return m+'（URL末尾の ?token=… とスクリプトの TOKEN が同じか確認してください）';
+  if(e&&e.name==='SyntaxError'||/JSON|Unexpected token/i.test(m)) return 'Apps Scriptの返事が読めません。デプロイの「アクセスできるユーザー」が「全員」になっているか、新しいバージョンでデプロイしたかを確認してください';
+  if(/fetch|network|load failed/i.test(m)) return 'Apps Scriptに接続できません。URLが「…/exec?token=…」の形か、デプロイの「アクセスできるユーザー」が「全員」かを確認してください';
+  return m;
+}
+// 通信まわりのエラー文（文字認識用の文言を使わない）
+function _netMsg(e){ const m=String((e&&(e.code||e.message))||e||''); return /network|fetch|load failed|offline|unavailable/i.test(m)?'通信できませんでした（電波を確認してください）':m; }
 function _allBookings(){ return SHEET.rows.length?[...LOANER_BOOK,...SHEET.rows]:LOANER_BOOK; }
 function renderSheetUI(){
   const st=document.getElementById('sheet-status'); if(!st) return;
