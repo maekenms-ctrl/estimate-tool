@@ -190,9 +190,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .lc-head .btn{min-height:40px;padding:6px 12px;}
 .lc-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:8px;}
 .lc-grid{border-collapse:collapse;font-size:12px;table-layout:fixed;}
-.lc-grid th{width:30px;} .lc-grid th.lc-car{width:92px;}
+.lc-grid th{width:58px;} .lc-grid th.lc-car{width:92px;}
 .lc-grid td.bk{max-width:0;}
-.lc-grid th,.lc-grid td{border:1px solid var(--surface3);min-width:30px;height:38px;text-align:center;padding:0;}
+.lc-grid th,.lc-grid td{border:1px solid var(--surface3);min-width:58px;height:62px;text-align:center;padding:0;}
 .lc-grid th{background:var(--surface2);font-weight:600;color:var(--muted);height:34px;}
 .lc-grid th.sat{color:#4ea1ff;} .lc-grid th.sun{color:#ff6b6b;} .lc-grid th.today{background:var(--accent-soft);color:var(--accent);}
 .lc-grid td.today{box-shadow:inset 0 0 0 2px var(--accent);}
@@ -201,6 +201,13 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .lc-grid td.bk{cursor:pointer;padding:3px 1px;}
 .lc-grid .bk-bar{height:100%;min-height:30px;border-radius:6px;color:#0b0d10;font-size:12px;font-weight:800;display:flex;align-items:center;padding:0 6px;white-space:nowrap;overflow:clip;overflow-clip-margin:0;box-shadow:0 1px 2px rgba(0,0,0,.4);}
 .lc-grid td.bk.sh .bk-bar{outline:2px dashed rgba(255,255,255,.85);outline-offset:-3px;}
+.lc-grid td.bk.open .bk-bar{border-top-right-radius:0;border-bottom-right-radius:0;}
+.lc-grid td.bk.open .bk-bar::after{content:'▶ 返却未定';position:sticky;right:4px;margin-left:auto;font-size:10px;font-weight:800;background:#111;color:#fff;border-radius:4px;padding:1px 5px;white-space:nowrap;}
+.lc-grid .bk-m{font-size:11px;font-weight:700;background:rgba(255,255,255,.82);border-radius:4px;padding:1px 4px;}
+.lc-grid .shm{font-style:normal;font-size:10px;margin-right:2px;}
+.lc-grid td.bk.short .bk-t{flex-direction:column;align-items:flex-start;gap:2px;white-space:normal;line-height:1.15;}
+.lc-grid td.bk.short .bk-bar{padding:3px 4px;align-items:flex-start;}
+.lc-grid td.bk.short .bk-n,.lc-grid td.bk.short .bk-m{word-break:break-all;}
 .lc-grid .bk-t{position:sticky;left:100px;display:inline-flex;gap:6px;align-items:center;}
 .lc-grid .bk-n,.lc-grid .bk-t small{background:rgba(255,255,255,.82);border-radius:4px;padding:1px 5px;}
 @media(min-width:1000px){
@@ -210,10 +217,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   .lc-head .btn{font-size:16px;min-height:48px;padding:8px 18px;}
   .lc-legend i{width:18px;height:13px;}
   .lc-grid{font-size:14px;width:100%;}
-  .lc-grid th,.lc-grid td{min-width:40px;height:54px;}
+  .lc-grid th,.lc-grid td{min-width:72px;height:70px;}
   .lc-grid th{height:48px;font-size:14px;}
   .lc-grid .lc-car{min-width:130px;font-size:16px;}
-  .lc-grid th{width:auto;} .lc-grid th.lc-car{width:130px;}
+  .lc-grid th{width:72px;} .lc-grid th.lc-car{width:130px;}
+  .lc-grid td.bk.short .bk-t{font-size:13px;}
   .lc-grid .lc-car small{font-size:11px;}
   .lc-grid .bk-bar{min-height:42px;font-size:15px;}
   .lc-grid .bk-t{left:140px;}
@@ -2039,7 +2047,7 @@ function _sheetDate(v){
 }
 function _sheetCar(v){
   const z=String(v||'').normalize('NFKC').replace(/\s/g,'').toUpperCase().replace(/[‐－−ー](?=BOX)/g,'-');
-  if(!z||/^(なし|無|無し|-|×|X|✕|不要)$/.test(z)) return null;
+  if(!z||/^(なし|無|無し|-|×|X|✕|不要)$/.test(z)||/家まで|送迎|自宅|自走/.test(z)) return null;   // 代車なし（送迎などを含む）
   if(/トヨレン|レンタ|ニコニコ|オリックス|タイムズ|ニッポン/.test(z)) return 'レンタカー';
   const T=[['フリード',/フリード/],['プリウス',/プリウス/],['フィット',/フィット/],['ミライース',/ミラ/],['ムーブ',/ムーヴ|ムーブ/],['ラパン',/ラパン/],['N-BOX',/N-?BOX|NBOX|エヌボックス|Nボックス/]];
   for(const [n,re] of T) if(re.test(z)) return n;
@@ -2056,11 +2064,11 @@ async function sheetLoad(manual){
     for(const x of (j.rows||[])){
       const car=_sheetCar(x.car); if(car===null) continue;
       const from=_sheetDate(x.inDate); let to=_sheetDate(x.out)||_sheetDate(x.due), open=false;   // 返却：出庫日（C）→ なければ納期（B）
-      if(!to && from){ const td=_ymd(new Date()); to=from<td?td:from; open=true; }   // 返却日未定：今日まで貸出中として表示
+      if(!to && from){ to=OPEN_END; open=true; }   // 納期・出庫日が空欄：返却日が決まるまでずっと貸出中（二重貸し出し防止）
       const name=[x.name,x.model].filter(Boolean).join(' ');
       const where=(x.tab?x.tab+' ':'')+x.row+'行目';
       if(car==='?'||!from){ bad.push(`${where}：${x.car||''} ${name}${!from?'（入庫日が読めません）':''}`); continue; }
-      rows.push({id:'sheet-'+(x.tab||'')+'-'+x.row,car,from:from<=to?from:to,to:from<=to?to:from,name,kinds:_sheetKinds(x.kind),kind:_sheetKinds(x.kind).join('・'),memo:`入庫管理表 ${where}${x.car?'（'+x.car+'）':''}${open?'・返却日未定':''}`,src:'sheet'});
+      rows.push({id:'sheet-'+(x.tab||'')+'-'+x.row,open,car,cust:x.name||'',model:x.model||'',from:from<=to?from:to,to:from<=to?to:from,name,kinds:_sheetKinds(x.kind),kind:_sheetKinds(x.kind).join('・'),memo:`入庫管理表 ${where}${x.car?'（'+x.car+'）':''}${open?'・返却日未定':''}`,src:'sheet'});
     }
     SHEET.rows=rows; SHEET.bad=bad; SHEET.at=Date.now(); SHEET.err='';
     if(manual) toast(`入庫管理表から代車${rows.length}件を読み込みました`);
@@ -2076,6 +2084,14 @@ function _sheetErr(e){
 }
 // 通信まわりのエラー文（文字認識用の文言を使わない）
 function _netMsg(e){ const m=String((e&&(e.code||e.message))||e||''); return /network|fetch|load failed|offline|unavailable/i.test(m)?'通信できませんでした（電波を確認してください）':m; }
+// 帯に出す名前：「様」と余分な空白を省き、お客様名と車種に分ける
+function _barNames(b){
+  const clean=t=>String(t||'').replace(/\s*様\s*/g,' ').replace(/[\s　]+/g,' ').trim();
+  if(b.src==='sheet') return [clean(b.cust),clean(b.model)];
+  const n=clean(b.name); const i=n.indexOf(' '); return i>0?[n.slice(0,i),n.slice(i+1)]:[n,''];
+}
+const OPEN_END='9999-12-31';
+function _toLabel(d){ return d===OPEN_END?'返却未定':d.slice(5).replace('-','/'); }
 function _allBookings(){ return SHEET.rows.length?[...LOANER_BOOK,...SHEET.rows]:LOANER_BOOK; }
 function renderSheetUI(){
   const st=document.getElementById('sheet-status'); if(!st) return;
@@ -2093,7 +2109,7 @@ function sheetSaveUrl(){
 }
 // ─── 代車の車両とカレンダー ───────────────────────────────
 // low：全高1550mm以下（立体駐車場などの高さ制限に対応）
-const LOANER_CARS=[{n:'フリード'},{n:'プリウス',low:1},{n:'フィット',low:1},{n:'ミライース',low:1},{n:'ムーブ'},{n:'ラパン',low:1},{n:'N-BOX'}];
+const LOANER_CARS=[{n:'N-BOX'},{n:'ラパン',low:1},{n:'フィット',low:1},{n:'フリード'},{n:'プリウス',low:1},{n:'ミライース',low:1},{n:'ムーブ'}];
 let LOANER_BOOK=[];   // {id,car,from:'YYYY-MM-DD',to:'YYYY-MM-DD',name,memo}
 function _ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function _loanerBusy(car,day){ return _allBookings().find(b=>b.car===car&&b.from<=day&&day<=b.to); }
@@ -2194,7 +2210,8 @@ function _renderLoanerCal(){
       if(b){
         let span=1; while(i+span<days.length && _loanerBusy(c.n,days[i+span].d)===b) span++;
         const kt=_kinds(b).join('・'); const lab=[b.name||'予約',kt].filter(Boolean).join(' ');
-        h+=`<td class="bk${b.src==='sheet'?' sh':''}" colspan="${span}" onclick="_loanerForm('${b.id}')" title="${esc(lab+(b.memo?' ／ '+b.memo:''))}"><div class="bk-bar" style="background:${_kindBg(b)}"><span class="bk-t"><span class="bk-n">${b.src==='sheet'?'📄':''}${esc(b.name||'予約')}</span>${kt?`<small>${esc(kt)}</small>`:''}</span></div></td>`;
+        const [cu,mo]=_barNames(b);
+        h+=`<td class="bk${b.src==='sheet'?' sh':''}${span<=2?' short':''}${b.to===OPEN_END?' open':''}" colspan="${span}" onclick="_loanerForm('${b.id}')" title="${esc(lab+(b.memo?' ／ '+b.memo:''))}"><div class="bk-bar" style="background:${_kindBg(b)}"><span class="bk-t"><span class="bk-n">${b.src==='sheet'?'<i class="shm">📄</i>':''}${esc(cu||'予約')}</span>${mo?`<span class="bk-m">${esc(mo)}</span>`:''}${kt&&span>=3?`<small>${esc(kt)}</small>`:''}</span></div></td>`;
         i+=span;
       } else { h+=`<td class="free ${cls(x)}" onclick="_loanerForm(null,'${c.n}','${x.d}')"></td>`; i++; }
     }
@@ -2204,7 +2221,7 @@ function _renderLoanerCal(){
   const from=days[0].d, to=days[N-1].d;
   const list=_allBookings().filter(b=>b.to>=from&&b.from<=to).sort((a,b)=>a.from<b.from?-1:1);
   const hols=days.filter(x=>x.hol).map(x=>`${x.n}日 ${x.hol}`);
-  h+=`<div class="lc-list">${list.length?list.map(b=>`<div class="lc-item" onclick="_loanerForm('${b.id}')"><i class="kd" style="background:${_kindBg(b,3)}"></i><b>${esc(b.car)}</b><span>${b.from.slice(5).replace('-','/')}〜${b.to.slice(5).replace('-','/')}</span><span>${esc(b.name||'')}</span><span>${esc(_kinds(b).join('・'))}</span><span style="color:var(--muted)">${esc(b.memo||'')}</span></div>`).join(''):'<div style="color:var(--muted)">この月の予約はありません</div>'}
+  h+=`<div class="lc-list">${list.length?list.map(b=>`<div class="lc-item" onclick="_loanerForm('${b.id}')"><i class="kd" style="background:${_kindBg(b,3)}"></i><b>${esc(b.car)}</b><span>${b.from.slice(5).replace('-','/')}〜${_toLabel(b.to)}</span><span>${esc(b.name||'')}</span><span>${esc(_kinds(b).join('・'))}</span><span style="color:var(--muted)">${esc(b.memo||'')}</span></div>`).join(''):'<div style="color:var(--muted)">この月の予約はありません</div>'}
     ${hols.length?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">祝日：${hols.join('、')}</div>`:''}
     ${SHEET.err?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">入庫管理表を読み込めません：${esc(SHEET.err)}</div>`:''}
     ${SHEET.bad.length?`<div style="margin-top:8px;color:#ffb020;font-size:12px">入庫管理表で代車名か入庫日が読み取れない行：${esc(SHEET.bad.slice(0,10).join('／'))}${SHEET.bad.length>10?' ほか':''}</div>`:''}</div></div>`;
@@ -2214,7 +2231,7 @@ function _renderLoanerCal(){
 function _loanerForm(id,car,day){
   const sb=id&&SHEET.rows.find(x=>x.id===id);
   if(sb){ const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9500;
-    ov.innerHTML=`<div class="cf-box"><div style="font-weight:700;margin-bottom:8px">📄 入庫管理表の予約</div><div style="line-height:1.9;font-size:14px">車両：${esc(sb.car)}<br>入庫日（貸出）：${sb.from}<br>納期（返却）：${sb.to}<br>お客様：${esc(sb.name)}<br>区分：${esc(sb.kind||'-')}<br><span style="color:var(--muted)">${esc(sb.memo)}</span></div><div style="font-size:12px;color:var(--muted);margin:8px 0">この予約はスプレッドシートから読み込んでいます。変更はシートで行ってください。</div><div class="cf-btns" style="grid-template-columns:1fr"><button type="button" class="btn btn-primary">閉じる</button></div></div>`;
+    ov.innerHTML=`<div class="cf-box"><div style="font-weight:700;margin-bottom:8px">📄 入庫管理表の予約</div><div style="line-height:1.9;font-size:14px">車両：${esc(sb.car)}<br>入庫日（貸出）：${sb.from}<br>納期・出庫日（返却）：${sb.to===OPEN_END?'未定（決まるまで貸出中として表示）':sb.to}<br>お客様：${esc(sb.name)}<br>区分：${esc(sb.kind||'-')}<br><span style="color:var(--muted)">${esc(sb.memo)}</span></div><div style="font-size:12px;color:var(--muted);margin:8px 0">この予約はスプレッドシートから読み込んでいます。変更はシートで行ってください。</div><div class="cf-btns" style="grid-template-columns:1fr"><button type="button" class="btn btn-primary">閉じる</button></div></div>`;
     ov.querySelector('button').onclick=()=>ov.remove(); ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();}); document.body.appendChild(ov); return; }
   const b=id?LOANER_BOOK.find(x=>x.id===id):null;
   const curName=[customer.name,customer.car,customer.plate].filter(Boolean).join(' ');
@@ -2240,7 +2257,7 @@ function _loanerForm(id,car,day){
     if(!n.from||!n.to){ toast('貸出日と返却予定日を入れてください'); return; }
     if(n.to<n.from){ const t=n.from; n.from=n.to; n.to=t; }
     const clash=_allBookings().find(x=>x.id!==n.id&&x.car===n.car&&x.from<=n.to&&n.from<=x.to);
-    if(clash && !await askConfirm(`${n.car}は ${clash.from.slice(5)}〜${clash.to.slice(5)}（${clash.name||'予約'}）と重なっています。このまま保存しますか？`,'保存する')) return;
+    if(clash && !await askConfirm(`${n.car}は ${clash.from.slice(5)}〜${_toLabel(clash.to)}（${clash.name||'予約'}）と重なっています。このまま保存しますか？`,'保存する')) return;
     LOANER_BOOK=LOANER_BOOK.filter(x=>x.id!==n.id); LOANER_BOOK.push(n);
     if(!_saveLoanerBook()) toast('ロック中のため保存できませんでした',5000);
     _cloudPut('loaner',n.id,{car:n.car,from:n.from,to:n.to,name:n.name,kinds:n.kinds,kind:n.kind,memo:n.memo});
