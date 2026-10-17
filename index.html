@@ -113,6 +113,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .qcheck{display:flex;align-items:center;justify-content:center;}
 .item-cell.nopaint{visibility:hidden;}
 .ah-wrap{display:flex;flex-direction:column;gap:3px;}
+.item-row select.pillar-sel{font-size:13px;padding:5px 1px;text-align:center;}
+.item-row select.pillar-sel.on{border-color:var(--accent);color:var(--accent);font-weight:700;}
+@media(max-width:700px){.item-row>.item-cell.pillar-cell{grid-column:span 2;align-items:stretch;}}
 .item-row input.sealant{background:transparent;border-style:dashed;color:#00E5FF;font-weight:700;}
 .item-row select[data-f="type"]{font-size:14px;letter-spacing:-.02em;padding-right:2px;}
 .item-row select.wt-parts{color:#00E5FF;font-weight:700;border-color:#00E5FF;text-shadow:none;}
@@ -175,6 +178,33 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .cam-status{color:var(--accent);font-weight:700;text-align:center;font-size:14px;}
 .cam-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .cam-btns .btn{justify-content:center;min-height:48px;}
+.selbtn.lcar{display:inline-flex;flex-direction:column;align-items:center;line-height:1.2;}
+.selbtn.lcar small{font-size:10px;font-weight:700;}
+.selbtn.lcar.low{color:#FF2BD6;border-color:#FF2BD6;}
+.selbtn.lcar.low.on{background:rgba(255,43,214,.16);color:#FF2BD6;border-color:#FF2BD6;}
+.selbtn.lcar small.busy{color:#ffb020;}
+.lc-ov{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9000;display:flex;align-items:flex-start;justify-content:center;padding:12px;overflow:auto;}
+.lc-box{background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:14px;width:100%;max-width:1100px;box-shadow:0 10px 30px rgba(0,0,0,.6);}
+.lc-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.lc-head .lc-title{font-size:17px;font-weight:700;min-width:120px;text-align:center;}
+.lc-head .btn{min-height:40px;padding:6px 12px;}
+.lc-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:8px;}
+.lc-grid{border-collapse:collapse;font-size:12px;}
+.lc-grid th,.lc-grid td{border:1px solid var(--surface3);min-width:30px;height:38px;text-align:center;padding:0;}
+.lc-grid th{background:var(--surface2);font-weight:600;color:var(--muted);height:34px;}
+.lc-grid th.sat{color:#4ea1ff;} .lc-grid th.sun{color:#ff6b6b;} .lc-grid th.today{background:var(--accent-soft);color:var(--accent);}
+.lc-grid td.today{box-shadow:inset 0 0 0 2px var(--accent);}
+.lc-grid .lc-car{position:sticky;left:0;z-index:2;background:var(--surface2);min-width:92px;text-align:left;padding:0 8px;font-weight:700;color:var(--text);white-space:nowrap;}
+.lc-grid .lc-car.low{color:#FF2BD6;} .lc-grid .lc-car small{display:block;font-size:9px;font-weight:700;}
+.lc-grid td.bk{background:rgba(0,229,255,.22);cursor:pointer;color:#00E5FF;font-size:10px;font-weight:700;white-space:nowrap;overflow:visible;text-align:left;}
+.lc-grid td.bk.st{border-left:3px solid #00E5FF;}
+.lc-grid td.free{cursor:pointer;}
+.lc-list{margin-top:12px;font-size:13px;}
+.lc-list .lc-item{display:flex;gap:8px;align-items:center;padding:8px 4px;border-bottom:1px solid var(--surface3);cursor:pointer;}
+.lc-list .lc-item b{min-width:72px;}
+.lc-form .field{margin-bottom:10px;}
+.lc-form label{display:block;font-size:12px;color:var(--muted);margin-bottom:3px;}
+.lc-form input,.lc-form select,.lc-form textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px;font-size:16px;font-family:inherit;}
 .cf-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;}
 .cf-box{background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:20px;width:100%;max-width:340px;box-shadow:0 10px 30px rgba(0,0,0,.6);}
 .cf-msg{font-size:15px;font-weight:700;line-height:1.6;white-space:pre-line;margin-bottom:16px;color:var(--text);}
@@ -350,6 +380,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div class="check-group">
             <button class="selbtn" id="lb-yes" onclick="setLoaner(true)">代車あり</button>
             <button class="selbtn" id="lb-no" onclick="setLoaner(false)">代車なし</button>
+            <button class="selbtn" type="button" onclick="openLoanerCal()">📅 代車カレンダー</button>
           </div>
           <div id="loaner-sub" style="display:none" class="check-sub">
             <span class="sub-label">代車の種類</span>
@@ -359,6 +390,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
               <button class="selbtn" data-lk="loanerHeightLimit" onclick="setLoanerKind(this)">高さ制限</button>
               <button class="selbtn" data-lk="loanerRider" onclick="setLoanerKind(this)">代車特約</button>
             </div>
+            <span class="sub-label">代車の車両</span>
+            <div class="check-group" id="loaner-cars"></div>
           </div>
         </div>
         <div class="field span2">
@@ -470,6 +503,24 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
     <div class="sg"><h3>覚えた車種 <span id="learned-count" style="color:var(--muted)"></span></h3>
       <div class="sg-note">見積りを保存すると、車台番号（または車種欄の末尾のコード）と車種名・ボディ形状を覚え、次回の読み取りで自動入力します。内蔵の車種表より優先されます。</div>
       <div id="learned-list"></div>
+    </div>
+    <div class="sg" id="cloud-sec"><h3>チーム共有 <span id="cloud-badge" style="font-size:12px;color:var(--muted)">（未設定）</span></h3>
+      <div class="sg-note">ログインすると「覚えた車種」「カラー番号の塗装タイプ」「代車カレンダー」を、同じチームの全端末で共有します。見積の内容・写真は共有しません。</div>
+      <div id="cloud-cfg-box">
+        <div class="field"><label>共有の設定（Firebaseの設定を貼り付け：最初の1回だけ）</label><textarea id="cloud-cfg" rows="4" placeholder="const firebaseConfig = { apiKey: &quot;…&quot;, authDomain: &quot;…&quot;, projectId: &quot;…&quot;, … };"></textarea></div>
+        <button type="button" class="btn" onclick="cloudSaveCfg()">設定を保存</button>
+      </div>
+      <div id="cloud-login-box" style="display:none">
+        <div class="fgrid">
+          <div class="field"><label>メールアドレス</label><input id="cloud-email" type="email" autocomplete="username" placeholder="staff@example.com"></div>
+          <div class="field"><label>パスワード</label><input id="cloud-pw" type="password" autocomplete="current-password"></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn btn-primary" onclick="cloudLogin()">ログイン</button><button type="button" class="btn" onclick="cloudResetPw()">パスワードを忘れた</button><button type="button" class="btn" onclick="cloudEditCfg()">共有の設定を変更</button></div>
+      </div>
+      <div id="cloud-user-box" style="display:none">
+        <div style="margin-bottom:8px">ログイン中：<b id="cloud-user"></b></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" onclick="cloudLogout()">ログアウト</button><button type="button" class="btn" onclick="cloudUploadLocal(true)">この端末の覚えた内容を共有に送る</button></div>
+      </div>
     </div>
     <div class="sg"><h3>セキュリティ</h3>
       <div class="sg-note">アプリを開くときに暗証番号が必要です。保存した見積り履歴（お客様名・登録番号など）は暗証番号で暗号化して、この端末の中だけに保存しています。</div>
@@ -673,7 +724,7 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;'
 function newCust(){
   return {name:'',car:'',plate:'',color:'',date:todayStr(),staff:'',note:'',carType:'国産車',
     bodyShape:'コンパクト', paintType:'ソリッド', cond2cs:false, condBooth:true, bodyCoat:false, chassis:'', roundPre:false, roundPost:false, noExpense:false,
-    loanerCar:null,loanerNormal:false,loanerKei:false,loanerHeightLimit:false,loanerRider:false,
+    loanerCar:null,loanerVehicle:'',loanerNormal:false,loanerKei:false,loanerHeightLimit:false,loanerRider:false,
     paySelf:false,payVehicle:false,payProperty:false};
 }
 function newItem(part='',isQ=false,dm2=0){
@@ -1302,7 +1353,7 @@ function renderItems(){
       <div class="item-cell"><span class="cell-label">${it.type==='脱着'?'脱着(h)':'取替(h)'}</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.replaceHours||''}" placeholder="0" data-id="${it.id}" data-f="replaceHours" ${it.rhAuto?'class="rh-auto"':''} title="作業区分「取替」で取替工数、「脱着」で脱着工数が入ります"></div>
       ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">塗装(h)</span><input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.paintHours||''}" placeholder="0" data-id="${it.id}" data-f="paintHours"></div>`}
       ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">塗装金額(¥)</span><input type="text" inputmode="numeric" pattern="[0-9]*" value="${_manualPaintMode(it)?(it.paintAmount||''):''}" placeholder="${_manualPaintMode(it)?'金額':'—'}" data-id="${it.id}" data-f="paintAmount" ${_manualPaintMode(it)?'class="ph-manual"':'readonly tabindex="-1" class="ph-auto" title="塗装区分を「手入力」にすると入力できます"'}></div>`}
-      ${noPaint?'<div class="item-cell nopaint"></div>':_isSill(it)?`<div class="item-cell qcheck"><span class="cell-label">ピラー関係</span><input type="checkbox" ${it.pillar?'checked':''} data-id="${it.id}" data-f="pillar" title="センターピラー関係あり"></div>`:`<div class="item-cell qcheck"><span class="cell-label" style="white-space:nowrap">クォータ</span><input type="checkbox" ${it.includesQuarterPanel?'checked':''} data-id="${it.id}" data-f="includesQuarterPanel"></div>`}
+      ${noPaint?'<div class="item-cell nopaint"></div>':_isSill(it)?`<div class="item-cell qcheck pillar-cell"><span class="cell-label" style="white-space:nowrap">センターピラー関係</span><select data-id="${it.id}" data-f="pillar" class="pillar-sel${it.pillar?' on':''}" title="センターピラー関係（あり／なし）"><option value=""${it.pillar?'':' selected'}>なし</option><option value="1"${it.pillar?' selected':''}>あり</option></select></div>`:`<div class="item-cell qcheck"><span class="cell-label" style="white-space:nowrap">クォータ</span><input type="checkbox" ${it.includesQuarterPanel?'checked':''} data-id="${it.id}" data-f="includesQuarterPanel"></div>`}
       ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell qcheck"><span class="cell-label">2トーン</span><input type="checkbox" ${it.twoTone?'checked':''} data-id="${it.id}" data-f="twoTone"></div>`}
       ${noPaint?'<div class="item-cell nopaint"></div>':`<div class="item-cell"><span class="cell-label">塗装区分</span><select data-id="${it.id}" data-f="paintWork">${PAINT_WORK_TYPES.map(t=>`<option${t===(it.paintWork||'取替')?' selected':''}>${t}</option>`).join('')}</select></div>`}
       <div class="item-cell"><span class="cell-label">付属品(h)</span><div class="ah-wrap"><select data-id="${it.id}" data-f="ahSel"><option value="0"${ahSel==='0'?' selected':''}>なし</option>${ahOpts.map(o=>`<option value="${o}"${ahSel===String(o)?' selected':''}>${o.toFixed(1)}</option>`).join('')}<option value="手入力"${ahSel==='手入力'?' selected':''}>手入力</option></select>${ahSel==='手入力'?`<input type="text" inputmode="decimal" pattern="[0-9.]*" value="${it.accessoryHours||''}" placeholder="0" data-id="${it.id}" data-f="accessoryHours">`:''}</div></div>
@@ -1379,7 +1430,9 @@ function onItemChange(e){
     if(it.ahManual){ const ai=document.querySelector(`input[data-id="${it.id}"][data-f="accessoryHours"]`); if(ai){ ai.focus(); ai.select(); } }
     return;
   }
-  if(el.type==='checkbox'){
+  if(f==='pillar' && el.tagName==='SELECT'){
+    it.pillar=el.value==='1';
+  } else if(el.type==='checkbox'){
     it[f]=el.checked;
   } else if(NUM_FIELDS.includes(f)){
     const v = el.value.replace(/[^\d.]/g,'');
@@ -1805,6 +1858,7 @@ function fillCustForm(){
   document.getElementById('c-date').value=customer.date||todayStr();
   document.getElementById('c-staff').value=customer.staff||'';
   document.getElementById('c-note').value=customer.note||'';
+  try{renderLoanerCars();}catch(e){}
 }
 function setCarType(t){
   customer.carType=t;
@@ -1825,6 +1879,195 @@ function setLoanerKind(btn){
   ['loanerNormal','loanerKei','loanerHeightLimit','loanerRider'].forEach(k=>customer[k]=false);
   document.querySelectorAll('[data-lk]').forEach(b=>b.classList.remove('on'));
   customer[btn.dataset.lk]=true; btn.classList.add('on');
+}
+// ─── チーム共有（Firebase：認証＋Firestore） ─────────────────────────────
+// 共有するもの：models（覚えた車種）・colors（カラー番号→塗装タイプ）・loaner（代車カレンダー）
+// 端末にはデータを平文で残さない（Firestoreはメモリキャッシュのみ。代車予定は暗号化して端末にも控えを保存）
+const FB_VER='10.12.2';
+// 株式会社AUTO REPAIR KOBE のチーム共有（Firebaseプロジェクト ark-share-31734）。設定画面で貼り付けた設定があればそちらを優先
+const CLOUD_DEFAULT_CFG={apiKey:"AIzaSyBCUH7KW9IanTh2s6OoFumSQe4Pzm_2aiA",authDomain:"ark-share-31734.firebaseapp.com",projectId:"ark-share-31734",storageBucket:"ark-share-31734.firebasestorage.app",messagingSenderId:"608593197071",appId:"1:608593197071:web:d52472d82852aad0980b7a"};
+const CLOUD={cfg:null,fb:null,app:null,auth:null,db:null,user:null,unsubs:[],ready:false,started:false,first:{},keys:{}};
+function _cloudCfgParse(t){
+  t=String(t||'').trim(); if(!t) return null;
+  try{ const j=JSON.parse(t); if(j&&j.apiKey&&j.projectId) return j; }catch(e){}
+  const o={}; for(const k of ['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId']){ const m=t.match(new RegExp(k+'\\s*:\\s*["\']([^"\']+)["\']')); if(m) o[k]=m[1]; }
+  return o.apiKey&&o.projectId?o:null;
+}
+function _cloudKey(id){ return String(id).replace(/[\/\s]/g,'_').slice(0,120)||'_'; }
+async function _cloudLoadSdk(){
+  if(window.__FB_FAKE) return window.__FB_FAKE;   // テスト用
+  const base=`https://www.gstatic.com/firebasejs/${FB_VER}/`;
+  const [app,auth,fs]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);
+  return {app,auth,fs};
+}
+function renderCloudUI(){
+  const st=document.getElementById('cloud-badge'); if(!st) return;
+  const has=!!CLOUD.cfg&&!CLOUD.editing, u=CLOUD.user;
+  document.getElementById('cloud-cfg-box').style.display=has?'none':'block';
+  document.getElementById('cloud-login-box').style.display=has&&!u?'block':'none';
+  document.getElementById('cloud-user-box').style.display=u?'block':'none';
+  if(u) document.getElementById('cloud-user').textContent=u.email||'';
+  st.textContent=!has?'（未設定）':u?(CLOUD.started?'（共有中）':'（ログイン中・ロック解除待ち）'):'（ログインしていません）';
+  st.style.color=u&&CLOUD.started?'var(--accent)':'var(--muted)';
+}
+async function cloudInit(showErr){
+  try{ CLOUD.cfg=JSON.parse(localStorage.getItem('est-cloud-cfg')||'null'); }catch(e){ CLOUD.cfg=null; }
+  if(!CLOUD.cfg) CLOUD.cfg=CLOUD_DEFAULT_CFG;
+  renderCloudUI();
+  if(!CLOUD.cfg||CLOUD.ready) return;
+  try{
+    CLOUD.fb=await _cloudLoadSdk();
+    const {app,auth,fs}=CLOUD.fb;
+    CLOUD.app=(app.getApps().find(a=>a.name==='ark'))||app.initializeApp(CLOUD.cfg,'ark');
+    CLOUD.auth=auth.getAuth(CLOUD.app);
+    CLOUD.db=fs.getFirestore(CLOUD.app);
+    CLOUD.ready=true;
+    auth.onAuthStateChanged(CLOUD.auth,u=>{ CLOUD.user=u||null; if(u&&!SEC.locked) cloudStart(); else if(!u) cloudStop(); renderCloudUI(); });
+  }catch(e){ if(showErr) toast('チーム共有に接続できませんでした（電波を確認してください）：'+_errMsg(e),7000); }
+}
+function cloudSaveCfg(){
+  const c=_cloudCfgParse(document.getElementById('cloud-cfg').value);
+  if(!c){ toast('設定を読み取れませんでした。Firebaseの「firebaseConfig」をそのまま貼り付けてください',7000); return; }
+  try{ localStorage.setItem('est-cloud-cfg',JSON.stringify(c)); }catch(e){}
+  CLOUD.ready=false; CLOUD.editing=false; cloudInit(); toast('共有の設定を保存しました。ログインしてください');
+}
+async function cloudEditCfg(){ if(!await askConfirm('共有の設定を変更しますか？（いまの設定は消えます）','変更する')) return; try{localStorage.removeItem('est-cloud-cfg');}catch(e){} await cloudLogout(true); CLOUD.cfg=null; CLOUD.ready=false; CLOUD.editing=true; renderCloudUI(); }
+async function cloudLogin(){
+  if(!CLOUD.ready) await cloudInit(true);
+  if(!CLOUD.ready) return;
+  const em=document.getElementById('cloud-email').value.trim(), pw=document.getElementById('cloud-pw').value;
+  if(!em||!pw){ toast('メールアドレスとパスワードを入れてください'); return; }
+  try{ await CLOUD.fb.auth.signInWithEmailAndPassword(CLOUD.auth,em,pw); document.getElementById('cloud-pw').value=''; toast('ログインしました。チームで共有します'); }
+  catch(e){ const c=String(e&&e.code||''); toast(/api-key/.test(c)?'共有の設定（apiKey）が正しくありません。設定画面の「共有の設定を変更」から貼り付け直してください':/invalid|wrong|not-found|credential/.test(c)?'メールアドレスかパスワードが違います':/too-many/.test(c)?'失敗が続いたため、しばらく待ってから試してください':'ログインできませんでした：'+_errMsg(e),7000); }
+}
+async function cloudResetPw(){
+  const em=document.getElementById('cloud-email').value.trim(); if(!em){ toast('メールアドレスを入れてから押してください'); return; }
+  try{ await CLOUD.fb.auth.sendPasswordResetEmail(CLOUD.auth,em); toast('パスワード再設定のメールを送りました',6000); }catch(e){ toast('送れませんでした：'+_errMsg(e),6000); }
+}
+async function cloudLogout(silent){
+  cloudStop();
+  try{ if(CLOUD.auth) await CLOUD.fb.auth.signOut(CLOUD.auth); }catch(e){}
+  CLOUD.user=null; renderCloudUI(); if(!silent) toast('ログアウトしました（この端末だけで使います）');
+}
+function cloudStop(){ CLOUD.unsubs.forEach(f=>{try{f();}catch(e){}}); CLOUD.unsubs=[]; CLOUD.started=false; CLOUD.first={}; }
+function cloudStart(){
+  if(!CLOUD.user||!CLOUD.db||CLOUD.started) return;
+  const {fs}=CLOUD.fb; CLOUD.started=true; CLOUD.first={};
+  const listen=(name,apply)=>{
+    CLOUD.unsubs.push(fs.onSnapshot(fs.collection(CLOUD.db,name),snap=>{
+      const m={}; snap.forEach(d=>{ m[d.id]=d.data(); });
+      CLOUD.keys[name]=new Set(Object.keys(m));
+      apply(m);
+      if(!CLOUD.first[name]){ CLOUD.first[name]=true; if(CLOUD.first.models&&CLOUD.first.colors&&CLOUD.first.loaner) cloudUploadLocal(false); }
+    },err=>{ toast('共有データを読めませんでした：'+(/permission/.test(String(err&&err.code))?'このアカウントには権限がありません':_errMsg(err)),8000); cloudStop(); renderCloudUI(); }));
+  };
+  listen('models',m=>{ const L={}; for(const k in m){ const v=m[k]; L[v.code||k]={name:v.name,shape:v.shape,kata:v.kata||'',typeNo:v.typeNo||'',count:v.count||1,updated:v.updated||''}; }
+    LEARNED_MODELS={..._cloudLocalOnly('models'),...L}; _saveLearned(); try{renderLearned();}catch(e){} });
+  listen('colors',m=>{ const L={}; for(const k in m){ const v=m[k]; if(v&&v.type) L[v.code||k]=v.type; }
+    LEARNED_COLORS={..._cloudLocalOnly('colors'),...L}; try{localStorage.setItem('est-colors',JSON.stringify(LEARNED_COLORS));}catch(e){} });
+  listen('loaner',m=>{ const L=[]; for(const k in m){ const v=m[k]; if(v&&v.car&&v.from&&v.to) L.push({id:k,car:v.car,from:v.from,to:v.to,name:v.name||'',memo:v.memo||''}); }
+    const local=CLOUD.first.loaner?[]:LOANER_BOOK.filter(b=>!m[b.id]);   // 初回だけ、この端末にしかない予約を残して送る
+    LOANER_BOOK=[...L,...local]; _saveLoanerBook(); try{renderLoanerCars();}catch(e){} if(document.getElementById('lc-ov')) _renderLoanerCal(); });
+  renderCloudUI();
+}
+// 初回の同期前に端末だけにあった分（共有に送る対象）
+function _cloudLocalOnly(name){ return CLOUD.first[name]?{}:(name==='models'?{...LEARNED_MODELS}:{...LEARNED_COLORS}); }
+function _cloudPut(name,id,data){
+  if(!CLOUD.started) return;
+  const {fs}=CLOUD.fb;
+  fs.setDoc(fs.doc(CLOUD.db,name,_cloudKey(id)),{...data,code:String(id),by:(CLOUD.user&&CLOUD.user.email)||'',at:fs.serverTimestamp()},{merge:true}).catch(e=>toast('共有に保存できませんでした：'+_errMsg(e),6000));
+}
+function _cloudDel(name,id){ if(!CLOUD.started) return; const {fs}=CLOUD.fb; fs.deleteDoc(fs.doc(CLOUD.db,name,_cloudKey(id))).catch(e=>toast('共有から削除できませんでした：'+_errMsg(e),6000)); }
+// 端末で覚えていた内容のうち、共有に無いものを送る（ログイン直後に自動／設定画面のボタンで手動）
+function cloudUploadLocal(manual){
+  if(!CLOUD.started){ if(manual) toast('ログインしてから押してください'); return; }
+  const has=(name,k)=>!manual&&CLOUD.keys[name]&&CLOUD.keys[name].has(_cloudKey(k));   // 自動のときは共有に無いものだけ送る
+  for(const k in LEARNED_MODELS){ if(has('models',k)) continue; const v=LEARNED_MODELS[k]; _cloudPut('models',k,{name:v.name,shape:v.shape,kata:v.kata||'',typeNo:v.typeNo||'',count:v.count||1,updated:v.updated||''}); }
+  for(const k in LEARNED_COLORS){ if(has('colors',k)) continue; _cloudPut('colors',k,{type:LEARNED_COLORS[k]}); }
+  for(const b of LOANER_BOOK){ if(has('loaner',b.id)) continue; _cloudPut('loaner',b.id,{car:b.car,from:b.from,to:b.to,name:b.name||'',memo:b.memo||''}); }
+  if(manual) toast('この端末の覚えた内容を共有に送りました');
+}
+// ─── 代車の車両とカレンダー ───────────────────────────────
+// low：全高1550mm以下（立体駐車場などの高さ制限に対応）
+const LOANER_CARS=[{n:'フリード'},{n:'プリウス',low:1},{n:'フィット',low:1},{n:'ミライース',low:1},{n:'ムーブ'},{n:'ラパン',low:1},{n:'N-BOX'}];
+let LOANER_BOOK=[];   // {id,car,from:'YYYY-MM-DD',to:'YYYY-MM-DD',name,memo}
+function _ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function _loanerBusy(car,day){ return LOANER_BOOK.find(b=>b.car===car&&b.from<=day&&day<=b.to); }
+function renderLoanerCars(){
+  const el=document.getElementById('loaner-cars'); if(!el) return;
+  const today=_ymd(new Date());
+  el.innerHTML=LOANER_CARS.map(c=>{const busy=_loanerBusy(c.n,today);
+    return `<button type="button" class="selbtn lcar${c.low?' low':''}${customer.loanerVehicle===c.n?' on':''}" data-car="${c.n}" onclick="setLoanerVehicle('${c.n}')">${c.n}${c.low?'<small>1550mm以下</small>':''}${busy?'<small class="busy">本日使用中</small>':''}</button>`;}).join('');
+}
+function setLoanerVehicle(n){ customer.loanerVehicle = customer.loanerVehicle===n ? '' : n; renderLoanerCars(); }
+function _saveLoanerBook(){
+  if(!SEC.ok){ return _lsSet('est-loaner',JSON.stringify(LOANER_BOOK)); }
+  if(!SEC.key) return false;
+  const snap=JSON.parse(JSON.stringify(LOANER_BOOK));
+  _saveChain=_saveChain.then(async()=>{ const box=await _enc(SEC.key,snap); if(!_lsSet('est-loaner-enc',JSON.stringify(box))) toast('代車予定の保存に失敗しました',6000); }).catch(()=>toast('代車予定の保存に失敗しました',6000));
+  return true;
+}
+let _lcMonth=null;
+function openLoanerCal(){ const d=new Date(); _lcMonth=new Date(d.getFullYear(),d.getMonth(),1); _renderLoanerCal(); }
+function _lcShift(n){ _lcMonth=new Date(_lcMonth.getFullYear(),_lcMonth.getMonth()+n,1); _renderLoanerCal(); }
+function _closeLoanerCal(){ const o=document.getElementById('lc-ov'); if(o) o.remove(); renderLoanerCars(); }
+function _renderLoanerCal(){
+  let ov=document.getElementById('lc-ov');
+  if(!ov){ ov=document.createElement('div'); ov.id='lc-ov'; ov.className='lc-ov'; ov.addEventListener('click',e=>{if(e.target===ov)_closeLoanerCal();}); document.body.appendChild(ov); }
+  const y=_lcMonth.getFullYear(), m=_lcMonth.getMonth(), N=new Date(y,m+1,0).getDate(), today=_ymd(new Date());
+  const days=[...Array(N)].map((_,i)=>{const d=new Date(y,m,i+1);return {d:_ymd(d),n:i+1,w:d.getDay()};});
+  const W='日月火水木金土';
+  let h=`<div class="lc-box"><div class="lc-head">
+    <button class="btn" type="button" onclick="_lcShift(-1)">◀</button><div class="lc-title">${y}年${m+1}月</div><button class="btn" type="button" onclick="_lcShift(1)">▶</button>
+    <button class="btn btn-primary" type="button" onclick="_loanerForm()">＋ 予約を追加</button>
+    <button class="btn" type="button" style="margin-left:auto" onclick="_closeLoanerCal()">✕ 閉じる</button></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px">空いているマスをタップすると予約、色のついたマスをタップすると変更・削除できます。予定はこの端末だけに保存されます。</div>
+    <div class="lc-scroll"><table class="lc-grid"><tr><th class="lc-car">車両</th>${days.map(x=>`<th class="${x.w===0?'sun':x.w===6?'sat':''}${x.d===today?' today':''}">${x.n}<br>${W[x.w]}</th>`).join('')}</tr>`;
+  for(const c of LOANER_CARS){
+    h+=`<tr><td class="lc-car${c.low?' low':''}">${c.n}${c.low?'<small>1550mm以下</small>':''}</td>`;
+    for(const x of days){
+      const b=_loanerBusy(c.n,x.d);
+      if(b){ const st=b.from===x.d||x.n===1; h+=`<td class="bk${st?' st':''}${x.d===today?' today':''}" onclick="_loanerForm('${b.id}')" title="${esc(b.name||'')}">${st?esc((b.name||'予約').slice(0,6)):''}</td>`; }
+      else h+=`<td class="free${x.d===today?' today':''}" onclick="_loanerForm(null,'${c.n}','${x.d}')"></td>`;
+    }
+    h+='</tr>';
+  }
+  h+='</table></div>';
+  const from=days[0].d, to=days[N-1].d;
+  const list=LOANER_BOOK.filter(b=>b.to>=from&&b.from<=to).sort((a,b)=>a.from<b.from?-1:1);
+  h+=`<div class="lc-list">${list.length?list.map(b=>`<div class="lc-item" onclick="_loanerForm('${b.id}')"><b>${esc(b.car)}</b><span>${b.from.slice(5).replace('-','/')}〜${b.to.slice(5).replace('-','/')}</span><span>${esc(b.name||'')}</span><span style="color:var(--muted)">${esc(b.memo||'')}</span></div>`).join(''):'<div style="color:var(--muted)">この月の予約はありません</div>'}</div></div>`;
+  ov.innerHTML=h;
+  const sc=ov.querySelector('.lc-scroll'); const td=ov.querySelector('th.today'); if(sc&&td) sc.scrollLeft=Math.max(0,td.offsetLeft-140);
+}
+function _loanerForm(id,car,day){
+  const b=id?LOANER_BOOK.find(x=>x.id===id):null;
+  const curName=[customer.name,customer.car,customer.plate].filter(Boolean).join(' ');
+  const d0=day||_ymd(new Date());
+  const v=b?{...b}:{car:car||customer.loanerVehicle||LOANER_CARS[0].n,from:d0,to:d0,name:curName,memo:''};
+  const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9500;
+  ov.innerHTML=`<div class="cf-box lc-form" style="max-width:380px"><div style="font-weight:700;margin-bottom:10px">${b?'代車の予約を変更':'代車の予約を追加'}</div>
+    <div class="field"><label>車両</label><select id="lf-car">${LOANER_CARS.map(c=>`<option${c.n===v.car?' selected':''}>${c.n}</option>`).join('')}</select></div>
+    <div class="field"><label>貸出日</label><input type="date" id="lf-from" value="${v.from}"></div>
+    <div class="field"><label>返却予定日</label><input type="date" id="lf-to" value="${v.to}"></div>
+    <div class="field"><label>お客様・車両</label><input id="lf-name" value="${esc(v.name||'')}" placeholder="例：山田様 プリウス 品川300あ1234"></div>
+    <div class="field"><label>メモ</label><input id="lf-memo" value="${esc(v.memo||'')}" placeholder="例：保険会社手配／ガソリン満タン"></div>
+    <div class="cf-btns" style="grid-template-columns:${b?'1fr 1fr 1fr':'1fr 1fr'}">${b?'<button type="button" class="btn cf-yes lf-del">削除</button>':''}<button type="button" class="btn lf-cancel">キャンセル</button><button type="button" class="btn btn-primary lf-ok">保存</button></div></div>`;
+  const close=()=>ov.remove();
+  ov.querySelector('.lf-cancel').onclick=close;
+  ov.addEventListener('click',e=>{if(e.target===ov)close();});
+  if(b) ov.querySelector('.lf-del').onclick=async()=>{ if(!await askConfirm(`${b.car}（${b.from.slice(5)}〜${b.to.slice(5)}）の予約を削除しますか？`)) return; LOANER_BOOK=LOANER_BOOK.filter(x=>x.id!==b.id); _saveLoanerBook(); _cloudDel('loaner',b.id); close(); _renderLoanerCal(); };
+  ov.querySelector('.lf-ok').onclick=async()=>{
+    const n={id:b?b.id:genId(),car:ov.querySelector('#lf-car').value,from:ov.querySelector('#lf-from').value,to:ov.querySelector('#lf-to').value,name:ov.querySelector('#lf-name').value.trim(),memo:ov.querySelector('#lf-memo').value.trim()};
+    if(!n.from||!n.to){ toast('貸出日と返却予定日を入れてください'); return; }
+    if(n.to<n.from){ const t=n.from; n.from=n.to; n.to=t; }
+    const clash=LOANER_BOOK.find(x=>x.id!==n.id&&x.car===n.car&&x.from<=n.to&&n.from<=x.to);
+    if(clash && !await askConfirm(`${n.car}は ${clash.from.slice(5)}〜${clash.to.slice(5)}（${clash.name||'予約'}）と重なっています。このまま保存しますか？`,'保存する')) return;
+    LOANER_BOOK=LOANER_BOOK.filter(x=>x.id!==n.id); LOANER_BOOK.push(n);
+    if(!_saveLoanerBook()) toast('ロック中のため保存できませんでした',5000);
+    _cloudPut('loaner',n.id,{car:n.car,from:n.from,to:n.to,name:n.name,memo:n.memo});
+    close(); _renderLoanerCal();
+  };
+  document.body.appendChild(ov);
 }
 function setPayKind(btn){
   ['paySelf','payVehicle','payProperty'].forEach(k=>customer[k]=false);
@@ -1944,6 +2187,7 @@ function loanerSummary(){
   if(customer.loanerKei)d.push('軽自動車');
   if(customer.loanerHeightLimit)d.push('高さ制限');
   if(customer.loanerRider)d.push('代車特約');
+  if(customer.loanerVehicle)d.unshift(customer.loanerVehicle);
   return 'あり'+(d.length?`（${d.join('、')}）`:'');
 }
 function paySummary(){
@@ -2060,11 +2304,19 @@ async function copyRich(){
   const t=buildText();
   const t2=calcTotals();
   const rows=items.map(it=>{const b=calcRow(it);return`<tr><td style="border:1px solid #d7dde6;padding:5px 8px;font-size:11px;">${esc(it.part)||'-'}</td><td style="border:1px solid #d7dde6;padding:5px 8px;font-size:11px;">${esc(it.type)}</td><td style="border:1px solid #d7dde6;padding:5px 8px;font-size:11px;">${esc(b.desc)||'-'}</td><td style="border:1px solid #d7dde6;padding:5px 8px;font-size:11px;text-align:center;">${it.qty}</td><td style="border:1px solid #d7dde6;padding:5px 8px;font-size:11px;text-align:right;">${fmt(b.amount)}</td></tr>`;}).join('')||'<tr><td colspan="5" style="padding:8px;text-align:center;">項目がありません</td></tr>';
-  const html=`<div style="font-family:'Hiragino Sans',sans-serif;color:#1f2733;font-size:12px;max-width:680px;"><div style="border-bottom:4px solid #2f6feb;padding-bottom:8px;margin-bottom:8px;"><div style="font-size:18px;font-weight:900;letter-spacing:6px;">御 見 積 書</div></div><table style="width:100%;border-collapse:collapse;background:#f4f6f9;border:1px solid #e4e9f0;margin-bottom:10px;"><tr><td style="padding:10px;line-height:1.8;vertical-align:top;"><b>${esc(customer.name)||'お客様'}</b> 様<br>車種：${esc(customer.car)||'-'}（${esc(customer.carType)}）<br>登録番号：${esc(customer.plate)||'-'}<br>車体色：${esc(customer.color)||'-'}</td><td style="padding:10px;line-height:1.8;vertical-align:top;text-align:right;">見積日：${esc(customer.date)}<br><b>${esc(settings.shopName)}</b>${settings.shopTel?`<br>TEL：${esc(settings.shopTel)}`:''}</td></tr></table><table style="width:100%;border-collapse:collapse;"><tr><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:15%;">部位</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:10%;">作業</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;">内容</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:6%;">数量</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:13%;">金額</th></tr>${rows}</table><table style="width:240px;margin-left:auto;border-collapse:collapse;background:#f4f6f9;border:1px solid #e4e9f0;margin-top:8px;"><tr><td style="padding:5px 10px;color:#7c8696;">作業小計</td><td style="padding:5px 10px;text-align:right;">${fmt(t2.sub)}</td></tr>${customer.noExpense?'':`<tr><td style="padding:5px 10px;color:#7c8696;">諸経費</td><td style="padding:5px 10px;text-align:right;">${fmt(t2.exp)}</td></tr>`}<tr><td style="padding:5px 10px;color:#7c8696;">消費税</td><td style="padding:5px 10px;text-align:right;">${fmt(t2.tax)}</td></tr>${t2.cutPre>0?`<tr><td style="padding:5px 10px;color:#7c8696;">端数調整（税抜）</td><td style="padding:5px 10px;text-align:right;color:#c00;">－${fmt(t2.cutPre)}</td></tr>`:''}${t2.cutPost>0?`<tr><td style="padding:5px 10px;color:#7c8696;">端数調整（税込）</td><td style="padding:5px 10px;text-align:right;color:#c00;">－${fmt(t2.cutPost)}</td></tr>`:''}${t2.disc10>0?`<tr><td style="padding:5px 10px;color:#7c8696;">10%値引き</td><td style="padding:5px 10px;text-align:right;color:#c00;">－${fmt(t2.disc10)}</td></tr>`:''}${t2.discFree>0?`<tr><td style="padding:5px 10px;color:#7c8696;">自由値引き</td><td style="padding:5px 10px;text-align:right;color:#c00;">－${fmt(t2.discFree)}</td></tr>`:''}<tr><td style="padding:8px 10px;border-top:1px solid #e4e9f0;font-weight:700;">合計金額（税込）</td><td style="padding:8px 10px;border-top:1px solid #e4e9f0;font-size:17px;font-weight:900;color:#2f6feb;text-align:right;">${fmt(t2.grand)}</td></tr></table></div>`;
+  // 加算基礎数値・ブース加算・ボディコーティングも明細に出す（作業小計と明細の合計を合わせる）
+  const _td='border:1px solid #d7dde6;padding:5px 8px;font-size:11px;';
+  const extra=[];
+  if((t2.base.labor+t2.base.mat)>0) extra.push(['塗装 加算','加算基礎',t2.base.desc||'',t2.base.labor+t2.base.mat]);
+  if(t2.coat&&t2.coat.labor>0) extra.push(['ボディコーティング','施工',`${t2.coat.count}枚`,t2.coat.labor]);
+  const rows2=rows+extra.map(e=>`<tr><td style="${_td}">${esc(e[0])}</td><td style="${_td}">${esc(e[1])}</td><td style="${_td}">${esc(e[2])}</td><td style="${_td}text-align:center;">1</td><td style="${_td}text-align:right;">${fmt(e[3])}</td></tr>`).join('');
+  const html=`<div style="font-family:'Hiragino Sans',sans-serif;color:#1f2733;font-size:12px;max-width:680px;"><div style="border-bottom:4px solid #2f6feb;padding-bottom:8px;margin-bottom:8px;"><div style="font-size:18px;font-weight:900;letter-spacing:6px;">御 見 積 書</div></div><table style="width:100%;border-collapse:collapse;background:#f4f6f9;border:1px solid #e4e9f0;margin-bottom:10px;"><tr><td style="padding:10px;line-height:1.8;vertical-align:top;"><b>${esc(customer.name)||'お客様'}</b> 様<br>車種：${esc(customer.car)||'-'}（${esc(customer.carType)}）<br>登録番号：${esc(customer.plate)||'-'}<br>車体色：${esc(customer.color)||'-'}</td><td style="padding:10px;line-height:1.8;vertical-align:top;text-align:right;">見積日：${esc(customer.date)}<br><b>${esc(settings.shopName)}</b>${settings.shopTel?`<br>TEL：${esc(settings.shopTel)}`:''}</td></tr></table><table style="width:100%;border-collapse:collapse;"><tr><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:15%;">部位</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:10%;">作業</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;">内容</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:6%;">数量</th><th style="border:1px solid #2f6feb;background:#2f6feb;color:#fff;padding:5px 8px;font-size:11px;width:13%;">金額</th></tr>${rows2}</table><table style="width:240px;margin-left:auto;border-collapse:collapse;background:#f4f6f9;border:1px solid #e4e9f0;margin-top:8px;"><tr><td style="padding:5px 10px;color:#7c8696;">作業小計</td><td style="padding:5px 10px;text-align:right;">${fmt(t2.sub)}</td></tr>${customer.noExpense?'':`<tr><td style="padding:5px 10px;color:#7c8696;">諸経費</td><td style="padding:5px 10px;text-align:right;">${fmt(t2.exp)}</td></tr>`}<tr><td style="padding:5px 10px;color:#7c8696;">消費税</td><td style="padding:5px 10px;text-align:right;">${fmt(t2.tax)}</td></tr>${t2.cutPre>0?`<tr><td style="padding:5px 10px;color:#7c8696;">端数調整（税抜）</td><td style="padding:5px 10px;text-align:right;color:#c00;">－${fmt(t2.cutPre)}</td></tr>`:''}${t2.cutPost>0?`<tr><td style="padding:5px 10px;color:#7c8696;">端数調整（税込）</td><td style="padding:5px 10px;text-align:right;color:#c00;">－${fmt(t2.cutPost)}</td></tr>`:''}${t2.disc10>0?`<tr><td style="padding:5px 10px;color:#7c8696;">10%値引き</td><td style="padding:5px 10px;text-align:right;color:#c00;">－${fmt(t2.disc10)}</td></tr>`:''}${t2.discFree>0?`<tr><td style="padding:5px 10px;color:#7c8696;">自由値引き</td><td style="padding:5px 10px;text-align:right;color:#c00;">－${fmt(t2.discFree)}</td></tr>`:''}<tr><td style="padding:8px 10px;border-top:1px solid #e4e9f0;font-weight:700;">合計金額（税込）</td><td style="padding:8px 10px;border-top:1px solid #e4e9f0;font-size:17px;font-weight:900;color:#2f6feb;text-align:right;">${fmt(t2.grand)}</td></tr></table></div>`;
 
   // iOS: try file share
   try{
-    const file=new File([html],'見積書.html',{type:'text/html'});
+    // 文字コードを明示した完全なHTMLにする（無いとiPhoneのプレビューで文字化けする）
+    const doc='\uFEFF<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>見積書</title></head><body style="margin:12px;background:#fff">'+html+'</body></html>';
+    const file=new File([doc],'見積書.html',{type:'text/html;charset=utf-8'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'見積書'});showMsg('print-msg','共有シートから送れます。',6000);return;}
   }catch(e){if(e?.name==='AbortError')return;}
   const ok=await writeToClipboard(t,html);
@@ -2081,10 +2333,10 @@ function _lineSendText(){
   const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   if(isIOS)setTimeout(()=>{if(document.visibilityState!=='hidden')window.location.href=`https://line.me/R/msg/text/?${encoded}`;},1500);
-  // 送信後は履歴に自動保存してから入力をリセット（LINE起動の後に実行）
+  // 送信後は端末に見積を残さない：車種・カラー番号の学習だけ行い、入力と写真を消す（LINE起動の後に実行）
   if(items.length||customer.name||customer.car){
-    try{saveEst();}catch(e){}
-    setTimeout(()=>{resetEst(true);showMsg('print-msg','LINEに送信しました。履歴に保存して入力をリセットしました。',6000);},300);
+    try{learnCurrentVehicle();}catch(e){}
+    setTimeout(()=>{resetEst(true);showMsg('print-msg','LINEに送信しました。この端末の見積内容と写真は削除しました。',6000);},300);
   } else showMsg('print-msg','LINEアプリを起動しています…',5000);
 }
 async function dlFile(){
@@ -12349,6 +12601,55 @@ function _otsu(g,idx){const hist=new Float64Array(256);let N=0;for(const i of id
   let sum=0,mean=0;for(let i=0;i<256;i++)sum+=i*hist[i];mean=sum/N;let sB=0,wB=0,best=0,th=128;
   for(let i=0;i<256;i++){wB+=hist[i];if(!wB)continue;const wF=N-wB;if(!wF)break;sB+=i*hist[i];const mB=sB/wB,mF=(sum-sB)/wF;const v=wB*wF*(mB-mF)*(mB-mF);if(v>best){best=v;th=i;}}
   return {th,mean};}
+// 積分画像（矩形の平均を高速に求める）
+function _integral(g,W,H){const ii=new Float64Array((W+1)*(H+1));for(let y=0;y<H;y++){let rs=0;for(let x=0;x<W;x++){rs+=g[y*W+x];ii[(y+1)*(W+1)+x+1]=ii[y*(W+1)+x+1]+rs;}}return ii;}
+function _boxMean(ii,W,H,x,y,rx,ry){const ax=Math.max(0,x-rx),bx=Math.min(W,x+rx+1),ay=Math.max(0,y-ry),by=Math.min(H,y+ry+1);return (ii[by*(W+1)+bx]-ii[ay*(W+1)+bx]-ii[by*(W+1)+ax]+ii[ay*(W+1)+ax])/((bx-ax)*(by-ay));}
+function _rotCanvas(c,deg){ if(!deg) return c; const r=document.createElement('canvas');r.width=deg%180?c.height:c.width;r.height=deg%180?c.width:c.height;const x=r.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,r.width,r.height);x.translate(r.width/2,r.height/2);x.rotate(deg*Math.PI/180);x.drawImage(c,-c.width/2,-c.height/2);return r; }
+// ラベル位置を「文字の多さ（白黒の切り替わりの密度）」で探して切り出す
+//   車体の黒い部分やゴムなど大きな塊に引っぱられないので、トヨタの黒ラベル＋明るい車体などに強い
+function _labelPrepDensity(src){
+  const s=Math.min(1,900/Math.max(src.width,src.height));const w=Math.round(src.width*s),h=Math.round(src.height*s);
+  const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(src,0,0,w,h);
+  const g=_gray(ctx,w,h); const ii=_integral(g,w,h);
+  const tr=new Uint8Array(w*h);
+  let prev=0; for(let y=0;y<h;y++){ for(let x=0;x<w;x++){ const b=g[y*w+x]>_boxMean(ii,w,h,x,y,12,12)?1:0; if(x>0&&b!==prev) tr[y*w+x]=1; prev=b; } }
+  const it=_integral(tr,w,h); const d=new Float32Array(w*h);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)d[y*w+x]=_boxMean(it,w,h,x,y,22,7);
+  const sorted=Float32Array.from(d).sort(); const th=sorted[Math.floor(sorted.length*0.9)]*0.5;
+  const rows=new Float32Array(h),cols=new Float32Array(w);
+  for(let y=0;y<h;y++){let n=0;for(let x=0;x<w;x++)if(d[y*w+x]>th)n++;rows[y]=n/w;}
+  const band=(a,frac)=>{const L=a.length,gap=Math.round(L*0.08);let groups=[],st=-1,last=-1;
+    for(let i=0;i<L;i++){ if(a[i]>frac){ if(st<0)st=i; else if(i-last>gap){groups.push([st,last]);st=i;} last=i; } }
+    if(st>=0)groups.push([st,last]); if(!groups.length) return [0,L-1];
+    let best=groups[0],bs=-1; for(const gr of groups){let sm=0;for(let i=gr[0];i<=gr[1];i++)sm+=a[i]; if(sm>bs){bs=sm;best=gr;}} return best;};
+  const [y0,y1]=band(rows,0.08);
+  for(let x=0;x<w;x++){let n=0;for(let y=y0;y<=y1;y++)if(d[y*w+x]>th)n++;cols[x]=n/Math.max(1,y1-y0+1);}
+  const [x0,x1]=band(cols,0.05);
+  const pad=15, X=Math.max(0,(x0-pad)/s), Y=Math.max(0,(y0-pad)/s), CW=Math.min(src.width-X,(x1-x0+2*pad)/s), CH=Math.min(src.height-Y,(y1-y0+2*pad)/s);
+  if(CW<40||CH<20) return [];
+  const k=1300/Math.max(CW,CH); const lw=Math.round(CW*k), lh=Math.round(CH*k);
+  const l=document.createElement('canvas');l.width=lw;l.height=lh;const lctx=l.getContext('2d',{willReadFrequently:true});lctx.imageSmoothingQuality='high';lctx.drawImage(src,X,Y,CW,CH,0,0,lw,lh);
+  const g0=_gray(lctx,lw,lh);
+  const {th:t2,mean}=_otsu(g0,{[Symbol.iterator]:function*(){for(let i=0;i<lw*lh;i++)yield i;}});
+  let white=0; for(let i=0;i<lw*lh;i++) if(g0[i]>t2) white++;
+  const inv=white<lw*lh/2;
+  const o=document.createElement('canvas');o.width=lw+60;o.height=lh+60;const octx=o.getContext('2d');octx.fillStyle='#fff';octx.fillRect(0,0,o.width,o.height);
+  const od=octx.getImageData(30,30,lw,lh);
+  for(let i=0;i<lw*lh;i++){let v=g0[i]>t2?255:0; if(inv)v=255-v; od.data[i*4]=od.data[i*4+1]=od.data[i*4+2]=v; od.data[i*4+3]=255;}
+  octx.putImageData(od,30,30);
+  return lh>lw*1.15 ? [_rotCanvas(o,90),_rotCanvas(o,270)] : [o,_rotCanvas(o,180)];
+}
+// 画像全体を「周りより明るい文字」「周りより暗い文字」で白黒化（黒い車体に黒いラベル＝ホンダの白文字などに強い）
+function _labelPrepAdaptive(src){
+  const s=Math.min(1,1600/Math.max(src.width,src.height));const W=Math.round(src.width*s),H=Math.round(src.height*s);
+  const c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(src,0,0,W,H);
+  const g=_gray(ctx,W,H); const ii=_integral(g,W,H); const r=Math.round(Math.max(W,H)/50);
+  const m=new Float32Array(W*H); for(let y=0;y<H;y++)for(let x=0;x<W;x++)m[y*W+x]=_boxMean(ii,W,H,x,y,r,r);
+  const make=(fn)=>{const o=document.createElement('canvas');o.width=W;o.height=H;const oc=o.getContext('2d');const d=oc.createImageData(W,H);
+    for(let i=0;i<W*H;i++){const v=fn(g[i],m[i])?0:255;d.data[i*4]=d.data[i*4+1]=d.data[i*4+2]=v;d.data[i*4+3]=255;} oc.putImageData(d,0,0); return o;};
+  const out=[make((v,mm)=>v>mm*1.25), make((v,mm)=>v>mm*1.4), make((v,mm)=>v<mm*0.8)];
+  return H>W*1.15 ? out.flatMap(o=>[_rotCanvas(o,90),_rotCanvas(o,270)]) : out;
+}
 function _labelPrep(src){
   // 1) 縮小画像でラベル位置を推定
   const s=Math.min(1,900/Math.max(src.width,src.height));const w=Math.round(src.width*s),h=Math.round(src.height*s);
@@ -12444,23 +12745,82 @@ function _parsePSAColor(T){
   return bs>=3?best:null;
 }
 // プジョー・シトロエン・DSのカラー番号 → [色名, 塗装タイプ]
-//   色名の「ナクレ（Nacré）」＝パール、「メタリゼ」＝メタリック、それ以外＝ソリッド。白のナクレは3コートパール
+//   teintes.fr の車種別カラー表の仕上げ（Opaque＝ソリッド／Métallisé＝メタリック／Nacré＝2コートパール／Triple couche・白のナクレ＝3コートパール）から作成
 const PSA_COLORS = {
-  'EWP':['ブラン バンキーズ（白）','ソリッド'], 'KWE':['ブラン ナクレ（パールホワイト）','3コートパール'], 'EFC':['ブラン ペルル ナクレ','3コートパール'],
-  'KWJ':['ホワイト パール','3コートパール'],
-  'KTV':['ノアール ペルラネラ（黒）','2コートパール'], 'EXL':['ノアール オブシディアン（黒）','2コートパール'], 'KTZ':['ノアール ペルル（黒）','2コートパール'],
+  'EWP':['ブラン バンキーズ（白）','ソリッド'],
+  'KWF':['ブラン オパール（白）','ソリッド'],
+  'EPR':['ブラン アイシー（白）','ソリッド'],
+  'ESU':['ブラン オケナイト／アルバトル（白）','メタリック'],
+  'KWE':['ブラン ナクレ（パールホワイト）','3コートパール'],
+  'EFC':['ブラン ペルル ナクレ（パールホワイト）','3コートパール'],
+  'EPH':['クリスタル パール（パールホワイト）','3コートパール'],
+  'KTV':['ノアール ペルラネラ（黒）','2コートパール'],
+  'EXL':['ノアール オブシディアン（黒）','2コートパール'],
   'EXY':['ノアール オニキス（黒）','ソリッド'],
-  'EVL':['グリ プラチナム（シルバー）','メタリック'], 'EZR':['グリ アルミニウム（シルバー）','メタリック'], 'KCA':['グリ アルテンス（グレー）','メタリック'],
-  'KTH':['グリ トリウム（グレー）','メタリック'], 'EYP':['グリ フルミナトール（グレー）','メタリック'], 'KGN':['ブーラスク（グレー）','メタリック'],
-  'KTP':['グリ シャーク（グレー）','2コートパール'], 'EZW':['グリ フェール（グレー）','2コートパール'], 'KCL':['スピリット グレー','2コートパール'],
+  'EVL':['グリ プラチナム（シルバー）','メタリック'],
+  'EZR':['グリ アルミニウム（シルバー）','メタリック'],
+  'KCA':['グリ アシエ／アルテンス（グレー）','メタリック'],
+  'KTP':['グリ シャーク（グレー）','メタリック'],
+  'ESX':['グリ マーキュリー（グレー）','メタリック'],
+  'ELD':['グリ セレニウム（グレー）','メタリック'],
+  'KKJ':['グリ チタン（グレー）','メタリック'],
+  'ESC':['グリ ラケ（グレー）','メタリック'],
+  'EKL':['グリ アマゾナイト（グレー）','メタリック'],
+  'KTH':['グリ トリウム（グレー）','メタリック'],
+  'EYP':['グリ フルミナトール（グレー）','メタリック'],
+  'KGN':['ブーラスク（グレー）','メタリック'],
+  'EZW':['グリ フェール（グレー）','2コートパール'],
+  'KCL':['スピリット グレー','2コートパール'],
   'KTG':['グリ ハリケーン（グレー）','ソリッド'],
-  'EEU':['ノーチラス（ブルー）','メタリック'], 'ETX':['エメラルド ブルー','メタリック'], 'EJY':['コバルト ブルー','メタリック'],
-  'EKU':['ブルー アンクル（ブルー）','2コートパール'], 'KUC':['ブルー ヴィルチュエル（ブルー）','2コートパール'], 'KGX':['ブルー ボッティチェリ（ブルー）','ソリッド'],
-  'EVH':['ルージュ エリクシール（レッド）','2コートパール'], 'EPY':['ルージュ ルビ（レッド）','2コートパール'], 'EKQ':['ルージュ ルシファー（レッド）','2コートパール'],
-  'LKR':['ルージュ バビロン（レッド）','2コートパール'], 'KKN':['ルージュ アデン（レッド）','ソリッド'], 'KJF':['ルージュ アルダン（レッド）','ソリッド'],
-  'KDK':['ノワイエ アメリカン（ブラウン）','2コートパール'], 'KDR':['カルマ','2コートパール'], 'KNT':['オレンジ パワー','2コートパール'],
-  'KCH':['マティヴォワール（ベージュ）','メタリック'], 'KEB':['ノッチョーラ（ベージュ）','メタリック'], 'KGW':['ベル イル（グリーン）','メタリック'],
+  'EEM':['カーキ グレー／ヴェール マンハッタン','ソリッド'],
+  'EEU':['サーブル（ベージュ）','2コートパール'],
+  'EVH':['ルージュ エリクシール（レッド・3層）','3コートパール'],
+  'EPY':['ルージュ ルビ（レッド）','メタリック'],
+  'EPQ':['ルージュ ペッパー／ヴェルヴェット（レッド）','メタリック'],
+  'LQV':['ルージュ アルティメット（レッド）','2コートパール'],
+  'ETU':['ルージュ ディーヴァ（レッド）','2コートパール'],
+  'KKN':['ルージュ アデン（レッド）','ソリッド'],
+  'KJF':['ルージュ アルダン（レッド）','ソリッド'],
+  'EKQ':['ルージュ ルシファー（レッド）','2コートパール'],
+  'LKR':['ルージュ バビロン（レッド）','2コートパール'],
+  'KNT':['オレンジ パワー','メタリック'],
+  'KLS':['オレンジ フュージョン','メタリック'],
+  'KQL':['ブルー エクリプス／サファイア（ブルー）','2コートパール'],
+  'EQN':['ブルー アイスランド（ブルー）','2コートパール'],
+  'EJY':['ブルー コバルト（ブルー）','メタリック'],
+  'EAV':['ヴォルテイック ブルー','メタリック'],
+  'EKU':['ブルー アンクル（ブルー）','メタリック'],
+  'EHZ':['ブルー ラズライト（ブルー）','メタリック'],
+  'EEG':['ブルー マグネティック（ブルー）','メタリック'],
+  'ESM':['ブルー ヴァーティゴ（ブルー・3層）','3コートパール'],
+  'ESY':['ブルー セレベス（ブルー）','メタリック'],
+  'EDP':['ブルー オブセッション（ブルー）','メタリック'],
+  'KRK':['ブルー インガロ（ブルー）','メタリック'],
+  'EBK':['ブルー アバター（ブルー）','メタリック'],
+  'KRA':['ブルー モンテカルロ（ブルー）','ソリッド'],
+  'KJW':['キアマ ブルー','メタリック'],
+  'EWJ':['スプリング ブルー','メタリック'],
+  'ETX':['ブルー エメロード（ブルー）','メタリック'],
+  'EJG':['ディープ ブルー','2コートパール'],
+  'KUC':['ブルー ヴィルチュエル（ブルー）','2コートパール'],
+  'KGX':['ブルー ボッティチェリ（ブルー）','ソリッド'],
   'ELS':['アーモンド グリーン','ソリッド'],
+  'ESW':['アクア グリーン','ソリッド'],
+  'KNQ':['シルッカ グリーン','メタリック'],
+  'KJR':['ヴェール エメロード（グリーン）','メタリック'],
+  'KGW':['ベル イル（グリーン）','メタリック'],
+  'ELA':['ブラン キャラメル（ブラウン）','2コートパール'],
+  'KDQ':['オリーブ ブラウン','ソリッド'],
+  'KBQ':['ディープ パープル','メタリック'],
+  'ELG':['メタリック カッパー','メタリック'],
+  'KDK':['ノワイエ アメリカン（ブラウン）','2コートパール'],
+  'KAA':['ヴォル ド ニュイ（DS）','2コートパール'],
+  'EMW':['オール アンペリアル（ゴールド）','メタリック'],
+  'ERP':['オール キュイヴレ（ゴールド）','メタリック'],
+  'ERU':['ウィスパー（DS）','メタリック'],
+  'KDR':['カルマ','2コートパール'],
+  'KCH':['マティヴォワール（ベージュ）','メタリック'],
+  'KEB':['ノッチョーラ（ベージュ）','メタリック'],
 };
 // 保存した見積から覚えたカラー番号 → 塗装タイプ（端末内に保存。表に無い色も2回目から自動で入る）
 let LEARNED_COLORS={};
@@ -12477,6 +12837,7 @@ function learnCurrentColor(){
   if(!/^[A-Z0-9-]{2,8}$/.test(c)||!customer.paintType) return;
   if(PSA_COLORS[c]&&PSA_COLORS[c][1]===customer.paintType&&!LEARNED_COLORS[c]) return;
   LEARNED_COLORS[c]=customer.paintType;
+  try{_cloudPut('colors',c,{type:customer.paintType});}catch(e){}
   try{localStorage.setItem('est-colors',JSON.stringify(LEARNED_COLORS));}catch(e){}
 }
 // ホンダのカラー番号（NH812P, R81, B593M, YR615M など）：数字部分の読み違い（B→8, O→0 など）を補正
@@ -12484,8 +12845,8 @@ function _fixHondaColor(c){
   const P=['NH','YR','BG','PB','RP','GY','YG','R','B','G','Y'];
   for(const p of P){
     if(!c.startsWith(p)) continue;
-    const m=c.slice(p.length).match(/^([0-9OILSBZ]{2,3})([A-Z]?)$/);
-    if(m){ const d=m[1].replace(/O/g,'0').replace(/[IL]/g,'1').replace(/S/g,'5').replace(/B/g,'8').replace(/Z/g,'2'); if(/\d/.test(m[1])) return p+d+m[2]; }
+    const m=c.slice(p.length).match(/^([0-9OILSBZT]{2,3})([A-Z]?)$/);
+    if(m){ const d=m[1].replace(/O/g,'0').replace(/[IL]/g,'1').replace(/S/g,'5').replace(/B/g,'8').replace(/Z/g,'2').replace(/T/g,'7'); if(/\d/.test(m[1])) return p+d+m[2]; }
   }
   return /^[A-Z]{1,3}\d{2,3}[A-Z]?$/.test(c)?c:null;
 }
@@ -12497,15 +12858,18 @@ function parseLabelText(text){
   if(_isPSALabel(T) && !/C\s*\/\s*TR|COLOR|FRAME/.test(T)){ const pc=_parsePSAColor(T); if(pc){ out.color=pc; out.maker='PSA'; return out; } out.psa=true; }
   const ctr=T.match(/C\s*\/\s*TR\s*[:.]?\s*([A-Z0-9]{2,4})/); if(ctr) out.color=ctr[1];
   if(!out.color){
-    const i=lines.findIndex(l=>/C[O0]?L[O0]?U?R\b|C[O0]L[O0]U?R/.test(l));
+    let i=lines.findIndex(l=>/C[O0]?L[O0]?U?R\b|C[O0]L[O0]U?R/.test(l));
+    // 「COLOR」が読めなくても「TRIM PLANT OPTION」の見出し行が読めれば、その次の行の先頭がカラー番号
+    if(i<0) i=lines.findIndex(l=>(/TR[I1L]?[MN]\b/.test(l)?1:0)+(/P[LU]?[AU]?NT|PLAN/.test(l)?1:0)+(/[O0]P?T[I1]?[O0]N/.test(l)?1:0)>=2);
     // 見出し行（COLOR TRIM PLANT OPTION）なら次の行の先頭がカラー番号
     if(i>=0 && /PLANT|PLAN|OPTI|OPT1|TR[I1L]?[MN]\b|RIN\b/.test(lines[i]) && lines[i+1]){
-      const t=(lines[i+1].replace(/^[^A-Z0-9]+/,'').match(/^([0-9][A-Z0-9]{2}|[A-Z][0-9][A-Z0-9])(?![A-Z0-9])/)||[])[1];
+      const nx=lines[i+1].replace(/^[^A-Z0-9]+/,'').replace(/^([A-Z0-9]{1,2})[\/.,']([A-Z0-9]{1,2})(?=\s|$)/,'$1$2');
+      const t=(nx.match(/^([0-9][A-Z0-9]{2}|[A-Z][0-9][A-Z0-9])(?![A-Z0-9])/)||[])[1];
       if(t) out.color=t;
     }
     if(i>=0 && !out.color){
       const after=lines[i].replace(/.*C[O0]L[O0]U?R\.?\s*(?:N[O0]\.?|CODE)?[:.\s]*/,'');
-      if(after && !/^(TR[I1L][MN]|PLANT|[CO]*PT|OPT)/.test(after)){ const t=(after.match(/^([A-Z0-9]{2,6}(?:-[A-Z0-9]{1,4})?)/)||[])[1]; if(t) out.color=t; }
+      if(after && !/^(C[O0]?L[O0]?U?R|TR[I1L][MN]|PLANT|[CO]*PT|OPT)/.test(after)){ const t=(after.match(/^([A-Z0-9]{2,6}(?:-[A-Z0-9]{1,4})?)/)||[])[1]; if(t) out.color=t; }
       if(!out.color && lines[i+1]){ const t2=(lines[i+1].replace(/^[^A-Z0-9]+/,'').match(/^([A-Z0-9]{2,6}(?:-[A-Z0-9]{1,4})?)/)||[])[1]; if(t2) out.color=t2; }
     }
   }
@@ -12518,12 +12882,15 @@ function parseLabelText(text){
       if(c){ out.color=c; out.maker='HONDA'; break; }
     }
   }
+  // 車台番号の途中に入った点（MXP.J10）を除いてから型式・車台番号を探す
+  const T0=T; { const T=T0.replace(/([A-Z0-9])[.,'](?=[A-Z0-9])/g,'$1').replace(/([A-Z]{3})[.,]\s?(?=[A-Z]\d)/g,'$1');
   if(out.color && /^[0-9OIL]{3}$/.test(out.color)) out.color=out.color.replace(/O/g,'0').replace(/[IL]/g,'1');
   const fr=T.match(/FRAME\.?\s*N[O0]?\.*\s*([A-Z0-9\\]{3,8})\s*-\s*(\d{5,8})/); if(fr) out.chassis=fr[1].replace(/\\/g,'')+'-'+fr[2];
   const md=T.match(/MODEL\.*\s*([A-Z0-9]{2,4})\s*-\s*([A-Z0-9]{3,8})/); if(md) out.kata=md[1]+'-'+md[2];
   // 日本語表記のラベル（型式／車台番号）：英字は読めないので並びで判定
   if(!out.chassis){ const c=T.match(/(?:^|[^A-Z0-9])([A-Z]{1,4}\d{1,3}[A-Z]?)\s*-\s*(\d{6,8})(?!\d)/m); if(c) out.chassis=c[1]+'-'+c[2]; }
   if(!out.kata){ const k=T.match(/(?:^|[^A-Z0-9])([0-9A-Z]{3})\s*-\s*([A-Z]{1,4}\d{1,3}[A-Z]?)(?![A-Z0-9-])/m); if(k) out.kata=k[1]+'-'+k[2]; }
+  }
   return out;
 }
 
@@ -12567,8 +12934,9 @@ function learnCurrentVehicle(){
   const name=String(customer.car).replace(new RegExp('\\s*'+code+'\\s*$','i'),'').trim();
   if(!name) return;
   const prev=LEARNED_MODELS[code]||{};
-  LEARNED_MODELS[code]={...prev,name,shape:currentBodyShape,kata:customer.kata||prev.kata||'',typeNo:customer.typeNo||prev.typeNo||'',count:(prev.count||0)+1,updated:new Date().toISOString().slice(0,10)};
+  const _m=LEARNED_MODELS[code]={...prev,name,shape:currentBodyShape,kata:customer.kata||prev.kata||'',typeNo:customer.typeNo||prev.typeNo||'',count:(prev.count||0)+1,updated:new Date().toISOString().slice(0,10)};
   _saveLearned();
+  try{_cloudPut('models',code,{name:_m.name,shape:_m.shape,kata:_m.kata||'',typeNo:_m.typeNo||'',count:_m.count||1,updated:_m.updated||''});}catch(e){}
 }
 function _setCarFrom(name,code,shape){
   const base=String(name).replace(/（[^）]*）/g,'').trim();
@@ -12630,7 +12998,7 @@ function renderLearned(){
   document.getElementById('learned-count').textContent=keys.length+'件';
   el.innerHTML=keys.length?keys.map(k=>{const L=LEARNED_MODELS[k];const lab=(document.querySelector(`[data-shape="${L.shape}"]`)||{}).textContent||L.shape;return `<div class="tline" style="font-size:12px"><span>${esc(k)}　${esc(L.name)}（${esc(lab)}）</span><button type="button" class="btn" style="padding:4px 10px;min-height:32px" onclick="forgetLearned('${esc(k)}')">✕</button></div>`;}).join(''):'<div style="font-size:12px;color:var(--muted)">まだありません（見積りを保存すると、その車種を覚えます）</div>';
 }
-async function forgetLearned(k){ if(!await askConfirm(`${k} の登録を削除しますか？`)) return; delete LEARNED_MODELS[k]; _saveLearned(); renderLearned(); }
+async function forgetLearned(k){ if(!await askConfirm(`${k} の登録を削除しますか？`)) return; delete LEARNED_MODELS[k]; _saveLearned(); try{_cloudDel('models',k);}catch(e){} renderLearned(); }
 
 function _fileToCanvas(file,maxDim){
   // 環境によって使える読み込み方法が違うため、順番に試す
@@ -12788,6 +13156,20 @@ async function labelFromFile(input){
   photoAttachDoc(f,'コーションラベル');
   return labelFromBlob(f);
 }
+async function _psaPass(worker,vertical){
+  const pc=_labelPrepPSA(vertical); let res=null;
+  for(let j=0;j<pc.length&&!res;j++){
+    _busy(`カラー番号を探しています…（${j+1}/${pc.length}）`);
+    for(const psm of ['6','11']){
+      await worker.setParameters({tessedit_pageseg_mode:psm});
+      const r=await worker.recognize(pc[j]);
+      const c=_parsePSAColor(String(r.data.text||'').toUpperCase());
+      if(c){ res={color:c,maker:'PSA',_s:9}; break; }
+    }
+  }
+  await worker.setParameters({tessedit_pageseg_mode:'6'});
+  return res;
+}
 async function labelFromBlob(f){
   _busy('文字認識を準備しています…（初回は少し時間がかかります）');
   let worker=null;
@@ -12796,32 +13178,34 @@ async function labelFromBlob(f){
     const src=await _fileToCanvas(f,3000);
     worker=await _newWorker('eng');
     await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-./: ',tessedit_pageseg_mode:'6'});
-    const cands=_labelPrep(src); let best={}, psa=false, psaDone=false;
-    const vertical=cands[0].height>cands[0].width;
+    const base=_labelPrep(src); const vertical=base[0].height>base[0].width;
+    let dens=[]; try{dens=_labelPrepDensity(src);}catch(e){}
+    const cands=[...dens.slice(0,1),...base,...dens.slice(1)];
+    let best={}, psa=false, psaDone=false;
     for(let i=0;i<cands.length;i++){
       _busy(`コーションラベルを読み取っています…（${i+1}/${cands.length}）`);
       const {data}=await worker.recognize(cands[i]);
       const p=parseLabelText(data.text);
       if(p.psa||p.maker==='PSA') psa=true;
-      if(psa && !p.color && !psaDone){ psaDone=true;
-        // プジョー・シトロエン・DSのラベル：灰色の枠の中を読み直す
-        const pc=_labelPrepPSA(vertical);
-        for(let j=0;j<pc.length&&!best.color;j++){
-          _busy(`カラー番号を探しています…（${j+1}/${pc.length}）`);
-          for(const psm of ['6','11']){
-            await worker.setParameters({tessedit_pageseg_mode:psm});
-            const r=await worker.recognize(pc[j]);
-            const c=_parsePSAColor(String(r.data.text||'').toUpperCase());
-            if(c){ best={color:c,maker:'PSA',_s:9}; break; }
-          }
-        }
-        await worker.setParameters({tessedit_pageseg_mode:'6'});
-        if(best.color) break;
-      }
-      const score=(p.color?2:0)+(p.kata?1:0)+(p.chassis?1:0)+(/COLOR|FRAME|MODEL/.test(data.text)?1:0);
+      // 読めた内容の確からしさ：車種表に載っている型式・車台番号が読めていれば高得点
+      const score=(p.color?2:0)+(p.kata?1:0)+(p.chassis?1:0)+((p.chassis&&lookupChassis(p.chassis))||(p.kata&&lookupChassis(p.kata))?2:0)+(/COLOR|FRAME|MODEL/.test(data.text)?1:0);
       if(score>(best._s||0)){ best=p; best._s=score; }
-      if(p.color) break;
+      if(psa && !p.color && !psaDone){ psaDone=true; const r=await _psaPass(worker,vertical); if(r){ best=r; break; } }
+      // 最初の2枚（文字の多い所の切り出し・従来の切り出し）は両方読んで良い方を使う
+      if(best.color && i>=1) break;
     }
+    // 見つからなければ、画像全体を明るさの差で白黒化して読み直す（黒い車体＋黒いラベルなど）
+    if(!best.color){
+      let ad=[]; try{ad=_labelPrepAdaptive(src);}catch(e){}
+      for(let j=0;j<ad.length&&!best.color;j++){
+        _busy(`もう一度読み取っています…（${j+1}/${ad.length}）`);
+        const {data}=await worker.recognize(ad[j]);
+        const p=parseLabelText(data.text);
+        if(p.color){ best={...best,color:p.color}; if(best.chassis&&!lookupChassis(best.chassis)) delete best.chassis; if(best.kata&&!lookupChassis(best.kata)) delete best.kata; }
+      }
+    }
+    // どのメーカーの読み方でもカラー番号が見つからなければ、PSA（灰色の枠）の読み方も試す
+    if(!best.color && !psaDone){ const r=await _psaPass(worker,vertical); if(r) best=r; }
     _busy(null);
     delete best._s;
     // 車台番号はQRの方が確実なので、ラベル由来は車種が未入力のときだけ使う
@@ -13076,6 +13460,8 @@ async function _unlockWith(pin){
   SEC.key=key;
   const enc=_lsGet('est-history-enc');
   try{ history=enc?await _dec(key,JSON.parse(enc)):[]; }catch(e){ history=[]; toast('履歴を読み込めませんでした',6000); }
+  try{ const le=_lsGet('est-loaner-enc'); LOANER_BOOK=le?await _dec(key,JSON.parse(le)):[]; }catch(e){ LOANER_BOOK=[]; }
+  try{renderLoanerCars();}catch(e){}
   return true;
 }
 async function _setupPin(pin){
@@ -13087,13 +13473,17 @@ async function _setupPin(pin){
   if(!Array.isArray(history)||!history.length) history=old;
   SEC.key=key;
   _lsSet('est-lock',JSON.stringify({v:1,salt:_b64(salt),iter,chk}));
-  _saveHistory(); await _saveChain;
-  _lsDel('est-history'); // 平文の履歴は削除
+  let oldL=[]; try{ oldL=JSON.parse(_lsGet('est-loaner')||'[]')||[]; }catch(e){}
+  if(!LOANER_BOOK.length) LOANER_BOOK=oldL;
+  _saveHistory(); _saveLoanerBook(); await _saveChain;
+  _lsDel('est-history'); _lsDel('est-loaner'); // 平文の履歴は削除
 }
 function _failState(){try{return JSON.parse(_lsGet('est-lock-fail')||'{"n":0,"until":0}');}catch(e){return {n:0,until:0};}}
 function lockNow(){
   if(!SEC.ok||!_lockInfo()) return;
-  SEC.key=null; SEC.locked=true; history=[]; try{renderHistory();}catch(e){}
+  cloudStop(); SEC.key=null; SEC.locked=true; history=[]; LOANER_BOOK=[]; try{renderHistory();}catch(e){}
+  try{const o=document.getElementById('lc-ov'); if(o) o.remove();}catch(e){}
+  try{renderLoanerCars();}catch(e){}
   document.querySelectorAll('.cf-ov:not(#lock-ov)').forEach(o=>{ if(o.id!=='busy') o.remove(); });
   _showLock('unlock');
 }
@@ -13147,17 +13537,18 @@ function _showLock(mode){
     const cp=askConfirm('暗証番号を忘れた場合は、保存済みの見積り履歴をすべて削除して、新しい暗証番号を設定し直します。\n（設定・覚えた車種は残ります）','履歴を削除して再設定');
     {const o=document.querySelectorAll('.cf-ov');if(o.length)o[o.length-1].style.zIndex='20001';}
     if(!await cp) return;
-    _lsDel('est-history-enc'); _lsDel('est-lock'); _lsDel('est-lock-fail'); _lsDel('est-history'); history=[];
+    _lsDel('est-history-enc'); _lsDel('est-loaner-enc'); _lsDel('est-loaner'); LOANER_BOOK=[]; _lsDel('est-lock'); _lsDel('est-lock-fail'); _lsDel('est-history'); history=[];
     pin='';step='setup';mode='setup';paint();
   });
   paint();
 }
-function _unlocked(ov){ SEC.locked=false; SEC.lastAct=Date.now(); ov.remove(); try{renderHistory();}catch(e){} }
+function _unlocked(ov){ SEC.locked=false; SEC.lastAct=Date.now(); ov.remove(); try{renderHistory();}catch(e){} try{ if(CLOUD.user) cloudStart(); else cloudInit(); renderCloudUI(); }catch(e){} }
 function changePin(){ if(!SEC.ok){toast('この画面では暗証番号を使えません',5000);return;} _showLock('change-old'); }
 function _secInit(){
   if(!SEC.ok){ // 暗号化が使えない画面（プレビュー等）
     try{const h=_lsGet('est-history');if(h)history=JSON.parse(h);}catch(e){}
-    SEC.locked=false; return;
+    try{const l=_lsGet('est-loaner');if(l)LOANER_BOOK=JSON.parse(l);}catch(e){}
+    SEC.locked=false; try{renderLoanerCars();}catch(e){} try{cloudInit();}catch(e){} return;
   }
   _showLock(_lockInfo()?'unlock':'setup');
   // 自動ロック：一定時間操作がない／アプリを離れて一定時間たったらロック
