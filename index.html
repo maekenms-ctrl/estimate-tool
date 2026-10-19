@@ -2054,7 +2054,7 @@ function _sheetDate(v){
 function _sheetCar(v){
   const z=String(v||'').normalize('NFKC').replace(/\s/g,'').toUpperCase().replace(/[‐－−ー](?=BOX)/g,'-');
   if(!z||/^(なし|無|無し|-|×|X|✕|不要)$/.test(z)||/家まで|送迎|自宅|自走/.test(z)) return null;   // 代車なし（送迎などを含む）
-  if(/トヨレン|レンタ|ニコニコ|オリックス|タイムズ|ニッポン/.test(z)) return 'レンタカー';
+  if(/トヨレン|キンレン|レンタ|ニコニコ|オリックス|タイムズ|ニッポン/.test(z)){ const m=z.match(/([1-3])(?!\d)/); return m?'レンタカー'+m[1]:'レンタカー'; }   // ①②③→1〜3（NFKCで数字になる）
   const T=[['フリード',/フリード/],['プリウス',/プリウス/],['フィット',/フィット/],['ミライース',/ミラ/],['ムーブ',/ムーヴ|ムーブ/],['ラパン',/ラパン/],['N-BOX',/N-?BOX|NBOX|エヌボックス|Nボックス/]];
   for(const [n,re] of T) if(re.test(z)) return n;
   return '?';
@@ -2079,6 +2079,11 @@ async function sheetLoad(manual){
       if(car==='?'||!from){ bad.push(`${where}：${x.car||''} ${name}${!from?'（入庫日が読めません）':''}`); continue; }
       rows.push({id:'sheet-'+(x.tab||'')+'-'+x.row,open,car,cust:x.name||'',model:x.model||'',from:from<=to?from:to,to:from<=to?to:from,name,kinds:_sheetKinds(x.kind),kind:_sheetKinds(x.kind).join('・'),memo:`入庫管理表 ${where}${x.car?'（'+x.car+'）':''}${open?'・返却日未定':''}`,src:'sheet'});
     }
+    // 他社レンタカー：番号がなければ、空いている枠（1→2→3）へ順に割り当て
+    const rent=rows.filter(r=>/^レンタカー/.test(r.car)).sort((a,b)=>a.from<b.from?-1:1);
+    for(const r of rent){ if(r.car!=='レンタカー') continue;
+      const ok=n=>!rows.concat(LOANER_BOOK).some(x=>x!==r&&x.car===n&&x.from<=r.to&&r.from<=x.to);
+      r.car=RENTAL_ROWS.map(x=>x.n).find(ok)||RENTAL_ROWS[RENTAL_ROWS.length-1].n; }
     SHEET.rows=rows; SHEET.bad=bad; SHEET.at=Date.now(); SHEET.err='';
     if(manual) toast(`入庫管理表から代車${rows.length}件を読み込みました`);
   }catch(e){ SHEET.err=_sheetErr(e); if(manual) toast('入庫管理表を読み込めませんでした：'+SHEET.err,7000); }
@@ -2100,6 +2105,8 @@ function _barNames(b){
   const n=clean(b.name); const i=n.indexOf(' '); return i>0?[n.slice(0,i),n.slice(i+1)]:[n,''];
 }
 const OPEN_END='9999-12-31';
+const RENTAL_ROWS=[{n:'レンタカー1',lab:'他社レンタカー①',ext:1},{n:'レンタカー2',lab:'他社レンタカー②',ext:1},{n:'レンタカー3',lab:'他社レンタカー③',ext:1}];
+function _carLabel(n){ const r=RENTAL_ROWS.find(x=>x.n===n); return r?r.lab:n; }
 function _toLabel(d){ return d===OPEN_END?'返却未定':d.slice(5).replace('-','/'); }
 function _allBookings(){ return SHEET.rows.length?[...LOANER_BOOK,...SHEET.rows]:LOANER_BOOK; }
 function renderSheetUI(){
@@ -2211,9 +2218,9 @@ function _renderLoanerCal(){
     <div class="lc-legend">${LOANER_KINDS.map(x=>`<span><i style="background:${x.c}"></i>${x.k}</span>`).join('')}<span><i style="background:#9AA4B2"></i>その他</span><span><i class="lg-closed"></i>店休日</span><span style="color:#ff6b6b">赤字＝日曜・祝日</span></div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:6px">空いているマスで予約、色の帯で変更・削除。日付をタップすると店休日に切り替わります。</div>
     <div class="lc-scroll"><table class="lc-grid"><tr><th class="lc-car">車両</th>${days.map(x=>`<th class="${cls(x)}" onclick="_toggleClosedDay('${x.d}')" title="${x.hol?esc(x.hol):''}${x.closed?' 店休日':''}">${x.n}<br>${W[x.w]}${x.hol?'<span class="hol">祝</span>':x.closed?'<span class="hol cl">休</span>':''}</th>`).join('')}</tr>`;
-  const _rows=_allBookings().some(b=>b.car==='レンタカー'&&b.to>=days[0].d&&b.from<=days[N-1].d)?[...LOANER_CARS,{n:'レンタカー',ext:1}]:LOANER_CARS;
+  const _rows=[...LOANER_CARS,...RENTAL_ROWS];
   for(const c of _rows){
-    h+=`<tr><td class="lc-car${c.low?' low':''}">${c.ext?'他社':''}${c.n}${c.low?'<small>1550mm以下</small>':''}</td>`;
+    h+=`<tr><td class="lc-car${c.low?' low':''}${c.ext?' ext':''}">${c.lab||c.n}${c.low?'<small>1550mm以下</small>':''}</td>`;
     for(let i=0;i<days.length;){
       const x=days[i]; const b=_loanerBusy(c.n,x.d);
       if(b){
@@ -2230,7 +2237,7 @@ function _renderLoanerCal(){
   const from=days[0].d, to=days[N-1].d;
   const list=_allBookings().filter(b=>b.to>=from&&b.from<=to).sort((a,b)=>a.from<b.from?-1:1);
   const hols=days.filter(x=>x.hol).map(x=>`${x.n}日 ${x.hol}`);
-  h+=`<div class="lc-list">${list.length?list.map(b=>`<div class="lc-item" onclick="_loanerForm('${b.id}')"><i class="kd" style="background:${_kindBg(b,3)}"></i><b>${esc(b.car)}</b><span>${b.from.slice(5).replace('-','/')}〜${_toLabel(b.to)}</span><span>${esc(b.name||'')}</span><span>${esc(_kinds(b).join('・'))}</span><span style="color:var(--muted)">${esc(b.memo||'')}</span></div>`).join(''):'<div style="color:var(--muted)">この月の予約はありません</div>'}
+  h+=`<div class="lc-list">${list.length?list.map(b=>`<div class="lc-item" onclick="_loanerForm('${b.id}')"><i class="kd" style="background:${_kindBg(b,3)}"></i><b>${esc(_carLabel(b.car))}</b><span>${b.from.slice(5).replace('-','/')}〜${_toLabel(b.to)}</span><span>${esc(b.name||'')}</span><span>${esc(_kinds(b).join('・'))}</span><span style="color:var(--muted)">${esc(b.memo||'')}</span></div>`).join(''):'<div style="color:var(--muted)">この月の予約はありません</div>'}
     ${hols.length?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">祝日：${hols.join('、')}</div>`:''}
     ${SHEET.err?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">入庫管理表を読み込めません：${esc(SHEET.err)}</div>`:''}
     ${SHEET.bad.length?`<div style="margin-top:8px;color:#ffb020;font-size:12px">入庫管理表で代車名か入庫日が読み取れない行：${esc(SHEET.bad.slice(0,10).join('／'))}${SHEET.bad.length>10?' ほか':''}</div>`:''}</div>
@@ -2241,7 +2248,7 @@ function _renderLoanerCal(){
 function _loanerForm(id,car,day){
   const sb=id&&SHEET.rows.find(x=>x.id===id);
   if(sb){ const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9500;
-    ov.innerHTML=`<div class="cf-box"><div style="font-weight:700;margin-bottom:8px">📄 入庫管理表の予約</div><div style="line-height:1.9;font-size:14px">車両：${esc(sb.car)}<br>入庫日（貸出）：${sb.from}<br>納期・出庫日（返却）：${sb.to===OPEN_END?'未定（決まるまで貸出中として表示）':sb.to}<br>お客様：${esc(sb.name)}<br>区分：${esc(sb.kind||'-')}<br><span style="color:var(--muted)">${esc(sb.memo)}</span></div><div style="font-size:12px;color:var(--muted);margin:8px 0">この予約はスプレッドシートから読み込んでいます。変更はシートで行ってください。</div><div class="cf-btns" style="grid-template-columns:1fr"><button type="button" class="btn btn-primary">閉じる</button></div></div>`;
+    ov.innerHTML=`<div class="cf-box"><div style="font-weight:700;margin-bottom:8px">📄 入庫管理表の予約</div><div style="line-height:1.9;font-size:14px">車両：${esc(_carLabel(sb.car))}<br>入庫日（貸出）：${sb.from}<br>納期・出庫日（返却）：${sb.to===OPEN_END?'未定（決まるまで貸出中として表示）':sb.to}<br>お客様：${esc(sb.name)}<br>区分：${esc(sb.kind||'-')}<br><span style="color:var(--muted)">${esc(sb.memo)}</span></div><div style="font-size:12px;color:var(--muted);margin:8px 0">この予約はスプレッドシートから読み込んでいます。変更はシートで行ってください。</div><div class="cf-btns" style="grid-template-columns:1fr"><button type="button" class="btn btn-primary">閉じる</button></div></div>`;
     ov.querySelector('button').onclick=()=>ov.remove(); ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();}); document.body.appendChild(ov); return; }
   const b=id?LOANER_BOOK.find(x=>x.id===id):null;
   const curName=[customer.name,customer.car,customer.plate].filter(Boolean).join(' ');
@@ -2249,7 +2256,7 @@ function _loanerForm(id,car,day){
   const v=b?{...b}:{car:car||customer.loanerVehicle||LOANER_CARS[0].n,from:d0,to:d0,name:curName,kind:'',memo:''};
   const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9500;
   ov.innerHTML=`<div class="cf-box lc-form" style="max-width:380px"><div style="font-weight:700;margin-bottom:10px">${b?'代車の予約を変更':'代車の予約を追加'}</div>
-    <div class="field"><label>車両</label><select id="lf-car">${LOANER_CARS.map(c=>`<option${c.n===v.car?' selected':''}>${c.n}</option>`).join('')}</select></div>
+    <div class="field"><label>車両</label><select id="lf-car">${[...LOANER_CARS,...RENTAL_ROWS].map(c=>`<option value="${c.n}"${c.n===v.car?' selected':''}>${c.lab||c.n}</option>`).join('')}</select></div>
     <div class="field"><label>貸出日</label><input type="date" id="lf-from" value="${v.from}"></div>
     <div class="field"><label>返却予定日</label><input type="date" id="lf-to" value="${v.to}"></div>
     <div class="field"><label>お客様・車両</label><input id="lf-name" value="${esc(v.name||'')}" placeholder="例：山田様 プリウス 品川300あ1234"></div>
@@ -2261,13 +2268,13 @@ function _loanerForm(id,car,day){
   const close=()=>ov.remove();
   ov.querySelector('.lf-cancel').onclick=close;
   ov.addEventListener('click',e=>{if(e.target===ov)close();});
-  if(b) ov.querySelector('.lf-del').onclick=async()=>{ if(!await askConfirm(`${b.car}（${b.from.slice(5)}〜${b.to.slice(5)}）の予約を削除しますか？`)) return; LOANER_BOOK=LOANER_BOOK.filter(x=>x.id!==b.id); _saveLoanerBook(); _cloudDel('loaner',b.id); close(); _renderLoanerCal(); };
+  if(b) ov.querySelector('.lf-del').onclick=async()=>{ if(!await askConfirm(`${_carLabel(b.car)}（${b.from.slice(5)}〜${b.to.slice(5)}）の予約を削除しますか？`)) return; LOANER_BOOK=LOANER_BOOK.filter(x=>x.id!==b.id); _saveLoanerBook(); _cloudDel('loaner',b.id); close(); _renderLoanerCal(); };
   ov.querySelector('.lf-ok').onclick=async()=>{
     const n={id:b?b.id:genId(),car:ov.querySelector('#lf-car').value,from:ov.querySelector('#lf-from').value,to:ov.querySelector('#lf-to').value,name:ov.querySelector('#lf-name').value.trim(),kinds,kind:kinds.join('・'),memo:ov.querySelector('#lf-memo').value.trim()};
     if(!n.from||!n.to){ toast('貸出日と返却予定日を入れてください'); return; }
     if(n.to<n.from){ const t=n.from; n.from=n.to; n.to=t; }
     const clash=_allBookings().find(x=>x.id!==n.id&&x.car===n.car&&x.from<=n.to&&n.from<=x.to);
-    if(clash && !await askConfirm(`${n.car}は ${clash.from.slice(5)}〜${_toLabel(clash.to)}（${clash.name||'予約'}）と重なっています。このまま保存しますか？`,'保存する')) return;
+    if(clash && !await askConfirm(`${_carLabel(n.car)}は ${clash.from.slice(5)}〜${_toLabel(clash.to)}（${clash.name||'予約'}）と重なっています。このまま保存しますか？`,'保存する')) return;
     LOANER_BOOK=LOANER_BOOK.filter(x=>x.id!==n.id); LOANER_BOOK.push(n);
     if(!_saveLoanerBook()) toast('ロック中のため保存できませんでした',5000);
     _cloudPut('loaner',n.id,{car:n.car,from:n.from,to:n.to,name:n.name,kinds:n.kinds,kind:n.kind,memo:n.memo});
