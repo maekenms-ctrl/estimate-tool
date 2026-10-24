@@ -419,7 +419,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div class="field"><label>型式指定番号</label><input id="c-typeno" inputmode="numeric" placeholder="例：12604" oninput="updateCust()"></div>
         <div class="field"><label>類別区分番号</label><input id="c-ruino" inputmode="numeric" placeholder="例：0042" oninput="updateCust()"></div>
         <div class="field span2"><label>走行距離（km）</label><div style="display:flex;gap:8px"><input id="c-mileage" inputmode="numeric" pattern="[0-9]*" placeholder="例：45678" oninput="this.value=this.value.replace(/[^0-9]/g,'');updateCust()" style="flex:1"><label class="btn odo-btn">🚗 メーターから読む<input type="file" accept="image/*" style="display:none" onchange="odoFromFile(this)"></label></div></div>
-        <div class="field span2"><label>登録番号</label><input id="c-plate" placeholder="品川 300 あ 12-34" oninput="updateCust()"></div>
+        <div class="field span2"><label>登録番号</label><input id="c-plate" placeholder="品川 300 あ 12-34" oninput="updateCust()"><div id="c-wbhint"></div></div>
         <div class="field"><label>車体色（カラー番号）</label><input id="c-color" placeholder="例：070" oninput="updateCust()"></div>
         <div class="field"><label>塗装タイプ（全部位一括）</label><select id="c-ptype" onchange="setPaintTypeAll(this.value)"></select></div>
         <div class="field span2"><label>見積日</label><input type="date" id="c-date" oninput="updateCust()"></div>
@@ -1890,6 +1890,31 @@ function updateCust(){
   customer.staff=document.getElementById('c-staff').value;
   customer.note=document.getElementById('c-note').value;
   customer.bodyShape=currentBodyShape;
+  try{ renderWbHint(); }catch(e){}
+}
+// ── 作業ボードと車両情報（車台番号・車体色・塗装タイプ）を共有 ──
+// 作業ボードの作業指示（jobs）から、同じ登録番号の車を探す（お客様名は作業ボードに無い）
+let WB_JOBS=[];
+function _plateNo(p){ const m=String(p||'').normalize('NFKC').match(/[0-9][0-9・.\-‐ー ]*$/); const d=m?m[0].replace(/[^0-9]/g,''):''; return d.length>=2?(d.replace(/^0+/,'')||'0'):''; }
+function _wbJobFor(){
+  const no=_plateNo(customer.plate); if(!no) return null;
+  const c=WB_JOBS.filter(j=>_plateNo(j.plate)===no&&(j.chassis||j.color||j.paintType));
+  if(!c.length) return null;
+  const j=c.sort((a,b)=>(a.archived?1:0)-(b.archived?1:0)||(String(b.updatedAt||'')<String(a.updatedAt||'')?-1:1))[0];
+  const diff=(j.chassis&&j.chassis!==customer.chassis)||(j.color&&j.color!==customer.color)||(j.paintType&&j.paintType!==customer.paintType);
+  return diff?j:null;
+}
+function renderWbHint(){
+  const el=document.getElementById('c-wbhint'); if(!el) return; const j=_wbJobFor();
+  el.innerHTML=j?`<button type="button" class="btn" style="margin-top:6px;width:100%" onclick="wbFill()">🛠 作業ボードの車両情報を入れる（${esc([j.chassis&&'車台 '+j.chassis,j.color&&'カラー '+j.color,j.paintType].filter(Boolean).join(' ／ '))}）</button>`:'';
+}
+function wbFill(){
+  const j=_wbJobFor(); if(!j) return;
+  if(j.chassis) document.getElementById('c-chassis').value=j.chassis;
+  if(j.color) document.getElementById('c-color').value=j.color;
+  updateCust();
+  if(j.paintType){ setPaintTypeAll(j.paintType); const ps=document.getElementById('c-ptype'); if(ps) ps.value=j.paintType; }
+  renderWbHint(); toast('作業ボードの車両情報を入れました');
 }
 function setPaintTypeAll(t){
   customer.paintType=t;
@@ -2021,6 +2046,8 @@ function cloudStart(){
     const local=CLOUD.first.loaner?[]:LOANER_BOOK.filter(b=>!m[b.id]);
     if(!CLOUD.first.loaner && !m['_shop'] && (SHOP_CLOSED.w.length||SHOP_CLOSED.d.length)) setTimeout(_saveShopClosed,0);   // 初回だけ、この端末にしかない予約を残して送る
     LOANER_BOOK=[...L,...local]; _saveLoanerBook(); try{renderLoanerCars();}catch(e){} if(document.getElementById('lc-ov')) _renderLoanerCal(); });
+  // 作業ボードの車両情報（読めなくても見積りツールは普段どおり動く）
+  CLOUD.unsubs.push(fs.onSnapshot(fs.collection(CLOUD.db,'jobs'),snap=>{ const L=[]; snap.forEach(d=>{ const v=d.data()||{}; if(v.deleted||v._sheet||!v.plate) return; L.push({plate:v.plate,chassis:v.chassis||'',color:v.color||'',paintType:v.paintType||'',archived:!!v.archived,updatedAt:v.updatedAt||''}); }); WB_JOBS=L; try{ renderWbHint(); }catch(e){} },err=>{ console.warn('jobs',err); }));
   renderCloudUI();
 }
 // 初回の同期前に端末だけにあった分（共有に送る対象）
@@ -2574,6 +2601,19 @@ function saveEst(){
   try{learnCurrentVehicle();}catch(e){}
   history.unshift(snap);
   showMsg('save-msg',_saveHistory()?'履歴に保存しました':'保存に失敗しました');
+  try{ _cloudPutEstimate(snap); }catch(e){}
+}
+// 入出庫管理表の「ARK通知」パネル向けに、見積りの要約だけを共有（お客様名・明細の金額は送らない）
+let _estCloudWarned=false;
+function _cloudPutEstimate(s){
+  if(!CLOUD.started) return;
+  const {fs}=CLOUD.fb; const c=s.customer||{}, t=s.totals||{};
+  fs.setDoc(fs.doc(CLOUD.db,'estimates',_cloudKey(s.id)),{
+    id:String(s.id), savedAt:s.savedAt, date:c.date||'', plate:c.plate||'', car:c.car||'', color:c.color||'', chassis:c.chassis||'', ptype:c.paintType||'', staff:c.staff||'',
+    parts:(s.items||[]).map(i=>i.part).filter(Boolean).slice(0,12), count:(s.items||[]).length,
+    grand:Math.round(+t.grand||0), loaner:c.loanerVehicle||'',
+    by:(CLOUD.user&&CLOUD.user.email)||'', at:fs.serverTimestamp()
+  }).catch(e=>{ if(!_estCloudWarned){ _estCloudWarned=true; toast('見積りの通知を共有できませんでした（Firestoreのルールにestimatesを追加してください）',7000); } });
 }
 function loadEst(h){
   customer={...newCust(),...h.customer};
