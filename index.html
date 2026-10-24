@@ -2132,7 +2132,7 @@ function _barNames(b){
   const n=clean(b.name); const i=n.indexOf(' '); return i>0?[n.slice(0,i),n.slice(i+1)]:[n,''];
 }
 const OPEN_END='9999-12-31';
-const RENTAL_ROWS=[{n:'レンタカー1',lab:'他社レンタカー①',ext:1},{n:'レンタカー2',lab:'他社レンタカー②',ext:1},{n:'レンタカー3',lab:'他社レンタカー③',ext:1}];
+const RENTAL_ROWS=[{n:'レンタカー1',lab:'他社レンタカー①',ext:1},{n:'レンタカー2',lab:'他社レンタカー②',ext:1}];
 function _carLabel(n){ const r=RENTAL_ROWS.find(x=>x.n===n); return r?r.lab:n; }
 function _toLabel(d){ return d===OPEN_END?'返却未定':d.slice(5).replace('-','/'); }
 function _allBookings(){ return SHEET.rows.length?[...LOANER_BOOK,...SHEET.rows]:LOANER_BOOK; }
