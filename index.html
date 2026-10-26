@@ -2101,10 +2101,10 @@ async function sheetLoad(manual){
       const car=_sheetCar(x.car); if(car===null) continue;
       const from=_sheetDate(x.inDate); let to=_sheetDate(x.out)||_sheetDate(x.due), open=false;   // 返却：出庫日（C）→ なければ納期（B）
       if(!to && from){ to=OPEN_END; open=true; }   // 納期・出庫日が空欄：返却日が決まるまでずっと貸出中（二重貸し出し防止）
-      const name=[x.name,x.model].filter(Boolean).join(' ');
+      const name=[x.model,x.plate].filter(Boolean).join(' ');   // お客様名はスプレッドシートだけ
       const where=(x.tab?x.tab+' ':'')+x.row+'行目';
       if(car==='?'||!from){ bad.push(`${where}：${x.car||''} ${name}${!from?'（入庫日が読めません）':''}`); continue; }
-      rows.push({id:'sheet-'+(x.tab||'')+'-'+x.row,open,car,cust:x.name||'',model:x.model||'',from:from<=to?from:to,to:from<=to?to:from,name,kinds:_sheetKinds(x.kind),kind:_sheetKinds(x.kind).join('・'),memo:`入庫管理表 ${where}${x.car?'（'+x.car+'）':''}${open?'・返却日未定':''}`,src:'sheet'});
+      rows.push({id:'sheet-'+(x.tab||'')+'-'+x.row,open,car,cust:'',plate:x.plate||'',model:x.model||'',from:from<=to?from:to,to:from<=to?to:from,name,kinds:_sheetKinds(x.kind),kind:_sheetKinds(x.kind).join('・'),memo:`入庫管理表 ${where}${x.car?'（'+x.car+'）':''}${open?'・返却日未定':''}`,src:'sheet'});
     }
     // 他社レンタカー：番号がなければ、空いている枠（1→2→3）へ順に割り当て
     const rent=rows.filter(r=>/^レンタカー/.test(r.car)).sort((a,b)=>a.from<b.from?-1:1);
@@ -2128,7 +2128,7 @@ function _netMsg(e){ const m=String((e&&(e.code||e.message))||e||''); return /ne
 // 帯に出す名前：「様」と余分な空白を省き、お客様名と車種に分ける
 function _barNames(b){
   const clean=t=>String(t||'').replace(/\s*様\s*/g,' ').replace(/[\s　]+/g,' ').trim();
-  if(b.src==='sheet') return [clean(b.cust),clean(b.model)];
+  if(b.src==='sheet') return [clean(b.model),clean(b.plate)];
   const n=clean(b.name); const i=n.indexOf(' '); return i>0?[n.slice(0,i),n.slice(i+1)]:[n,''];
 }
 const OPEN_END='9999-12-31';
@@ -2278,7 +2278,7 @@ function _loanerForm(id,car,day){
     ov.innerHTML=`<div class="cf-box"><div style="font-weight:700;margin-bottom:8px">📄 入庫管理表の予約</div><div style="line-height:1.9;font-size:14px">車両：${esc(_carLabel(sb.car))}<br>入庫日（貸出）：${sb.from}<br>納期・出庫日（返却）：${sb.to===OPEN_END?'未定（決まるまで貸出中として表示）':sb.to}<br>お客様：${esc(sb.name)}<br>区分：${esc(sb.kind||'-')}<br><span style="color:var(--muted)">${esc(sb.memo)}</span></div><div style="font-size:12px;color:var(--muted);margin:8px 0">この予約はスプレッドシートから読み込んでいます。変更はシートで行ってください。</div><div class="cf-btns" style="grid-template-columns:1fr"><button type="button" class="btn btn-primary">閉じる</button></div></div>`;
     ov.querySelector('button').onclick=()=>ov.remove(); ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();}); document.body.appendChild(ov); return; }
   const b=id?LOANER_BOOK.find(x=>x.id===id):null;
-  const curName=[customer.name,customer.car,customer.plate].filter(Boolean).join(' ');
+  const curName=[customer.car,customer.plate].filter(Boolean).join(' ');   // お客様名は共有しない（スプレッドシートだけ）
   const d0=day||_ymd(new Date());
   const v=b?{...b}:{car:car||customer.loanerVehicle||LOANER_CARS[0].n,from:d0,to:d0,name:curName,kind:'',memo:''};
   const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9500;
@@ -2286,7 +2286,7 @@ function _loanerForm(id,car,day){
     <div class="field"><label>車両</label><select id="lf-car">${[...LOANER_CARS,...RENTAL_ROWS].map(c=>`<option value="${c.n}"${c.n===v.car?' selected':''}>${c.lab||c.n}</option>`).join('')}</select></div>
     <div class="field"><label>貸出日</label><input type="date" id="lf-from" value="${v.from}"></div>
     <div class="field"><label>返却予定日</label><input type="date" id="lf-to" value="${v.to}"></div>
-    <div class="field"><label>お客様・車両</label><input id="lf-name" value="${esc(v.name||'')}" placeholder="例：山田様 プリウス 品川300あ1234"></div>
+    <div class="field"><label>車両（お客様名は入れないでください）</label><input id="lf-name" value="${esc(v.name||'')}" placeholder="例：プリウス 品川300あ1234"></div>
     <div class="field"><label>メモ（作業の区分）</label><div class="check-group" id="lf-kind">${LOANER_KINDS.map(x=>`<button type="button" class="selbtn kd-btn${_kinds(v).includes(x.k)?' on':''}" data-k="${x.k}" style="--kc:${x.c}">${x.k}</button>`).join('')}</div><div style="font-size:11px;color:var(--muted);margin-top:3px">複数選べます</div>
       <input id="lf-memo" value="${esc(v.memo||'')}" placeholder="例：保険会社手配／ガソリン満タン" style="margin-top:6px"></div>
     <div class="cf-btns" style="grid-template-columns:${b?'1fr 1fr 1fr':'1fr 1fr'}">${b?'<button type="button" class="btn cf-yes lf-del">削除</button>':''}<button type="button" class="btn lf-cancel">キャンセル</button><button type="button" class="btn btn-primary lf-ok">保存</button></div></div>`;
@@ -13897,6 +13897,30 @@ setCarType('国産車');
 buildPanelMap();
 render();
 document.getElementById('c-date').value=todayStr();
+</script>
+<script>
+// ── 新しい版のお知らせ：GitHubのファイルが新しくなったら、画面の下に「更新する」を出す ──
+(function(){
+  if(!/github\.io$/.test(location.hostname) || !window.fetch) return;
+  var base=null, shown=false;
+  function show(){
+    if(shown) return; shown=true;
+    var b=document.createElement('div');
+    b.setAttribute('style','position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:2147483000;background:#0b57d0;color:#fff;border-radius:22px;padding:8px 8px 8px 16px;font:700 14px/1.4 "Noto Sans JP",sans-serif;display:flex;gap:10px;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,.35);max-width:calc(100% - 24px)');
+    b.innerHTML='<span>新しい版があります</span><button type="button" style="border:0;border-radius:16px;background:#fff;color:#0b57d0;font:inherit;padding:6px 14px;cursor:pointer">更新する</button>';
+    b.querySelector('button').onclick=function(){ location.reload(); };
+    document.body.appendChild(b);
+  }
+  function check(){
+    fetch(location.pathname+'?v='+Date.now(),{method:'HEAD',cache:'no-store'}).then(function(r){
+      var v=r.headers.get('etag')||r.headers.get('last-modified'); if(!r.ok||!v) return;
+      if(base===null){ base=v; return; }
+      if(v!==base) show();
+    }).catch(function(){});
+  }
+  check(); setInterval(check, 5*60*1000);
+  document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible') check(); });
+})();
 </script>
 </body>
 </html>
