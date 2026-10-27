@@ -2047,7 +2047,8 @@ function cloudStart(){
     if(!CLOUD.first.loaner && !m['_shop'] && (SHOP_CLOSED.w.length||SHOP_CLOSED.d.length)) setTimeout(_saveShopClosed,0);   // 初回だけ、この端末にしかない予約を残して送る
     LOANER_BOOK=[...L,...local]; _saveLoanerBook(); try{renderLoanerCars();}catch(e){} if(document.getElementById('lc-ov')) _renderLoanerCal(); });
   // 作業ボードの車両情報（読めなくても見積りツールは普段どおり動く）
-  CLOUD.unsubs.push(fs.onSnapshot(fs.collection(CLOUD.db,'jobs'),snap=>{ const L=[]; snap.forEach(d=>{ const v=d.data()||{}; if(v.deleted||v._sheet||!v.plate) return; L.push({plate:v.plate,chassis:v.chassis||'',color:v.color||'',paintType:v.paintType||'',archived:!!v.archived,updatedAt:v.updatedAt||''}); }); WB_JOBS=L; try{ renderWbHint(); }catch(e){} },err=>{ console.warn('jobs',err); }));
+  CLOUD.unsubs.push(fs.onSnapshot(fs.query(fs.collection(CLOUD.db,'jobs'),fs.where('archived','==',false)),snap=>{   // 作業中の車だけ（全件は読まない）
+ const L=[]; snap.forEach(d=>{ const v=d.data()||{}; if(v.deleted||v._sheet||!v.plate) return; L.push({plate:v.plate,chassis:v.chassis||'',color:v.color||'',paintType:v.paintType||'',archived:!!v.archived,updatedAt:v.updatedAt||''}); }); WB_JOBS=L; try{ renderWbHint(); }catch(e){} },err=>{ console.warn('jobs',err); }));
   renderCloudUI();
 }
 // 初回の同期前に端末だけにあった分（共有に送る対象）
@@ -2124,7 +2125,7 @@ function _sheetErr(e){
   return m;
 }
 // 通信まわりのエラー文（文字認識用の文言を使わない）
-function _netMsg(e){ const m=String((e&&(e.code||e.message))||e||''); return /network|fetch|load failed|offline|unavailable/i.test(m)?'通信できませんでした（電波を確認してください）':m; }
+function _netMsg(e){ const m=String((e&&(e.code||e.message))||e||''); if(/resource-exhausted|quota/i.test(m)) return 'Firebaseの無料枠（1日の読み込み・書き込みの回数）を超えました。16〜17時ごろに自動で戻ります'; return /network|fetch|load failed|offline|unavailable/i.test(m)?'通信できませんでした（電波を確認してください）':m; }
 // 帯に出す名前：「様」と余分な空白を省き、お客様名と車種に分ける
 function _barNames(b){
   const clean=t=>String(t||'').replace(/\s*様\s*/g,' ').replace(/[\s　]+/g,' ').trim();
