@@ -2047,8 +2047,7 @@ function cloudStart(){
     if(!CLOUD.first.loaner && !m['_shop'] && (SHOP_CLOSED.w.length||SHOP_CLOSED.d.length)) setTimeout(_saveShopClosed,0);   // 初回だけ、この端末にしかない予約を残して送る
     LOANER_BOOK=[...L,...local]; _saveLoanerBook(); try{renderLoanerCars();}catch(e){} if(document.getElementById('lc-ov')) _renderLoanerCal(); });
   // 作業ボードの車両情報（読めなくても見積りツールは普段どおり動く）
-  CLOUD.unsubs.push(fs.onSnapshot(fs.query(fs.collection(CLOUD.db,'jobs'),fs.where('archived','==',false)),snap=>{   // 作業中の車だけ（全件は読まない）
- const L=[]; snap.forEach(d=>{ const v=d.data()||{}; if(v.deleted||v._sheet||!v.plate) return; L.push({plate:v.plate,chassis:v.chassis||'',color:v.color||'',paintType:v.paintType||'',archived:!!v.archived,updatedAt:v.updatedAt||''}); }); WB_JOBS=L; try{ renderWbHint(); }catch(e){} },err=>{ console.warn('jobs',err); }));
+  CLOUD.unsubs.push(fs.onSnapshot(fs.collection(CLOUD.db,'jobs'),snap=>{ const L=[]; snap.forEach(d=>{ const v=d.data()||{}; if(v.deleted||v._sheet||!v.plate) return; L.push({plate:v.plate,chassis:v.chassis||'',color:v.color||'',paintType:v.paintType||'',archived:!!v.archived,updatedAt:v.updatedAt||''}); }); WB_JOBS=L; try{ renderWbHint(); }catch(e){} },err=>{ console.warn('jobs',err); }));
   renderCloudUI();
 }
 // 初回の同期前に端末だけにあった分（共有に送る対象）
