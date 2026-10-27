@@ -1894,12 +1894,20 @@ function updateCust(){
 }
 // ── 作業ボードと車両情報（車台番号・車体色・塗装タイプ）を共有 ──
 // 作業ボードの作業指示（jobs）から、同じ登録番号の車を探す（お客様名は作業ボードに無い）
-let WB_JOBS=[];
+let WB_JOBS=[], WB_OLD=[], WB_OLD_ST='';
+// 納車済の作業指示（前に来た車）の車両情報：作業中の車に無い番号を入れたときだけ、1回読む（いつも全部は読まない）
+async function _wbLoadOld(){
+  if(WB_OLD_ST||!CLOUD.started) return; WB_OLD_ST='loading';
+  try{ const {fs}=CLOUD.fb; const q=await fs.getDocs(fs.query(fs.collection(CLOUD.db,'jobs'),fs.where('archived','==',true))); const L=[];
+    q.forEach(d=>{ const v=d.data()||{}; if(v.deleted||v._sheet||!v.plate||!(v.chassis||v.color||v.paintType)) return; L.push({plate:v.plate,chassis:v.chassis||'',color:v.color||'',paintType:v.paintType||'',archived:true,updatedAt:v.updatedAt||''}); });
+    WB_OLD=L; WB_OLD_ST='done'; try{ renderWbHint(); }catch(e){} }
+  catch(e){ WB_OLD_ST=''; console.warn('jobs(old)',e); }
+}
 function _plateNo(p){ const m=String(p||'').normalize('NFKC').match(/[0-9][0-9・.\-‐ー ]*$/); const d=m?m[0].replace(/[^0-9]/g,''):''; return d.length>=2?(d.replace(/^0+/,'')||'0'):''; }
 function _wbJobFor(){
   const no=_plateNo(customer.plate); if(!no) return null;
-  const c=WB_JOBS.filter(j=>_plateNo(j.plate)===no&&(j.chassis||j.color||j.paintType));
-  if(!c.length) return null;
+  const c=WB_JOBS.concat(WB_OLD).filter(j=>_plateNo(j.plate)===no&&(j.chassis||j.color||j.paintType));
+  if(!c.length){ _wbLoadOld(); return null; }
   const j=c.sort((a,b)=>(a.archived?1:0)-(b.archived?1:0)||(String(b.updatedAt||'')<String(a.updatedAt||'')?-1:1))[0];
   const diff=(j.chassis&&j.chassis!==customer.chassis)||(j.color&&j.color!==customer.color)||(j.paintType&&j.paintType!==customer.paintType);
   return diff?j:null;
