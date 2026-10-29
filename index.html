@@ -195,7 +195,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .lc-head .lc-title{font-size:17px;font-weight:700;min-width:120px;text-align:center;}
 .lc-head .btn{min-height:40px;padding:6px 12px;}
 .lc-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:8px;}
-.lc-grid{border-collapse:collapse;font-size:12px;table-layout:fixed;}
+.lc-grid{border-collapse:collapse;font-size:12px;table-layout:fixed;width:max-content;}
+.lc-grid col.c-d{width:58px;} .lc-grid col.c-car{width:92px;}
 .lc-grid th{width:58px;} .lc-grid th.lc-car{width:92px;}
 .lc-grid td.bk{max-width:0;}
 .lc-grid th,.lc-grid td{border:1px solid var(--surface3);min-width:58px;height:62px;text-align:center;padding:0;}
@@ -222,7 +223,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   .lc-head .lc-title{font-size:22px;}
   .lc-head .btn{font-size:16px;min-height:48px;padding:8px 18px;}
   .lc-legend i{width:18px;height:13px;}
-  .lc-grid{font-size:14px;width:100%;}
+  .lc-grid{font-size:14px;}
+  .lc-grid col.c-d{width:72px;} .lc-grid col.c-car{width:130px;}
+  .lc-grid tr.lc-mrow th.lc-mon span{left:150px;}
   .lc-grid th,.lc-grid td{min-width:72px;height:70px;}
   .lc-grid th{height:48px;font-size:14px;}
   .lc-grid .lc-car{min-width:130px;font-size:16px;}
@@ -230,7 +233,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   .lc-grid td.bk.short .bk-t{font-size:13px;}
   .lc-grid .lc-car small{font-size:11px;}
   .lc-grid .bk-bar{min-height:42px;font-size:15px;}
-  .lc-grid .bk-t{left:140px;}
+  .lc-grid .bk-t{left:152px;}
   .lc-grid .bk-t small{font-size:12px;}
   .lc-legend{font-size:13px;}
   .lc-list{font-size:15px;}
@@ -239,7 +242,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .lc-grid th{cursor:pointer;position:relative;}
 .lc-grid th .hol{display:block;font-size:9px;line-height:1;}
 .lc-grid th .hol.cl{color:#bbb;}
-.lc-grid th.closed,.lc-grid td.closed{background:repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 4px,rgba(255,255,255,.10) 4px 8px);}
+.lc-grid th.sat,.lc-grid td.sat{background:rgba(78,161,255,.16);}
+.lc-grid th.sun,.lc-grid td.sun{background:rgba(255,107,107,.16);}
+.lc-grid th.closed,.lc-grid td.closed{background:repeating-linear-gradient(45deg,rgba(160,160,160,.12) 0 4px,rgba(160,160,160,.30) 4px 8px);}
+.lc-grid th.m1,.lc-grid td.m1{border-left:3px solid var(--accent);}
+.lc-grid tr.lc-mrow th{height:24px;background:var(--surface);text-align:left;color:var(--accent);font-weight:800;cursor:default;border-left:3px solid var(--accent);}
+.lc-grid tr.lc-mrow th.lc-car{border-left:1px solid var(--surface3);}
+.lc-grid tr.lc-mrow th span{position:sticky;left:112px;padding:0 6px;}
+.lc-grid th .mlab{display:block;font-size:9px;color:var(--accent);font-weight:800;line-height:1;}
+.lc-grid th.today{background:var(--accent-soft);color:var(--accent);}
+.lc-legend i.lg-sun{background:rgba(255,107,107,.5);} .lc-legend i.lg-sat{background:rgba(78,161,255,.5);}
 .lc-grid th.closed{color:#999;}
 .lc-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--muted);margin-bottom:6px;}
 .lc-legend span{display:inline-flex;align-items:center;gap:4px;}
@@ -2181,7 +2193,12 @@ function _saveLoanerBook(){
 }
 let _lcMonth=null;
 function openLoanerCal(){ const d=new Date(); _lcMonth=new Date(d.getFullYear(),d.getMonth(),1); _renderLoanerCal(); if(SHEET.url&&Date.now()-SHEET.at>60000) sheetLoad(false); }
-function _lcShift(n){ _lcMonth=new Date(_lcMonth.getFullYear(),_lcMonth.getMonth()+n,1); _renderLoanerCal(); }
+// ◀▶：前・次の月の1日へ動く（表示している範囲の外なら、範囲をずらして描き直す）
+function _lcShift(n){ const b=_LC_VIS||_lcMonth; const t=new Date(b.getFullYear(),b.getMonth()+n,1);
+  const lo=new Date(_lcMonth.getFullYear(),_lcMonth.getMonth()-1,1), hi=new Date(_lcMonth.getFullYear(),_lcMonth.getMonth()+3,1);
+  if(t<lo||t>hi) _lcMonth=new Date(t.getFullYear(),t.getMonth(),1);
+  _LC_JUMP=_ymd(t); _renderLoanerCal(); }
+function _lcToday(){ const d=new Date(); _lcMonth=new Date(d.getFullYear(),d.getMonth(),1); d.setDate(d.getDate()-2); _LC_JUMP=_ymd(d); _renderLoanerCal(); }
 function _closeLoanerCal(){ const o=document.getElementById('lc-ov'); if(o) o.remove(); renderLoanerCars(); }
 // ─── 祝日（内閣府の祝日法に沿って計算：振替休日・国民の休日を含む） ───────────
 const _HOL_CACHE={};
@@ -2216,19 +2233,24 @@ try{ SHOP_CLOSED={w:[],d:[],...JSON.parse(localStorage.getItem('est-shop-closed'
 function _isClosed(ds,w){ return SHOP_CLOSED.w.includes(w)||SHOP_CLOSED.d.includes(ds); }
 function _saveShopClosed(){ try{localStorage.setItem('est-shop-closed',JSON.stringify(SHOP_CLOSED));}catch(e){} try{_cloudPut('loaner','_shop',{shop:true,closedW:SHOP_CLOSED.w,closedD:SHOP_CLOSED.d});}catch(e){} }
 function _toggleClosedDay(ds){ const i=SHOP_CLOSED.d.indexOf(ds); if(i>=0) SHOP_CLOSED.d.splice(i,1); else SHOP_CLOSED.d.push(ds); _saveShopClosed(); _renderLoanerCal(); }
+// 店休日（日付）を、続いている日ごとにまとめる（例：12/29〜1/4）
+function _closedRanges(){ const d=[...new Set(SHOP_CLOSED.d)].sort(), out=[]; for(const x of d){ const L=out[out.length-1]; if(L){ const n=new Date(L[1]+'T00:00:00'); n.setDate(n.getDate()+1); if(_ymd(n)===x){ L[1]=x; L.n++; continue; } } const r=[x,x]; r.n=1; out.push(r); } return out; }
+function _mdL(ds){ const [y,m,d]=ds.split('-'); return (y!==String(new Date().getFullYear())?y+'/':'')+(+m)+'/'+(+d); }
 function _shopClosedForm(){
-  const W='日月火水木金土';
-  const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9500;
+  const W='日月火水木金土'; const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9500;
   const draw=()=>{ ov.innerHTML=`<div class="cf-box lc-form" style="max-width:380px"><div style="font-weight:700;margin-bottom:10px">店休日の設定</div>
     <label>毎週の定休日</label><div class="check-group" style="margin-bottom:12px">${[...W].map((c,i)=>`<button type="button" class="selbtn${SHOP_CLOSED.w.includes(i)?' on':''}" data-w="${i}">${c}</button>`).join('')}</div>
-    <label>臨時休業・お盆・年末年始など</label><div style="display:flex;gap:6px;margin-bottom:8px"><input type="date" id="sc-date"><button type="button" class="btn" id="sc-add" style="white-space:nowrap;flex:none">追加</button></div>
-    <div style="font-size:13px;margin-bottom:12px">${SHOP_CLOSED.d.slice().sort().map(d=>`<span class="selbtn on" style="display:inline-flex;gap:6px;margin:2px">${d.slice(5).replace('-','/')}<b data-del="${d}" style="cursor:pointer">✕</b></span>`).join('')||'<span style="color:var(--muted)">まだありません（カレンダーの日付をタップしても切り替えられます）</span>'}</div>
+    <label>臨時休業・お盆・年末年始など（続けて休む日は「から」「まで」を入れる）</label>
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap"><input type="date" id="sc-date" style="flex:1;min-width:130px"><span style="font-size:12px">から</span><input type="date" id="sc-to" style="flex:1;min-width:130px"><span style="font-size:12px">まで</span><button type="button" class="btn" id="sc-add" style="white-space:nowrap;flex:none">追加</button></div>
+    <div style="font-size:13px;margin-bottom:12px">${_closedRanges().map(r=>`<span class="selbtn on" style="display:inline-flex;gap:6px;margin:2px">${_mdL(r[0])}${r[1]!==r[0]?'〜'+_mdL(r[1])+'（'+r.n+'日）':''}<b data-del="${r[0]}|${r[1]}" style="cursor:pointer">✕</b></span>`).join('')||'<span style="color:var(--muted)">まだありません（カレンダーの日付をタップしても切り替えられます）</span>'}</div>
     <div class="cf-btns" style="grid-template-columns:1fr"><button type="button" class="btn btn-primary sc-close">閉じる</button></div></div>`;
     ov.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{const w=+b.dataset.w;const i=SHOP_CLOSED.w.indexOf(w);if(i>=0)SHOP_CLOSED.w.splice(i,1);else SHOP_CLOSED.w.push(w);_saveShopClosed();draw();});
-    ov.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{SHOP_CLOSED.d=SHOP_CLOSED.d.filter(x=>x!==b.dataset.del);_saveShopClosed();draw();});
-    ov.querySelector('#sc-add').onclick=()=>{const v=ov.querySelector('#sc-date').value;if(v&&!SHOP_CLOSED.d.includes(v)){SHOP_CLOSED.d.push(v);_saveShopClosed();}draw();};
-    ov.querySelector('.sc-close').onclick=()=>{ov.remove();_renderLoanerCal();};
-  };
+    ov.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const [a,z]=b.dataset.del.split('|');SHOP_CLOSED.d=SHOP_CLOSED.d.filter(x=>x<a||x>z);_saveShopClosed();draw();});
+    ov.querySelector('#sc-date').onchange=e=>{ const t=ov.querySelector('#sc-to'); if(!t.value||t.value<e.target.value) t.value=e.target.value; };
+    ov.querySelector('#sc-add').onclick=()=>{ let a=ov.querySelector('#sc-date').value, z=ov.querySelector('#sc-to').value||a; if(!a){ toast('休む日を入れてください'); return; } if(z<a){ const t=a; a=z; z=t; }
+      const n0=SHOP_CLOSED.d.length; let k=0; for(const d=new Date(a+'T00:00:00');_ymd(d)<=z&&k<120;d.setDate(d.getDate()+1),k++){ const ds=_ymd(d); if(!SHOP_CLOSED.d.includes(ds)) SHOP_CLOSED.d.push(ds); }
+      if(SHOP_CLOSED.d.length!==n0) _saveShopClosed(); draw(); };
+    ov.querySelector('.sc-close').onclick=()=>{ov.remove();_renderLoanerCal();}; };
   draw(); ov.addEventListener('click',e=>{if(e.target===ov){ov.remove();_renderLoanerCal();}}); document.body.appendChild(ov);
 }
 // 用途（メモの区分）と色
@@ -2239,48 +2261,62 @@ function _kinds(b){ if(Array.isArray(b.kinds)&&b.kinds.length) return b.kinds.fi
 function _kindBg(b,w=12){ const ks=_kinds(b); if(!ks.length) return '#9AA4B2'; if(ks.length===1) return _kindColor(ks[0]);
   const n=ks.length; return 'linear-gradient(110deg,'+ks.map((k,i)=>`${_kindColor(k)} ${Math.round(i*100/n)}% ${Math.round((i+1)*100/n)}%`).join(',')+')'; }   // 複数は斜めに区切って各色1回ずつ
 function _renderLoanerCal(){
+  // 月ごとではなく、前の月〜3か月先までを1本につないで表示（横にスクロール。月の変わり目に線と月の見出し）
+  if(!_lcMonth){ const d=new Date(); _lcMonth=new Date(d.getFullYear(),d.getMonth(),1); }
   let ov=document.getElementById('lc-ov');
   if(!ov){ ov=document.createElement('div'); ov.id='lc-ov'; ov.className='lc-ov'; ov.addEventListener('click',e=>{if(e.target===ov)_closeLoanerCal();}); document.body.appendChild(ov); }
-  const y=_lcMonth.getFullYear(), m=_lcMonth.getMonth(), N=new Date(y,m+1,0).getDate(), today=_ymd(new Date()), HOL=jpHolidays(y);
-  const days=[...Array(N)].map((_,i)=>{const d=new Date(y,m,i+1);const ds=_ymd(d);return {d:ds,n:i+1,w:d.getDay(),hol:HOL[ds]||'',closed:_isClosed(ds,d.getDay())};});
-  const W='日月火水木金土';
-  const cls=x=>[x.w===0||x.hol?'sun':x.w===6?'sat':'',x.closed?'closed':'',x.d===today?'today':''].filter(Boolean).join(' ');
+  const keep=ov.querySelector('.lc-scroll'), keepX=keep&&!_LC_JUMP?keep.scrollLeft:null;
+  const start=new Date(_lcMonth.getFullYear(),_lcMonth.getMonth()-1,1), end=new Date(_lcMonth.getFullYear(),_lcMonth.getMonth()+4,0), today=_ymd(new Date());
+  const days=[]; for(const d=new Date(start);d<=end;d.setDate(d.getDate()+1)){ const ds=_ymd(d), HOL=jpHolidays(d.getFullYear()); days.push({d:ds,n:d.getDate(),m:d.getMonth()+1,y:d.getFullYear(),w:d.getDay(),hol:HOL[ds]||'',closed:_isClosed(ds,d.getDay())}); }
+  const N=days.length, W='日月火水木金土';
+  const cls=x=>[x.w===0||x.hol?'sun':x.w===6?'sat':'',x.closed?'closed':'',x.d===today?'today':'',x.n===1?'m1':''].filter(Boolean).join(' ');
+  const tint=x=>x.closed?'rgba(150,150,150,.22)':x.w===0||x.hol?'rgba(255,107,107,.16)':x.w===6?'rgba(78,161,255,.16)':'';
+  const months=[]; for(const x of days){ const L=months[months.length-1]; if(L&&L.m===x.m&&L.y===x.y) L.n++; else months.push({y:x.y,m:x.m,n:1}); }
   let h=`<div class="lc-box"><div class="lc-head">
-    <button class="btn" type="button" onclick="_lcShift(-1)">◀</button><div class="lc-title">${y}年${m+1}月</div><button class="btn" type="button" onclick="_lcShift(1)">▶</button>
+    <button class="btn" type="button" onclick="_lcShift(-1)">◀</button><div class="lc-title" id="lc-title">${_lcMonth.getFullYear()}年${_lcMonth.getMonth()+1}月</div><button class="btn" type="button" onclick="_lcShift(1)">▶</button>
+    <button class="btn" type="button" onclick="_lcToday()">今日</button>
     <button class="btn btn-primary lc-add-top" type="button" onclick="_loanerForm()">＋ 予約を追加</button>
     <button class="btn" type="button" onclick="_shopClosedForm()">🏪 店休日</button>
     ${SHEET.url?`<button class="btn" type="button" onclick="sheetLoad(true)">🔄 入庫管理表${SHEET.loading?'（読込中）':''}</button>`:''}
     <button class="btn" type="button" style="margin-left:auto" onclick="_closeLoanerCal()">✕ 閉じる</button></div>
-    <div class="lc-legend">${LOANER_KINDS.map(x=>`<span><i style="background:${x.c}"></i>${x.k}</span>`).join('')}<span><i style="background:#9AA4B2"></i>その他</span><span><i class="lg-closed"></i>店休日</span><span style="color:#ff6b6b">赤字＝日曜・祝日</span></div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:6px">空いているマスで予約、色の帯で変更・削除。日付をタップすると店休日に切り替わります。</div>
-    <div class="lc-scroll"><table class="lc-grid"><tr><th class="lc-car">車両</th>${days.map(x=>`<th class="${cls(x)}" onclick="_toggleClosedDay('${x.d}')" title="${x.hol?esc(x.hol):''}${x.closed?' 店休日':''}">${x.n}<br>${W[x.w]}${x.hol?'<span class="hol">祝</span>':x.closed?'<span class="hol cl">休</span>':''}</th>`).join('')}</tr>`;
-  const _rows=[...LOANER_CARS,...RENTAL_ROWS];
-  for(const c of _rows){
+    <div class="lc-legend">${LOANER_KINDS.map(x=>`<span><i style="background:${x.c}"></i>${x.k}</span>`).join('')}<span><i style="background:#9AA4B2"></i>その他</span><span><i class="lg-sun"></i>日曜・祝日</span><span><i class="lg-sat"></i>土曜</span><span><i class="lg-closed"></i>店休日</span></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px">横にスクロールすると月をまたいで続きます。空いているマスで予約、色の帯で変更・削除。日付をタップすると店休日に切り替わります。作業ボードのカレンダーと同じ予約です。</div>
+    <div class="lc-scroll"><table class="lc-grid"><colgroup><col class="c-car"><col class="c-d" span="${N}"></colgroup><tr class="lc-mrow"><th class="lc-car"></th>${months.map(o=>`<th class="lc-mon" colspan="${o.n}"><span>${o.y}年${o.m}月</span></th>`).join('')}</tr>
+    <tr><th class="lc-car">車両</th>${days.map(x=>`<th class="${cls(x)}" data-d="${x.d}" onclick="_toggleClosedDay('${x.d}')" title="${x.hol?esc(x.hol):''}${x.closed?' 店休日':''}">${x.n===1?`<span class="mlab">${x.m}月</span>`:''}${x.n}<br>${W[x.w]}${x.hol?'<span class="hol">祝</span>':x.closed?'<span class="hol cl">休</span>':''}</th>`).join('')}</tr>`;
+  for(const c of [...LOANER_CARS,...RENTAL_ROWS]){
     h+=`<tr><td class="lc-car${c.low?' low':''}${c.ext?' ext':''}">${c.lab||c.n}${c.low?'<small>1550mm以下</small>':''}</td>`;
-    for(let i=0;i<days.length;){
+    for(let i=0;i<N;){
       const x=days[i]; const b=_loanerBusy(c.n,x.d);
-      if(b){
-        let span=1; while(i+span<days.length && _loanerBusy(c.n,days[i+span].d)===b) span++;
-        const kt=_kinds(b).join('・'); const lab=[b.name||'予約',kt].filter(Boolean).join(' ');
-        const [cu,mo]=_barNames(b);
-        h+=`<td class="bk${b.src==='sheet'?' sh':''}${span<=2?' short':''}${b.to===OPEN_END?' open':''}" colspan="${span}" onclick="_loanerForm('${b.id}')" title="${esc(lab+(b.memo?' ／ '+b.memo:''))}"><div class="bk-bar" style="background:${_kindBg(b)}"><span class="bk-t"><span class="bk-n">${b.src==='sheet'?'<i class="shm">📄</i>':''}${esc(cu||'予約')}</span>${mo?`<span class="bk-m">${esc(mo)}</span>`:''}${kt&&span>=3?`<small>${esc(kt)}</small>`:''}</span></div></td>`;
-        i+=span;
-      } else { h+=`<td class="free ${cls(x)}" onclick="_loanerForm(null,'${c.n}','${x.d}')"></td>`; i++; }
+      if(b){ let span=1; while(i+span<N&&_loanerBusy(c.n,days[i+span].d)===b) span++;
+        const seg=days.slice(i,i+span), tn=seg.map(tint); let bg='';
+        if(tn.some(Boolean)) bg=`background:linear-gradient(90deg,${tn.map((t,q)=>`${t||'transparent'} ${(q*100/span).toFixed(3)}% ${((q+1)*100/span).toFixed(3)}%`).join(',')});`;
+        const kt=_kinds(b).join('・'); const lab=[(b.name||'')||'予約',kt].filter(Boolean).join(' '); const [cu,mo]=_barNames(b);
+        h+=`<td class="bk${b.src==='sheet'?' sh':''}${span<=2?' short':''}${b.to===OPEN_END?' open':''}${x.n===1?' m1':''}" colspan="${span}" style="${bg}" onclick="_loanerForm('${esc(b.id)}')" title="${esc(lab+(b.memo?' ／ '+b.memo:''))}"><div class="bk-bar" style="background:${_kindBg(b)}"><span class="bk-t"><span class="bk-n">${b.src==='sheet'?'<i class="shm">📄</i>':''}${esc(cu||'予約')}</span>${mo?`<span class="bk-m">${esc(mo)}</span>`:''}${kt&&span>=3?`<small>${esc(kt)}</small>`:''}</span></div></td>`;
+        i+=span; }
+      else { h+=`<td class="free ${cls(x)}" onclick="_loanerForm(null,'${c.n}','${x.d}')"></td>`; i++; }
     }
     h+='</tr>';
   }
   h+='</table></div>';
-  const from=days[0].d, to=days[N-1].d;
+  const from=today, to=days[N-1].d;
   const list=_allBookings().filter(b=>b.to>=from&&b.from<=to).sort((a,b)=>a.from<b.from?-1:1);
-  const hols=days.filter(x=>x.hol).map(x=>`${x.n}日 ${x.hol}`);
-  h+=`<div class="lc-list">${list.length?list.map(b=>`<div class="lc-item" onclick="_loanerForm('${b.id}')"><i class="kd" style="background:${_kindBg(b,3)}"></i><b>${esc(_carLabel(b.car))}</b><span>${b.from.slice(5).replace('-','/')}〜${_toLabel(b.to)}</span><span>${esc(b.name||'')}</span><span>${esc(_kinds(b).join('・'))}</span><span style="color:var(--muted)">${esc(b.memo||'')}</span></div>`).join(''):'<div style="color:var(--muted)">この月の予約はありません</div>'}
-    ${hols.length?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">祝日：${hols.join('、')}</div>`:''}
+  const lim=_ymd(new Date(Date.now()+62*864e5)), hols=days.filter(x=>x.hol&&x.d>=today&&x.d<=lim).map(x=>`${x.m}/${x.n} ${x.hol}`);
+  h+=`<div class="lc-list"><div style="font-size:12px;color:var(--muted);margin-bottom:4px">今日から先の予約</div>${list.length?list.map(b=>`<div class="lc-item" onclick="_loanerForm('${esc(b.id)}')"><i class="kd" style="background:${_kindBg(b)}"></i><b>${esc(_carLabel(b.car))}</b><span>${b.from.slice(5).replace('-','/')}〜${_toLabel(b.to)}</span><span>${esc((b.name||''))}</span><span>${esc(_kinds(b).join('・'))}</span><span style="color:var(--muted)">${esc(b.memo||'')}</span></div>`).join(''):'<div style="color:var(--muted)">予約はありません</div>'}
+    ${hols.length?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">祝日（2か月先まで）：${hols.join('、')}</div>`:''}
     ${SHEET.err?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">入庫管理表を読み込めません：${esc(SHEET.err)}</div>`:''}
     ${SHEET.bad.length?`<div style="margin-top:8px;color:#ffb020;font-size:12px">入庫管理表で代車名か入庫日が読み取れない行：${esc(SHEET.bad.slice(0,10).join('／'))}${SHEET.bad.length>10?' ほか':''}</div>`:''}</div>
     <button class="btn btn-primary lc-add-fab" type="button" onclick="_loanerForm()">＋ 予約を追加</button></div>`;
   ov.innerHTML=h;
-  const sc=ov.querySelector('.lc-scroll'); const td=ov.querySelector('th.today'); if(sc&&td) sc.scrollLeft=Math.max(0,td.offsetLeft-140);
+  const sc=ov.querySelector('.lc-scroll'); if(!sc) return;
+  const carW=(ov.querySelector('th.lc-car')||{}).offsetWidth||92;
+  const go=ds=>{ const th=ov.querySelector(`th[data-d="${ds}"]`); if(th) sc.scrollLeft=Math.max(0,th.offsetLeft-carW); };
+  if(_LC_JUMP){ go(_LC_JUMP); _LC_JUMP=null; } else if(keepX!=null) sc.scrollLeft=keepX; else { const t=new Date(); t.setDate(t.getDate()-2); go(_ymd(t)); }
+  // 見出しの「○年○月」は、いま左端に見えている月にする
+  const ths=[...ov.querySelectorAll('th[data-d]')], title=ov.querySelector('#lc-title');
+  const upd=()=>{ const x=sc.scrollLeft+carW+4; let cur=ths[0]; for(const th of ths){ if(th.offsetLeft<=x) cur=th; else break; } if(cur&&title){ const [yy,mm]=cur.dataset.d.split('-'); title.textContent=`${+yy}年${+mm}月`; _LC_VIS=new Date(+yy,+mm-1,1); } };
+  let raf=0; sc.addEventListener('scroll',()=>{ if(!raf) raf=requestAnimationFrame(()=>{ raf=0; upd(); }); },{passive:true}); upd();
 }
+let _LC_JUMP=null, _LC_VIS=null;
 function _loanerForm(id,car,day){
   const sb=id&&SHEET.rows.find(x=>x.id===id);
   if(sb){ const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9500;
