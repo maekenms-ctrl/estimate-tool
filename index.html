@@ -347,6 +347,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .tab-panel-layout.active{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.5fr);gap:16px;align-items:start;}
 @media(max-width:900px){.tab-panel-layout.active{grid-template-columns:minmax(0,1fr);}}
 .tab-panel-layout>*{min-width:0;}
+.lc-grid th.closed,.lc-grid td.closed{background:repeating-linear-gradient(135deg,rgba(230,40,40,.75) 0 3px,transparent 3px 10px)!important;}
+.lc-grid th.closed{color:#fff!important;}
+.lc-legend .lg-closed{background:repeating-linear-gradient(135deg,#e62828 0 2px,transparent 2px 5px)!important;border:1px solid #e62828;}
+.lc-closed-soon{margin-top:8px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;padding:6px 8px;border-radius:8px;background:rgba(230,40,40,.12);}
+.lc-closed-soon span{background:#c62828;color:#fff;border-radius:4px;padding:1px 6px;font-weight:700;}
+.lc-closed-soon .btn{margin-left:auto;font-size:12px;padding:3px 10px;min-height:0;}
 </style>
 </head>
 <body>
@@ -2232,7 +2238,17 @@ let SHOP_CLOSED={w:[],d:[]};
 try{ SHOP_CLOSED={w:[],d:[],...JSON.parse(localStorage.getItem('est-shop-closed')||'{}')}; }catch(e){}
 function _isClosed(ds,w){ return SHOP_CLOSED.w.includes(w)||SHOP_CLOSED.d.includes(ds); }
 function _saveShopClosed(){ try{localStorage.setItem('est-shop-closed',JSON.stringify(SHOP_CLOSED));}catch(e){} try{_cloudPut('loaner','_shop',{shop:true,closedW:SHOP_CLOSED.w,closedD:SHOP_CLOSED.d});}catch(e){} }
-function _toggleClosedDay(ds){ const i=SHOP_CLOSED.d.indexOf(ds); if(i>=0) SHOP_CLOSED.d.splice(i,1); else SHOP_CLOSED.d.push(ds); _saveShopClosed(); _renderLoanerCal(); }
+async function _toggleClosedDay(ds){
+  const d=new Date(ds+'T00:00:00'), lab=`${d.getMonth()+1}/${d.getDate()}（${'日月火水木金土'[d.getDay()]}）`;
+  if(SHOP_CLOSED.w.includes(d.getDay())){ toast(`${lab}は毎週の定休日です。変えるときは「🏪 店休日の設定」から`,5000); return; }
+  const i=SHOP_CLOSED.d.indexOf(ds);
+  if(!await askConfirm(i>=0?`${lab}の店休日をやめますか？`:`${lab}を店休日にしますか？`,i>=0?'店休日をやめる':'店休日にする')) return;
+  const k=SHOP_CLOSED.d.indexOf(ds); if(k>=0) SHOP_CLOSED.d.splice(k,1); else SHOP_CLOSED.d.push(ds); _saveShopClosed(); _renderLoanerCal(); }
+// これから先の店休日（一覧の下に出す。毎週の定休日は「毎週○曜」とまとめる）
+function _closedSoon(today,lim){ const W='日月火水木金土', out=[];
+  if(SHOP_CLOSED.w.length) out.push('毎週'+[...SHOP_CLOSED.w].sort().map(w=>W[w]).join('・')+'曜');
+  for(const r of _closedRanges()){ if(r[1]<today||r[0]>lim) continue; out.push(_mdL(r[0])+(r[1]!==r[0]?'〜'+_mdL(r[1]):'')); }
+  return out; }
 // 店休日（日付）を、続いている日ごとにまとめる（例：12/29〜1/4）
 function _closedRanges(){ const d=[...new Set(SHOP_CLOSED.d)].sort(), out=[]; for(const x of d){ const L=out[out.length-1]; if(L){ const n=new Date(L[1]+'T00:00:00'); n.setDate(n.getDate()+1); if(_ymd(n)===x){ L[1]=x; L.n++; continue; } } const r=[x,x]; r.n=1; out.push(r); } return out; }
 function _mdL(ds){ const [y,m,d]=ds.split('-'); return (y!==String(new Date().getFullYear())?y+'/':'')+(+m)+'/'+(+d); }
@@ -2270,19 +2286,19 @@ function _renderLoanerCal(){
   const days=[]; for(const d=new Date(start);d<=end;d.setDate(d.getDate()+1)){ const ds=_ymd(d), HOL=jpHolidays(d.getFullYear()); days.push({d:ds,n:d.getDate(),m:d.getMonth()+1,y:d.getFullYear(),w:d.getDay(),hol:HOL[ds]||'',closed:_isClosed(ds,d.getDay())}); }
   const N=days.length, W='日月火水木金土';
   const cls=x=>[x.w===0||x.hol?'sun':x.w===6?'sat':'',x.closed?'closed':'',x.d===today?'today':'',x.n===1?'m1':''].filter(Boolean).join(' ');
-  const tint=x=>x.closed?'rgba(150,150,150,.22)':x.w===0||x.hol?'rgba(255,107,107,.16)':x.w===6?'rgba(78,161,255,.16)':'';
+  const tint=x=>x.closed?'rgba(230,40,40,.30)':x.w===0||x.hol?'rgba(255,107,107,.16)':x.w===6?'rgba(78,161,255,.16)':'';
   const months=[]; for(const x of days){ const L=months[months.length-1]; if(L&&L.m===x.m&&L.y===x.y) L.n++; else months.push({y:x.y,m:x.m,n:1}); }
   let h=`<div class="lc-box"><div class="lc-head">
     <button class="btn" type="button" onclick="_lcShift(-1)">◀</button><div class="lc-title" id="lc-title">${_lcMonth.getFullYear()}年${_lcMonth.getMonth()+1}月</div><button class="btn" type="button" onclick="_lcShift(1)">▶</button>
     <button class="btn" type="button" onclick="_lcToday()">今日</button>
     <button class="btn btn-primary lc-add-top" type="button" onclick="_loanerForm()">＋ 予約を追加</button>
-    <button class="btn" type="button" onclick="_shopClosedForm()">🏪 店休日</button>
-    ${SHEET.url?`<button class="btn" type="button" onclick="sheetLoad(true)">🔄 入庫管理表${SHEET.loading?'（読込中）':''}</button>`:''}
+    <button class="btn" type="button" onclick="_shopClosedForm()">🏪 店休日の設定</button>
+    ${SHEET.url?`<button class="btn" type="button" onclick="sheetLoad(true)" title="入出庫管理表（スプレッドシート）の代車（K列）を今すぐ読み直します">🔄 再読込${SHEET.loading?'（読込中）':''}</button>`:''}
     <button class="btn" type="button" style="margin-left:auto" onclick="_closeLoanerCal()">✕ 閉じる</button></div>
     <div class="lc-legend">${LOANER_KINDS.map(x=>`<span><i style="background:${x.c}"></i>${x.k}</span>`).join('')}<span><i style="background:#9AA4B2"></i>その他</span><span><i class="lg-sun"></i>日曜・祝日</span><span><i class="lg-sat"></i>土曜</span><span><i class="lg-closed"></i>店休日</span></div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:6px">横にスクロールすると月をまたいで続きます。空いているマスで予約、色の帯で変更・削除。日付をタップすると店休日に切り替わります。作業ボードのカレンダーと同じ予約です。</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px">横にスクロールすると月をまたいで続きます。空いているマスで予約、色の帯で変更・削除。赤い斜線の日が店休日です。日付（いちばん上の行）を押すと、店休日にするか確認します。作業ボードのカレンダーと同じ予約です。</div>
     <div class="lc-scroll"><table class="lc-grid"><colgroup><col class="c-car"><col class="c-d" span="${N}"></colgroup><tr class="lc-mrow"><th class="lc-car"></th>${months.map(o=>`<th class="lc-mon" colspan="${o.n}"><span>${o.y}年${o.m}月</span></th>`).join('')}</tr>
-    <tr><th class="lc-car">車両</th>${days.map(x=>`<th class="${cls(x)}" data-d="${x.d}" onclick="_toggleClosedDay('${x.d}')" title="${x.hol?esc(x.hol):''}${x.closed?' 店休日':''}">${x.n===1?`<span class="mlab">${x.m}月</span>`:''}${x.n}<br>${W[x.w]}${x.hol?'<span class="hol">祝</span>':x.closed?'<span class="hol cl">休</span>':''}</th>`).join('')}</tr>`;
+    <tr><th class="lc-car">車両</th>${days.map(x=>`<th class="${cls(x)}" data-d="${x.d}" onclick="_toggleClosedDay('${x.d}')" title="${x.hol?esc(x.hol):''}${x.closed?' 店休日':''}">${x.n===1?`<span class="mlab">${x.m}月</span>`:''}${x.n}<br>${W[x.w]}${x.hol?'<span class="hol">祝</span>':''}</th>`).join('')}</tr>`;
   for(const c of [...LOANER_CARS,...RENTAL_ROWS]){
     h+=`<tr><td class="lc-car${c.low?' low':''}${c.ext?' ext':''}">${c.lab||c.n}${c.low?'<small>1550mm以下</small>':''}</td>`;
     for(let i=0;i<N;){
@@ -2303,6 +2319,7 @@ function _renderLoanerCal(){
   const lim=_ymd(new Date(Date.now()+62*864e5)), hols=days.filter(x=>x.hol&&x.d>=today&&x.d<=lim).map(x=>`${x.m}/${x.n} ${x.hol}`);
   h+=`<div class="lc-list"><div style="font-size:12px;color:var(--muted);margin-bottom:4px">今日から先の予約</div>${list.length?list.map(b=>`<div class="lc-item" onclick="_loanerForm('${esc(b.id)}')"><i class="kd" style="background:${_kindBg(b)}"></i><b>${esc(_carLabel(b.car))}</b><span>${b.from.slice(5).replace('-','/')}〜${_toLabel(b.to)}</span><span>${esc((b.name||''))}</span><span>${esc(_kinds(b).join('・'))}</span><span style="color:var(--muted)">${esc(b.memo||'')}</span></div>`).join(''):'<div style="color:var(--muted)">予約はありません</div>'}
     ${hols.length?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">祝日（2か月先まで）：${hols.join('、')}</div>`:''}
+    ${(()=>{ const c=_closedSoon(today,lim); return `<div class="lc-closed-soon"><b>🏪 店休日（2か月先まで）</b>${c.length?c.map(x=>`<span>${x}</span>`).join(''):'<span style="opacity:.7">登録されていません</span>'}<button type="button" class="btn" onclick="_shopClosedForm()">設定</button></div>`; })()}
     ${SHEET.err?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">入庫管理表を読み込めません：${esc(SHEET.err)}</div>`:''}
     ${SHEET.bad.length?`<div style="margin-top:8px;color:#ffb020;font-size:12px">入庫管理表で代車名か入庫日が読み取れない行：${esc(SHEET.bad.slice(0,10).join('／'))}${SHEET.bad.length>10?' ほか':''}</div>`:''}</div>
     <button class="btn btn-primary lc-add-fab" type="button" onclick="_loanerForm()">＋ 予約を追加</button></div>`;
