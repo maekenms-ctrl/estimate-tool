@@ -2070,7 +2070,7 @@ function cloudStart(){
     LEARNED_MODELS={..._cloudLocalOnly('models'),...L}; _saveLearned(); try{renderLearned();}catch(e){} });
   listen('colors',m=>{ const L={}; for(const k in m){ const v=m[k]; if(v&&v.type) L[v.code||k]=v.type; }
     LEARNED_COLORS={..._cloudLocalOnly('colors'),...L}; try{localStorage.setItem('est-colors',JSON.stringify(LEARNED_COLORS));}catch(e){} });
-  listen('loaner',m=>{ const L=[]; for(const k in m){ const v=m[k]; if(v&&v.sheet){ if(v.url!==SHEET.url){ SHEET.url=v.url||''; try{ SHEET.url?localStorage.setItem('est-sheet-url',SHEET.url):localStorage.removeItem('est-sheet-url'); }catch(e){} SHEET.rows=[]; if(SHEET.url) setTimeout(()=>sheetLoad(false),0); try{renderSheetUI();}catch(e){} } continue; } if(v&&v.shop){ SHOP_CLOSED={w:v.closedW||[],d:v.closedD||[]}; try{localStorage.setItem('est-shop-closed',JSON.stringify(SHOP_CLOSED));}catch(e){} continue; } if(v&&v.car&&v.from&&v.to) L.push({id:k,car:v.car,from:v.from,to:v.to,name:v.name||'',kinds:Array.isArray(v.kinds)?v.kinds:[],kind:v.kind||'',memo:v.memo||''}); }
+  listen('loaner',m=>{ const L=[]; for(const k in m){ const v=m[k]; if(v&&v.sheet){ if(v.url!==SHEET.url){ SHEET.url=v.url||''; try{ SHEET.url?localStorage.setItem('est-sheet-url',SHEET.url):localStorage.removeItem('est-sheet-url'); }catch(e){} SHEET.rows=[]; if(SHEET.url) setTimeout(()=>sheetLoad(false),0); try{renderSheetUI();}catch(e){} } continue; } if(v&&v.shop){ SHOP_CLOSED={w:v.closedW||[],d:v.closedD||[]}; try{localStorage.setItem('est-shop-closed',JSON.stringify(SHOP_CLOSED));}catch(e){} continue; } if(v&&v.car&&v.from&&v.to) L.push({id:k,car:v.car,from:v.from,to:v.to,name:v.name||'',src:v.src||'',skey:v.skey||'',plate:v.plate||'',returned:!!v.returned,kinds:Array.isArray(v.kinds)?v.kinds:[],kind:v.kind||'',memo:v.memo||''}); }
     const local=CLOUD.first.loaner?[]:LOANER_BOOK.filter(b=>!m[b.id]);
     if(!CLOUD.first.loaner && !m['_shop'] && (SHOP_CLOSED.w.length||SHOP_CLOSED.d.length)) setTimeout(_saveShopClosed,0);   // 初回だけ、この端末にしかない予約を残して送る
     LOANER_BOOK=[...L,...local]; _saveLoanerBook(); try{renderLoanerCars();}catch(e){} if(document.getElementById('lc-ov')) _renderLoanerCal(); });
@@ -2110,11 +2110,16 @@ function _sheetDate(v){
 function _sheetCar(v){
   const z=String(v||'').normalize('NFKC').replace(/\s/g,'').toUpperCase().replace(/[‐－−ー](?=BOX)/g,'-');
   if(!z||/^(なし|無|無し|-|×|X|✕|不要)$/.test(z)||/家まで|送迎|自宅|自走/.test(z)) return null;   // 代車なし（送迎などを含む）
-  if(/トヨレン|キンレン|レンタ|ニコニコ|オリックス|タイムズ|ニッポン/.test(z)){ const m=z.match(/([1-3])(?!\d)/); return m?'レンタカー'+m[1]:'レンタカー'; }   // ①②③→1〜3（NFKCで数字になる）
+  // レンタカーの枠（10/31）：トヨレン①②＝レンタカー1・2、キンレン①②＝レンタカー3・4。番号がなければ空いている枠へ（T＝トヨレン・K＝キンレン・なし＝4枠のどれか）
+  if(/トヨレン|キンレン|レンタ|ニコニコ|オリックス|タイムズ|ニッポン/.test(z)){ const m=z.match(/([1-4])(?!\d)/), d=m?+m[1]:0;   // ①②→1・2（NFKCで数字になる）
+    if(/トヨレン|トヨタレンタ/.test(z)) return d===1||d===2?'レンタカー'+d:'レンタカーT';
+    if(/キンレン/.test(z)) return d===1||d===2?'レンタカー'+(d+2):'レンタカーK';
+    return d>=1&&d<=4?'レンタカー'+d:'レンタカー'; }
   const T=[['フリード',/フリード/],['プリウス',/プリウス/],['フィット',/フィット/],['ミライース',/ミラ/],['ムーブ',/ムーヴ|ムーブ/],['ラパン',/ラパン/],['N-BOX',/N-?BOX|NBOX|エヌボックス|Nボックス/]];
   for(const [n,re] of T) if(re.test(z)) return n;
   return '?';
 }
+function _rentPool(c){ return c==='レンタカーT'?['レンタカー1','レンタカー2']:c==='レンタカーK'?['レンタカー3','レンタカー4']:RENTAL_ROWS.map(x=>x.n); }
 function _sheetKinds(v){ const z=String(v||''); const k=[]; if(/鈑|板/.test(z)) k.push('鈑金塗装'); if(/作|整/.test(z)) k.push('整備'); if(/車/.test(z)) k.push('車検点検'); return k; }
 async function sheetLoad(manual){
   if(!SHEET.url||SHEET.loading||SEC.locked) return;
@@ -2137,9 +2142,9 @@ async function sheetLoad(manual){
     }
     // 他社レンタカー：番号がなければ、空いている枠（1→2→3）へ順に割り当て
     const rent=rows.filter(r=>/^レンタカー/.test(r.car)).sort((a,b)=>a.from<b.from?-1:1);
-    for(const r of rent){ if(r.car!=='レンタカー') continue;
-      const ok=n=>!rows.concat(LOANER_BOOK).some(x=>x!==r&&x.car===n&&x.from<=r.to&&r.from<=x.to);
-      r.car=RENTAL_ROWS.map(x=>x.n).find(ok)||RENTAL_ROWS[RENTAL_ROWS.length-1].n; }
+    for(const r of rent){ if(!/^レンタカー[TK]?$/.test(r.car)) continue;
+      const pool=_rentPool(r.car), ok=n=>!rows.concat(LOANER_BOOK).some(x=>x!==r&&x.car===n&&x.from<=r.to&&r.from<=x.to);
+      r.car=pool.find(ok)||pool[pool.length-1]; }
     SHEET.rows=rows; SHEET.bad=bad; SHEET.at=Date.now(); SHEET.err='';
     if(manual) toast(`入庫管理表から代車${rows.length}件を読み込みました`);
   }catch(e){ SHEET.err=_sheetErr(e); if(manual) toast('入庫管理表を読み込めませんでした：'+SHEET.err,7000); }
@@ -2155,7 +2160,11 @@ function _sheetErr(e){
 // 通信まわりのエラー文（文字認識用の文言を使わない）
 function _netMsg(e){ const m=String((e&&(e.code||e.message))||e||''); if(/resource-exhausted|quota/i.test(m)) return 'Firebaseの無料枠（1日の読み込み・書き込みの回数）を超えました。16〜17時ごろに自動で戻ります'; return /network|fetch|load failed|offline|unavailable/i.test(m)?'通信できませんでした（電波を確認してください）':m; }
 function _carLabel(n){ const r=RENTAL_ROWS.find(x=>x.n===n); return r?r.lab:n; }
-function _allBookings(){ return SHEET.rows.length?[...LOANER_BOOK,...SHEET.rows]:LOANER_BOOK; }
+// 入出庫管理表（K列）が最優先（10/31）：表のK列に代車が書かれた車は、作業ボード・見積りツールで入れた同じ車の予約を出さない（表の予約📄だけ）
+//  同じ車＝作業指示がつながっている表の行が同じ（作業ボードの予約の skey）か、登録番号が同じで期間が重なる。代車の種類が違っても表が優先
+function _sheetFor(b){ if(b.src==='sheet'||b.src==='hist') return null; const no=_plateNo(b.plate||b.name);
+  return SHEET.rows.find(s=>(b.skey&&b.skey===String(s.id).replace(/^sheet-/,''))||(no&&_plateNo(s.plate)===no&&s.from<=b.to&&b.from<=s.to))||null; }
+function _allBookings(){ if(!SHEET.rows.length) return LOANER_BOOK; return [...LOANER_BOOK.filter(b=>!_sheetFor(b)),...SHEET.rows]; }
 function renderSheetUI(){
   const st=document.getElementById('sheet-status'); if(!st) return;
   document.getElementById('sheet-url').value=SHEET.url?'（設定済み）':'';
@@ -2211,8 +2220,11 @@ window.LCAL={
   onOpen:()=>{ if(SHEET.url&&Date.now()-SHEET.at>60000) sheetLoad(false); },
   onClose:()=>renderLoanerCars()
 };
-// 共通ファイルが読めなかったとき（電波が弱いなど）：カレンダーの代わりにお知らせを出す
-if(typeof _renderLoanerCal!=='function'){ window.openLoanerCal=()=>toast('代車カレンダーを読み込めませんでした。電波を確認して、見積りツールを開き直してください',7000); window._renderLoanerCal=()=>{}; }
+// 共通ファイルが読めなかったとき（電波が弱いなど）：カレンダーの代わりにお知らせを出す。代車の車両一覧はここで用意して、見積りの代車欄は使えるようにする
+if(typeof _renderLoanerCal!=='function'){ window.openLoanerCal=()=>toast('代車カレンダーを読み込めませんでした。電波を確認して、見積りツールを開き直してください',7000); window._renderLoanerCal=()=>{};
+  window.OPEN_END='9999-12-31'; window.RENTAL_ROWS=[{n:'レンタカー1',lab:'トヨレン①',ext:1},{n:'レンタカー2',lab:'トヨレン②',ext:1},{n:'レンタカー3',lab:'キンレン①',ext:1},{n:'レンタカー4',lab:'キンレン②',ext:1}];
+  window.LOANER_CARS=[{n:'N-BOX'},{n:'ラパン',low:1},{n:'フィット',low:1},{n:'フリード'},{n:'プリウス',low:1},{n:'ミライース',low:1},{n:'ムーブ'}];
+  window.LOANER_KINDS=[{k:'鈑金塗装',c:'#E6FF1A'},{k:'整備',c:'#FF2BD6'},{k:'車検点検',c:'#00E5FF'}]; window._toLabel=d=>d===OPEN_END?'返却未定':d.slice(5).replace('-','/'); window._kinds=b=>Array.isArray(b.kinds)?b.kinds:[]; }
 function setPayKind(btn){
   ['paySelf','payVehicle','payProperty'].forEach(k=>customer[k]=false);
   document.querySelectorAll('[data-pk]').forEach(b=>b.classList.remove('on'));
