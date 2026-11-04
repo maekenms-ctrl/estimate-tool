@@ -2071,7 +2071,10 @@ function cloudStart(){
   listen('colors',m=>{ const L={}; for(const k in m){ const v=m[k]; if(v&&v.type) L[v.code||k]=v.type; }
     LEARNED_COLORS={..._cloudLocalOnly('colors'),...L}; try{localStorage.setItem('est-colors',JSON.stringify(LEARNED_COLORS));}catch(e){} });
   listen('loaner',m=>{ const L=[]; for(const k in m){ const v=m[k]; if(v&&v.sheet){ if(v.url!==SHEET.url){ SHEET.url=v.url||''; try{ SHEET.url?localStorage.setItem('est-sheet-url',SHEET.url):localStorage.removeItem('est-sheet-url'); }catch(e){} SHEET.rows=[]; if(SHEET.url) setTimeout(()=>sheetLoad(false),0); try{renderSheetUI();}catch(e){} } continue; } if(v&&v.shop){ SHOP_CLOSED={w:v.closedW||[],d:v.closedD||[]}; try{localStorage.setItem('est-shop-closed',JSON.stringify(SHOP_CLOSED));}catch(e){} continue; } if(v&&v.car&&v.from&&v.to) L.push({id:k,car:v.car,from:v.from,to:v.to,name:v.name||'',src:v.src||'',skey:v.skey||'',plate:v.plate||'',returned:!!v.returned,kinds:Array.isArray(v.kinds)?v.kinds:[],kind:v.kind||'',memo:v.memo||''}); }
-    const local=CLOUD.first.loaner?[]:LOANER_BOOK.filter(b=>!m[b.id]);
+    // 11/4：この端末にだけある予約のうち、前に共有で見たことがあるもの（ほかの端末で削除・古くなって整理されたもの）と、返却から2か月たったものは戻さない
+    const seen=_lbSeen(), lim62=_ymd(new Date(Date.now()-62*864e5));
+    const local=CLOUD.first.loaner?[]:LOANER_BOOK.filter(b=>!m[b.id]&&!seen.has(b.id)&&!(b.to&&b.to<lim62));
+    for(const k in m){ const v=m[k]; if(v&&v.car&&v.from&&v.to) seen.add(k); } _lbSeenSave(seen);
     if(!CLOUD.first.loaner && !m['_shop'] && (SHOP_CLOSED.w.length||SHOP_CLOSED.d.length)) setTimeout(_saveShopClosed,0);   // 初回だけ、この端末にしかない予約を残して送る
     LOANER_BOOK=[...L,...local]; _saveLoanerBook(); try{renderLoanerCars();}catch(e){} if(document.getElementById('lc-ov')) _renderLoanerCal(); });
   // 作業ボードの車両情報（読めなくても見積りツールは普段どおり動く）
@@ -2093,7 +2096,8 @@ function cloudUploadLocal(manual){
   const has=(name,k)=>!manual&&CLOUD.keys[name]&&CLOUD.keys[name].has(_cloudKey(k));   // 自動のときは共有に無いものだけ送る
   for(const k in LEARNED_MODELS){ if(has('models',k)) continue; const v=LEARNED_MODELS[k]; _cloudPut('models',k,{name:v.name,shape:v.shape,kata:v.kata||'',typeNo:v.typeNo||'',count:v.count||1,updated:v.updated||''}); }
   for(const k in LEARNED_COLORS){ if(has('colors',k)) continue; _cloudPut('colors',k,{type:LEARNED_COLORS[k]}); }
-  for(const b of LOANER_BOOK){ if(has('loaner',b.id)) continue; _cloudPut('loaner',b.id,{car:b.car,from:b.from,to:b.to,name:b.name||'',kinds:_kinds(b),kind:b.kind||'',memo:b.memo||''}); }
+  const seen=_lbSeen(), lim62=_ymd(new Date(Date.now()-62*864e5));
+  for(const b of LOANER_BOOK){ if(has('loaner',b.id)||(!manual&&(seen.has(b.id)||(b.to&&b.to<lim62)))) continue; _cloudPut('loaner',b.id,{car:b.car,from:b.from,to:b.to,name:b.name||'',kinds:_kinds(b),kind:b.kind||'',memo:b.memo||''}); }
   if(manual) toast('この端末の覚えた内容を共有に送りました');
 }
 // ─── スプレッドシート連動（入庫管理表 → 代車カレンダー、読み取りのみ） ─────────
@@ -2191,6 +2195,9 @@ function renderLoanerCars(){
     return `<button type="button" class="selbtn lcar${c.low?' low':''}${customer.loanerVehicle===c.n?' on':''}" data-car="${c.n}" onclick="setLoanerVehicle('${c.n}')">${c.n}${c.low?'<small>1550mm以下</small>':''}${busy?'<small class="busy">本日使用中</small>':''}</button>`;}).join('');
 }
 function setLoanerVehicle(n){ customer.loanerVehicle = customer.loanerVehicle===n ? '' : n; renderLoanerCars(); }
+// 共有で一度でも見た予約のID（この端末に残っていても、共有から消えていれば送り直さない）
+function _lbSeen(){ try{ return new Set(JSON.parse(localStorage.getItem('est-loaner-seen')||'[]')); }catch(e){ return new Set(); } }
+function _lbSeenSave(st){ try{ localStorage.setItem('est-loaner-seen',JSON.stringify([...st].slice(-800))); }catch(e){} }
 function _saveLoanerBook(){
   if(!SEC.ok){ return _lsSet('est-loaner',JSON.stringify(LOANER_BOOK)); }
   if(!SEC.key) return false;
