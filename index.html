@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>鈑金・塗装 見積りツール</title>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -354,6 +354,20 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .lc-closed-soon span{background:#c62828;color:#fff;border-radius:4px;padding:1px 6px;font-weight:700;}
 .lc-closed-soon .btn{margin-left:auto;font-size:12px;padding:3px 10px;min-height:0;}
 </style>
+<style>html{touch-action:pan-x pan-y;}button,.btn,.selbtn,.tab-btn,.sw{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}</style>
+<script>
+// iPhone：タップ位置のずれ・反応しなくなるのを防ぐ（11/7）
+//  ・入力欄を押したときの自動の拡大と、2本指・2回タップでの画面全体の拡大を止める（拡大したままだと、押した所と反応する所がずれる）
+//  ・キーボードを閉じたあとに画面の位置がずれたまま残るのを直す
+(function(){
+  var ios=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  if(!ios) return;
+  document.addEventListener('gesturestart',function(e){ var t=e.target; if(t&&t.closest&&t.closest('.wo-pv,.pv-stage,[data-zoom]')) return; e.preventDefault(); },{passive:false});
+  var fix=function(){ setTimeout(function(){ var a=document.activeElement; if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
+    window.scrollTo(window.scrollX,window.scrollY); try{ if(window.parent!==window) window.parent.postMessage({ark:'blur'},location.origin); }catch(e){} },150); };
+  document.addEventListener('focusout',fix,true);
+})();
+</script>
 </head>
 <body>
 
