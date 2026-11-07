@@ -413,6 +413,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           </div>
           <div class="scan-result" id="scan-result"></div>
           <div id="photo-grid" class="ph-grid"></div>
+          <div class="ph-btns" style="margin-top:6px"><button type="button" class="btn" onclick="_estPhShare(true)">👥 写真をチームで共有</button><button type="button" class="btn" onclick="estTeamPhotos()">👥 この車のチームの写真を見る</button></div>
           <div class="ph-note">写真ごとに項目（車検証・コーションラベル・作業箇所など）を選べます。「車検証」「コーションラベル」を選ぶと、その写真から読み取って入力します。撮影した写真は端末の写真アプリには保存されず、LINE送信・新規見積りで消去されます。</div>
         </div>
         <div class="field span2">
@@ -2539,6 +2540,51 @@ function saveEst(){
   history.unshift(snap);
   showMsg('save-msg',_saveHistory()?'履歴に保存しました':'保存に失敗しました');
   try{ _cloudPutEstimate(snap); }catch(e){}
+  try{ _estPhShare(); }catch(e){}
+}
+
+// ── 見積りの写真をチームで共有（11/7）──
+//  ・共有の photos に、登録番号ごと（jid＝estp-登録番号）に入れる。作業ボードの同じ車の作業指示・ほかの端末の見積りツールから見られる
+//  ・「車検証」の写真は共有しない（お名前・住所が写っているため）
+//  ・「💾 履歴に保存」と「LINEで送る」のときに自動で共有する。共有した写真は30日で自動で消える（Apps Script）
+function _estPlateKey(p){ return String(p||'').normalize('NFKC').replace(/[\s　]/g,'').replace(/[‐－−ー・.\-]/g,''); }
+function _estPhJid(){ const k=_estPlateKey(customer.plate); return _plateNo(customer.plate)&&k?'estp-'+k:''; }
+async function _estPhData(p){
+  let blob=p.blob;
+  if(blob.size>700000){ const c=await _fileToCanvas(blob,1280); blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.75)); }
+  return await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(blob); });
+}
+async function _estPhShare(manual){
+  if(!CLOUD.started){ if(manual) toast('チーム共有にログインすると共有できます（⚙️ 設定）',5000); return; }
+  const jid=_estPhJid(); if(!jid){ if(manual) toast('登録番号を入れてから共有してください',5000); return; }
+  const L=photos.filter(p=>p.tag!=='車検証'&&!p.shared&&!p.fromTeam);
+  if(!L.length){ if(manual) toast(photos.some(p=>p.tag==='車検証')&&!photos.some(p=>p.tag!=='車検証')?'車検証の写真は共有しません':'共有する写真はありません（共有済み・車検証は除く）',5000); return; }
+  const {fs}=CLOUD.fb; let n=0;
+  for(const p of L){
+    try{ const d=await _estPhData(p); if(d.length>950000) continue; p.pid=p.pid||('e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
+      await fs.setDoc(fs.doc(CLOUD.db,'photos',_cloudKey(jid+'_'+p.pid)),{jid,pid:p.pid,d,tag:p.tag||'',src:'est',by:(CLOUD.user&&CLOUD.user.email)||'',dev:'est',at:fs.serverTimestamp()});
+      p.shared=jid; n++; }
+    catch(e){ console.warn('写真の共有',e); if(manual){ toast('写真を共有できませんでした：'+_netMsg(e),6000); break; } }
+  }
+  if(manual&&n) toast(`写真${n}枚をチームで共有しました（作業ボードの同じ車からも見られます）`,5000);
+}
+function _estPhDel(p){ if(!CLOUD.started||!p.shared||!p.pid) return; const {fs}=CLOUD.fb; fs.deleteDoc(fs.doc(CLOUD.db,'photos',_cloudKey(p.shared+'_'+p.pid))).catch(()=>{}); }
+async function estTeamPhotos(){
+  if(!CLOUD.started){ toast('チーム共有にログインすると見られます（⚙️ 設定）',5000); return; }
+  const jid=_estPhJid(); if(!jid){ toast('登録番号を入れてください',4000); return; }
+  const {fs}=CLOUD.fb; let L=[];
+  try{ const sn=await fs.getDocs(fs.query(fs.collection(CLOUD.db,'photos'),fs.where('jid','==',jid))); sn.forEach(d=>{ const v=d.data()||{}; if(v.d&&/^data:image\//.test(v.d)) L.push(v); }); }
+  catch(e){ toast('チームの写真を読めませんでした：'+_netMsg(e),6000); return; }
+  if(!L.length){ toast('この車のチームの写真はありません',4000); return; }
+  const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9600;
+  ov.innerHTML=`<div class="cf-box" style="max-width:560px;width:100%;max-height:88vh;overflow:auto"><div style="font-weight:700;margin-bottom:8px">👥 この車のチームの写真（${L.length}枚）</div>
+    ${L.map((v,i)=>`<div style="margin-bottom:10px"><img src="${v.d}" style="width:100%;border-radius:8px;display:block"><div style="display:flex;gap:6px;align-items:center;margin-top:4px"><span style="flex:1;font-size:12px;color:var(--muted)">${esc(v.tag||'写真')}</span><button type="button" class="btn" data-add="${i}">＋ この見積りに入れる</button></div></div>`).join('')}
+    <div class="cf-btns" style="grid-template-columns:1fr"><button type="button" class="btn tp-x">閉じる</button></div></div>`;
+  ov.querySelector('.tp-x').onclick=()=>ov.remove(); ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+  ov.querySelectorAll('[data-add]').forEach(b=>b.onclick=async()=>{ const v=L[+b.dataset.add]; if(photos.length>=PHOTO_MAX){ toast(`写真は最大${PHOTO_MAX}枚までです`,4000); return; }
+    try{ const r=await fetch(v.d); const bl=await r.blob(); const p=await _photoFromFile(new File([bl],'team.jpg',{type:bl.type||'image/jpeg'}),v.tag||''); p.fromTeam=true; p.shared=jid; p.pid=v.pid; photos.push(p); renderPhotos(); b.disabled=true; b.textContent='✓ 入れました'; }
+    catch(e){ toast('写真を入れられませんでした',4000); } });
+  document.body.appendChild(ov);
 }
 // 入出庫管理表の「ARK通知」パネル向けに、見積りの要約だけを共有（お客様名・明細の金額は送らない）
 let _estCloudWarned=false;
@@ -13515,7 +13561,7 @@ async function photoAttachDoc(f,tag){
     renderPhotos();
   }catch(e){ console.warn(e); }
 }
-function photoRemove(id){ photos=photos.filter(p=>p.id!==id); renderPhotos(); }
+function photoRemove(id){ const p=photos.find(x=>x.id===id); if(p&&p.shared&&!p.fromTeam) _estPhDel(p); photos=photos.filter(p=>p.id!==id); renderPhotos(); }
 function photoTag(id,v){
   const p=photos.find(x=>x.id===id); if(!p) return;
   p.tag=v; _shareFiles=null;
@@ -13614,7 +13660,7 @@ function lineShareWithPhotos(){
       return;
     }
     const ok=await photoShare(); if(ok){ bp.textContent='① ✓ 写真を送りました'; bp.classList.add('done'); } bt.disabled=false; });
-  bt.addEventListener('click',()=>{ ov.remove(); _lineSendText(); });
+  bt.addEventListener('click',()=>{ ov.remove(); try{ _estPhShare(); }catch(e){} _lineSendText(); });
   ov.querySelector('.ls-cancel').addEventListener('click',()=>ov.remove());
   document.body.appendChild(ov);
 }
