@@ -2088,7 +2088,7 @@ function cloudStart(){
   listen('loaner',m=>{ const L=[]; for(const k in m){ const v=m[k]; if(v&&v.sheet){ if(v.url!==SHEET.url){ SHEET.url=v.url||''; try{ SHEET.url?localStorage.setItem('est-sheet-url',SHEET.url):localStorage.removeItem('est-sheet-url'); }catch(e){} SHEET.rows=[]; if(SHEET.url) setTimeout(()=>sheetLoad(false),0); try{renderSheetUI();}catch(e){} } continue; } if(v&&v.shop){ SHOP_CLOSED={w:v.closedW||[],d:v.closedD||[]}; try{localStorage.setItem('est-shop-closed',JSON.stringify(SHOP_CLOSED));}catch(e){} continue; } if(v&&v.car&&v.from&&v.to) L.push({id:k,car:v.car,from:v.from,to:v.to,name:v.name||'',src:v.src||'',skey:v.skey||'',plate:v.plate||'',returned:!!v.returned,kinds:Array.isArray(v.kinds)?v.kinds:[],kind:v.kind||'',memo:v.memo||''}); }
     // 11/4：この端末にだけある予約のうち、前に共有で見たことがあるもの（ほかの端末で削除・古くなって整理されたもの）と、返却から2か月たったものは戻さない
     const seen=_lbSeen(), lim62=_ymd(new Date(Date.now()-62*864e5));
-    const local=CLOUD.first.loaner?[]:LOANER_BOOK.filter(b=>!m[b.id]&&!seen.has(b.id)&&!(b.to&&b.to<lim62));
+    const td=_ymd(new Date()); const local=CLOUD.first.loaner?[]:LOANER_BOOK.filter(b=>!m[b.id]&&!seen.has(b.id)&&!(b.to&&b.to<td));   // 11/9：返却日が過ぎた予約は送り直さない
     for(const k in m){ const v=m[k]; if(v&&v.car&&v.from&&v.to) seen.add(k); } _lbSeenSave(seen);
     if(!CLOUD.first.loaner && !m['_shop'] && (SHOP_CLOSED.w.length||SHOP_CLOSED.d.length)) setTimeout(_saveShopClosed,0);   // 初回だけ、この端末にしかない予約を残して送る
     LOANER_BOOK=[...L,...local]; _saveLoanerBook(); try{renderLoanerCars();}catch(e){} if(document.getElementById('lc-ov')) _renderLoanerCal(); });
@@ -2112,7 +2112,8 @@ function cloudUploadLocal(manual){
   for(const k in LEARNED_MODELS){ if(has('models',k)) continue; const v=LEARNED_MODELS[k]; _cloudPut('models',k,{name:v.name,shape:v.shape,kata:v.kata||'',typeNo:v.typeNo||'',count:v.count||1,updated:v.updated||''}); }
   for(const k in LEARNED_COLORS){ if(has('colors',k)) continue; _cloudPut('colors',k,{type:LEARNED_COLORS[k]}); }
   const seen=_lbSeen(), lim62=_ymd(new Date(Date.now()-62*864e5));
-  for(const b of LOANER_BOOK){ if(has('loaner',b.id)||(!manual&&(seen.has(b.id)||(b.to&&b.to<lim62)))) continue; _cloudPut('loaner',b.id,{car:b.car,from:b.from,to:b.to,name:b.name||'',kinds:_kinds(b),kind:b.kind||'',memo:b.memo||''}); }
+  const td=_ymd(new Date());
+  for(const b of LOANER_BOOK){ if(has('loaner',b.id)||(!manual&&(seen.has(b.id)||(b.to&&b.to<td)))) continue; _cloudPut('loaner',b.id,{car:b.car,from:b.from,to:b.to,name:b.name||'',kinds:_kinds(b),kind:b.kind||'',memo:b.memo||''}); }
   if(manual) toast('この端末の覚えた内容を共有に送りました');
 }
 // ─── スプレッドシート連動（入庫管理表 → 代車カレンダー、読み取りのみ） ─────────
