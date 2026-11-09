@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta name="ark-ver" content="0ee38bd519">
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>鈑金・塗装 見積りツール</title>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -196,8 +195,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .lc-head .lc-title{font-size:17px;font-weight:700;min-width:120px;text-align:center;}
 .lc-head .btn{min-height:40px;padding:6px 12px;}
 .lc-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:8px;}
-.lc-grid{border-collapse:collapse;font-size:12px;table-layout:fixed;width:max-content;}
-.lc-grid col.c-d{width:58px;} .lc-grid col.c-car{width:92px;}
+.lc-grid{border-collapse:collapse;font-size:12px;table-layout:fixed;}
 .lc-grid th{width:58px;} .lc-grid th.lc-car{width:92px;}
 .lc-grid td.bk{max-width:0;}
 .lc-grid th,.lc-grid td{border:1px solid var(--surface3);min-width:58px;height:62px;text-align:center;padding:0;}
@@ -224,9 +222,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   .lc-head .lc-title{font-size:22px;}
   .lc-head .btn{font-size:16px;min-height:48px;padding:8px 18px;}
   .lc-legend i{width:18px;height:13px;}
-  .lc-grid{font-size:14px;}
-  .lc-grid col.c-d{width:72px;} .lc-grid col.c-car{width:130px;}
-  .lc-grid tr.lc-mrow th.lc-mon span{left:150px;}
+  .lc-grid{font-size:14px;width:100%;}
   .lc-grid th,.lc-grid td{min-width:72px;height:70px;}
   .lc-grid th{height:48px;font-size:14px;}
   .lc-grid .lc-car{min-width:130px;font-size:16px;}
@@ -234,7 +230,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   .lc-grid td.bk.short .bk-t{font-size:13px;}
   .lc-grid .lc-car small{font-size:11px;}
   .lc-grid .bk-bar{min-height:42px;font-size:15px;}
-  .lc-grid .bk-t{left:152px;}
+  .lc-grid .bk-t{left:140px;}
   .lc-grid .bk-t small{font-size:12px;}
   .lc-legend{font-size:13px;}
   .lc-list{font-size:15px;}
@@ -243,16 +239,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .lc-grid th{cursor:pointer;position:relative;}
 .lc-grid th .hol{display:block;font-size:9px;line-height:1;}
 .lc-grid th .hol.cl{color:#bbb;}
-.lc-grid th.sat,.lc-grid td.sat{background:rgba(78,161,255,.16);}
-.lc-grid th.sun,.lc-grid td.sun{background:rgba(255,107,107,.16);}
-.lc-grid th.closed,.lc-grid td.closed{background:repeating-linear-gradient(45deg,rgba(160,160,160,.12) 0 4px,rgba(160,160,160,.30) 4px 8px);}
-.lc-grid th.m1,.lc-grid td.m1{border-left:3px solid var(--accent);}
-.lc-grid tr.lc-mrow th{height:24px;background:var(--surface);text-align:left;color:var(--accent);font-weight:800;cursor:default;border-left:3px solid var(--accent);}
-.lc-grid tr.lc-mrow th.lc-car{border-left:1px solid var(--surface3);}
-.lc-grid tr.lc-mrow th span{position:sticky;left:112px;padding:0 6px;}
-.lc-grid th .mlab{display:block;font-size:9px;color:var(--accent);font-weight:800;line-height:1;}
-.lc-grid th.today{background:var(--accent-soft);color:var(--accent);}
-.lc-legend i.lg-sun{background:rgba(255,107,107,.5);} .lc-legend i.lg-sat{background:rgba(78,161,255,.5);}
+.lc-grid th.closed,.lc-grid td.closed{background:repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 4px,rgba(255,255,255,.10) 4px 8px);}
 .lc-grid th.closed{color:#999;}
 .lc-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--muted);margin-bottom:6px;}
 .lc-legend span{display:inline-flex;align-items:center;gap:4px;}
@@ -348,27 +335,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .tab-panel-layout.active{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.5fr);gap:16px;align-items:start;}
 @media(max-width:900px){.tab-panel-layout.active{grid-template-columns:minmax(0,1fr);}}
 .tab-panel-layout>*{min-width:0;}
-.lc-grid th.closed,.lc-grid td.closed{background:repeating-linear-gradient(135deg,rgba(230,40,40,.75) 0 3px,transparent 3px 10px)!important;}
-.lc-grid th.closed{color:#fff!important;}
-.lc-legend .lg-closed{background:repeating-linear-gradient(135deg,#e62828 0 2px,transparent 2px 5px)!important;border:1px solid #e62828;}
-.lc-closed-soon{margin-top:8px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;padding:6px 8px;border-radius:8px;background:rgba(230,40,40,.12);}
-.lc-closed-soon span{background:#c62828;color:#fff;border-radius:4px;padding:1px 6px;font-weight:700;}
-.lc-closed-soon .btn{margin-left:auto;font-size:12px;padding:3px 10px;min-height:0;}
 </style>
-<style>html{touch-action:pan-x pan-y;}button,.btn,.selbtn,.tab-btn,.sw{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}</style>
-<script>
-// iPhone：タップ位置のずれ・反応しなくなるのを防ぐ（11/7）
-//  ・入力欄を押したときの自動の拡大と、2本指・2回タップでの画面全体の拡大を止める（拡大したままだと、押した所と反応する所がずれる）
-//  ・キーボードを閉じたあとに画面の位置がずれたまま残るのを直す
-(function(){
-  var ios=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-  if(!ios) return;
-  document.addEventListener('gesturestart',function(e){ var t=e.target; if(t&&t.closest&&t.closest('.wo-pv,.pv-stage,[data-zoom]')) return; e.preventDefault(); },{passive:false});
-  var fix=function(){ setTimeout(function(){ var a=document.activeElement; if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
-    window.scrollTo(window.scrollX,window.scrollY); try{ if(window.parent!==window) window.parent.postMessage({ark:'blur'},location.origin); }catch(e){} },150); };
-  document.addEventListener('focusout',fix,true);
-})();
-</script>
 </head>
 <body>
 
@@ -414,7 +381,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           </div>
           <div class="scan-result" id="scan-result"></div>
           <div id="photo-grid" class="ph-grid"></div>
-          <div class="ph-btns" style="margin-top:6px"><button type="button" class="btn" onclick="_estPhShare(true)">👥 写真をチームで共有</button><button type="button" class="btn" onclick="estTeamPhotos()">👥 この車のチームの写真を見る</button></div>
           <div class="ph-note">写真ごとに項目（車検証・コーションラベル・作業箇所など）を選べます。「車検証」「コーションラベル」を選ぶと、その写真から読み取って入力します。撮影した写真は端末の写真アプリには保存されず、LINE送信・新規見積りで消去されます。</div>
         </div>
         <div class="field span2">
@@ -453,7 +419,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div class="field"><label>型式指定番号</label><input id="c-typeno" inputmode="numeric" placeholder="例：12604" oninput="updateCust()"></div>
         <div class="field"><label>類別区分番号</label><input id="c-ruino" inputmode="numeric" placeholder="例：0042" oninput="updateCust()"></div>
         <div class="field span2"><label>走行距離（km）</label><div style="display:flex;gap:8px"><input id="c-mileage" inputmode="numeric" pattern="[0-9]*" placeholder="例：45678" oninput="this.value=this.value.replace(/[^0-9]/g,'');updateCust()" style="flex:1"><label class="btn odo-btn">🚗 メーターから読む<input type="file" accept="image/*" style="display:none" onchange="odoFromFile(this)"></label></div></div>
-        <div class="field span2"><label>登録番号</label><input id="c-plate" placeholder="品川 300 あ 12-34" oninput="updateCust()"><div id="c-wbhint"></div></div>
+        <div class="field span2"><label>登録番号</label><input id="c-plate" placeholder="品川 300 あ 12-34" oninput="updateCust()"></div>
         <div class="field"><label>車体色（カラー番号）</label><input id="c-color" placeholder="例：070" oninput="updateCust()"></div>
         <div class="field"><label>塗装タイプ（全部位一括）</label><select id="c-ptype" onchange="setPaintTypeAll(this.value)"></select></div>
         <div class="field span2"><label>見積日</label><input type="date" id="c-date" oninput="updateCust()"></div>
@@ -573,7 +539,12 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 <!-- HISTORY TAB -->
 <div id="tab-history" class="tab-panel">
   <div class="card">
-    <div class="card-title"><span class="bar"></span>保存済み見積り一覧</div>
+    <div class="card-title"><span class="bar"></span>チームの見積り（スタッフ全員）</div>
+    <div id="team-hist-status" style="font-size:12px;color:var(--muted);margin-bottom:8px"></div>
+    <div id="team-hist"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="bar"></span>この端末の保存済み見積り</div>
     <div id="history-list"></div>
     <div id="history-empty" class="empty">保存された見積りはまだありません。</div>
   </div>
@@ -602,7 +573,8 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       </div>
       <div class="sg-note" style="margin-top:10px"><b>入庫管理表（スプレッドシート）との連動</b>：代車（K列）が入っている行を代車カレンダーに表示します（読み取りのみ）。</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input id="sheet-url" placeholder="Apps Script のウェブアプリURL" style="flex:1;min-width:200px" onfocus="if(this.value==='（設定済み）')this.value=''"><button type="button" class="btn" onclick="sheetSaveUrl()">保存</button><button type="button" class="btn" onclick="sheetLoad(true)">今すぐ読み込む</button></div>
-      <div id="sheet-status" style="font-size:12px;color:var(--muted);margin:4px 0 10px">未設定</div>
+      <div id="sheet-status" style="font-size:12px;color:var(--muted);margin:4px 0 2px">未設定</div>
+      <div id="drive-status" style="font-size:12px;color:var(--muted);margin:0 0 10px">見積りのGoogleドライブ保存：同じURLを使います（LINE送信・履歴に保存のとき）</div>
       <div id="cloud-user-box" style="display:none">
         <div style="margin-bottom:8px">ログイン中：<b id="cloud-user"></b></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" onclick="cloudLogout()">ログアウト</button><button type="button" class="btn" onclick="cloudUploadLocal(true)">この端末の覚えた内容を共有に送る</button></div>
@@ -695,8 +667,6 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   </div>
 </div>
 
-<!-- 代車カレンダー（作業ボード・見積りツールの共通ファイル。作業ボードのリポジトリにある。読めなくても見積りはふだんどおり使える） -->
-<script src="https://maekenms-ctrl.github.io/work-board/loaner-cal.js"></script>
 <script>
 // ─── State ───────────────────────────────────────────────
 const DEF_SETTINGS = {
@@ -1926,39 +1896,6 @@ function updateCust(){
   customer.staff=document.getElementById('c-staff').value;
   customer.note=document.getElementById('c-note').value;
   customer.bodyShape=currentBodyShape;
-  try{ renderWbHint(); }catch(e){}
-}
-// ── 作業ボードと車両情報（車台番号・車体色・塗装タイプ）を共有 ──
-// 作業ボードの作業指示（jobs）から、同じ登録番号の車を探す（お客様名は作業ボードに無い）
-let WB_JOBS=[], WB_OLD=[], WB_OLD_ST='';
-// 納車済の作業指示（前に来た車）の車両情報：作業中の車に無い番号を入れたときだけ、1回読む（いつも全部は読まない）
-async function _wbLoadOld(){
-  if(WB_OLD_ST||!CLOUD.started) return; WB_OLD_ST='loading';
-  try{ const {fs}=CLOUD.fb; const q=await fs.getDocs(fs.query(fs.collection(CLOUD.db,'jobs'),fs.where('archived','==',true))); const L=[];
-    q.forEach(d=>{ const v=d.data()||{}; if(v.deleted||v._sheet||!v.plate||!(v.chassis||v.color||v.paintType)) return; L.push({plate:v.plate,chassis:v.chassis||'',color:v.color||'',paintType:v.paintType||'',archived:true,updatedAt:v.updatedAt||''}); });
-    WB_OLD=L; WB_OLD_ST='done'; try{ renderWbHint(); }catch(e){} }
-  catch(e){ WB_OLD_ST=''; console.warn('jobs(old)',e); }
-}
-function _plateNo(p){ const m=String(p||'').normalize('NFKC').match(/[0-9][0-9・.\-‐ー ]*$/); const d=m?m[0].replace(/[^0-9]/g,''):''; return d.length>=2?(d.replace(/^0+/,'')||'0'):''; }
-function _wbJobFor(){
-  const no=_plateNo(customer.plate); if(!no) return null;
-  const c=WB_JOBS.concat(WB_OLD).filter(j=>_plateNo(j.plate)===no&&(j.chassis||j.color||j.paintType));
-  if(!c.length){ _wbLoadOld(); return null; }
-  const j=c.sort((a,b)=>(a.archived?1:0)-(b.archived?1:0)||(String(b.updatedAt||'')<String(a.updatedAt||'')?-1:1))[0];
-  const diff=(j.chassis&&j.chassis!==customer.chassis)||(j.color&&j.color!==customer.color)||(j.paintType&&j.paintType!==customer.paintType);
-  return diff?j:null;
-}
-function renderWbHint(){
-  const el=document.getElementById('c-wbhint'); if(!el) return; const j=_wbJobFor();
-  el.innerHTML=j?`<button type="button" class="btn" style="margin-top:6px;width:100%" onclick="wbFill()">🛠 作業ボードの車両情報を入れる（${esc([j.chassis&&'車台 '+j.chassis,j.color&&'カラー '+j.color,j.paintType].filter(Boolean).join(' ／ '))}）</button>`:'';
-}
-function wbFill(){
-  const j=_wbJobFor(); if(!j) return;
-  if(j.chassis) document.getElementById('c-chassis').value=j.chassis;
-  if(j.color) document.getElementById('c-color').value=j.color;
-  updateCust();
-  if(j.paintType){ setPaintTypeAll(j.paintType); const ps=document.getElementById('c-ptype'); if(ps) ps.value=j.paintType; }
-  renderWbHint(); toast('作業ボードの車両情報を入れました');
 }
 function setPaintTypeAll(t){
   customer.paintType=t;
@@ -2070,7 +2007,7 @@ async function cloudLogout(silent){
   try{ if(CLOUD.auth) await CLOUD.fb.auth.signOut(CLOUD.auth); }catch(e){}
   CLOUD.user=null; renderCloudUI(); if(!silent) toast('ログアウトしました（この端末だけで使います）');
 }
-function cloudStop(){ CLOUD.unsubs.forEach(f=>{try{f();}catch(e){}}); CLOUD.unsubs=[]; CLOUD.started=false; CLOUD.first={}; }
+function cloudStop(){ CLOUD.unsubs.forEach(f=>{try{f();}catch(e){}}); CLOUD.unsubs=[]; CLOUD.started=false; CLOUD.first={}; TEAM_EST=[]; try{renderTeamHistory();}catch(e){} }
 function cloudStart(){
   if(!CLOUD.user||!CLOUD.db||CLOUD.started) return;
   const {fs}=CLOUD.fb; CLOUD.started=true; CLOUD.first={};
@@ -2086,17 +2023,87 @@ function cloudStart(){
     LEARNED_MODELS={..._cloudLocalOnly('models'),...L}; _saveLearned(); try{renderLearned();}catch(e){} });
   listen('colors',m=>{ const L={}; for(const k in m){ const v=m[k]; if(v&&v.type) L[v.code||k]=v.type; }
     LEARNED_COLORS={..._cloudLocalOnly('colors'),...L}; try{localStorage.setItem('est-colors',JSON.stringify(LEARNED_COLORS));}catch(e){} });
-  listen('loaner',m=>{ const L=[]; for(const k in m){ const v=m[k]; if(v&&v.sheet){ if(v.url!==SHEET.url){ SHEET.url=v.url||''; try{ SHEET.url?localStorage.setItem('est-sheet-url',SHEET.url):localStorage.removeItem('est-sheet-url'); }catch(e){} SHEET.rows=[]; if(SHEET.url) setTimeout(()=>sheetLoad(false),0); try{renderSheetUI();}catch(e){} } continue; } if(v&&v.shop){ SHOP_CLOSED={w:v.closedW||[],d:v.closedD||[]}; try{localStorage.setItem('est-shop-closed',JSON.stringify(SHOP_CLOSED));}catch(e){} continue; } if(v&&v.car&&v.from&&v.to) L.push({id:k,car:v.car,from:v.from,to:v.to,name:v.name||'',src:v.src||'',skey:v.skey||'',plate:v.plate||'',returned:!!v.returned,kinds:Array.isArray(v.kinds)?v.kinds:[],kind:v.kind||'',memo:v.memo||''}); }
-    // 11/4：この端末にだけある予約のうち、前に共有で見たことがあるもの（ほかの端末で削除・古くなって整理されたもの）と、返却から2か月たったものは戻さない
-    const seen=_lbSeen(), lim62=_ymd(new Date(Date.now()-62*864e5));
-    const td=_ymd(new Date()); const local=CLOUD.first.loaner?[]:LOANER_BOOK.filter(b=>!m[b.id]&&!seen.has(b.id)&&!(b.to&&b.to<td));   // 11/9：返却日が過ぎた予約は送り直さない
-    for(const k in m){ const v=m[k]; if(v&&v.car&&v.from&&v.to) seen.add(k); } _lbSeenSave(seen);
+  listen('loaner',m=>{ const L=[]; for(const k in m){ const v=m[k]; if(v&&v.sheet){ if(v.url!==SHEET.url){ SHEET.url=v.url||''; try{ SHEET.url?localStorage.setItem('est-sheet-url',SHEET.url):localStorage.removeItem('est-sheet-url'); }catch(e){} SHEET.rows=[]; if(SHEET.url) setTimeout(()=>sheetLoad(false),0); try{renderSheetUI();}catch(e){} } continue; } if(v&&v.shop){ SHOP_CLOSED={w:v.closedW||[],d:v.closedD||[]}; try{localStorage.setItem('est-shop-closed',JSON.stringify(SHOP_CLOSED));}catch(e){} continue; } if(v&&v.car&&v.from&&v.to) L.push({id:k,car:v.car,from:v.from,to:v.to,name:v.name||'',kinds:Array.isArray(v.kinds)?v.kinds:[],kind:v.kind||'',memo:v.memo||''}); }
+    const local=CLOUD.first.loaner?[]:LOANER_BOOK.filter(b=>!m[b.id]);
     if(!CLOUD.first.loaner && !m['_shop'] && (SHOP_CLOSED.w.length||SHOP_CLOSED.d.length)) setTimeout(_saveShopClosed,0);   // 初回だけ、この端末にしかない予約を残して送る
     LOANER_BOOK=[...L,...local]; _saveLoanerBook(); try{renderLoanerCars();}catch(e){} if(document.getElementById('lc-ov')) _renderLoanerCal(); });
-  // 作業ボードの車両情報（読めなくても見積りツールは普段どおり動く）
-  CLOUD.unsubs.push(fs.onSnapshot(fs.query(fs.collection(CLOUD.db,'jobs'),fs.where('archived','==',false)),snap=>{   // 作業中の車だけ（全件は読まない）
- const L=[]; snap.forEach(d=>{ const v=d.data()||{}; if(v.deleted||v._sheet||!v.plate) return; L.push({plate:v.plate,chassis:v.chassis||'',color:v.color||'',paintType:v.paintType||'',archived:!!v.archived,updatedAt:v.updatedAt||''}); }); WB_JOBS=L; try{ renderWbHint(); }catch(e){} },err=>{ console.warn('jobs',err); }));
+  // チームの見積り（共有履歴）：権限がなくても他の共有は止めない
+  CLOUD.unsubs.push(fs.onSnapshot(fs.collection(CLOUD.db,'estimates'),snap=>{
+    const lim=Date.now()-TEAM_KEEP_DAYS*86400000, L=[]; let del=0;
+    snap.forEach(d=>{ const v=d.data(); const t=Date.parse(v.savedAt||'')||0;
+      if(t && t<lim){ if(del++<20) fs.deleteDoc(fs.doc(CLOUD.db,'estimates',d.id)).catch(()=>{}); return; }
+      if(v&&v.customer&&Array.isArray(v.items)) L.push({...v,id:d.id}); });
+    TEAM_EST=L.sort((a,b)=>(b.savedAt||'').localeCompare(a.savedAt||'')); TEAM_ERR=''; try{renderTeamHistory();}catch(e){}
+  },err=>{ TEAM_EST=[]; TEAM_ERR=/permission/.test(String(err&&err.code))?'Firestoreのルールに「estimates」が入っていないため表示できません':_netMsg(err); try{renderTeamHistory();}catch(e){} }));
   renderCloudUI();
+}
+// ─── チームの見積り（ログインしたスタッフで共有する履歴） ───────────────
+const TEAM_KEEP_DAYS=30;   // この日数を過ぎた見積りは自動で削除
+let TEAM_EST=[], TEAM_ERR='';
+function _teamSnap(via){
+  const t=calcTotals();
+  return JSON.parse(JSON.stringify({id:genId(),savedAt:new Date().toISOString(),via,customer:{...customer},items:items.map(i=>({...i})),settings:{...settings},totals:t,
+    disc10:document.getElementById('disc10').checked,discountFree:document.getElementById('disc-free').value,bodyShape:currentBodyShape}));
+}
+function teamSaveEst(via){
+  if(!CLOUD.started) return false;
+  try{ const s=_teamSnap(via); _cloudPut('estimates',s.id,s); return true; }catch(e){ return false; }
+}
+// ─── Googleドライブ（Apps Script経由で「見積り一覧」スプレッドシートに1件1行） ───
+const DRIVE={last:'',err:''};
+function _driveRow(via){
+  const t=calcTotals(), c=customer;
+  const lines=items.map(it=>{ const b=calcRow(it); return `${it.part||'-'}／${it.type||''}${it.qty>1?' ×'+it.qty:''}：${Math.round(b.amount).toLocaleString()}円`; });
+  const data={customer:{...c},items:items.map(i=>({...i})),totals:t,disc10:document.getElementById('disc10').checked,discountFree:document.getElementById('disc-free').value,bodyShape:currentBodyShape};
+  let json=JSON.stringify(data); if(json.length>45000) json='';
+  return {action:'saveEstimate',id:genId(),savedAt:new Date().toISOString(),by:(CLOUD.user&&CLOUD.user.email)||'',via,
+    date:c.date||'',name:c.name||'',car:c.car||'',plate:c.plate||'',chassis:c.chassis||'',color:c.color||'',total:Math.round(t.grand||0),
+    detail:lines.join('\n'),json};
+}
+// 送信内容はその場で作る（LINE送信後に入力が消えても大丈夫）。結果はあとから知らせる
+function driveSaveEst(via){
+  if(!SHEET.url||SEC.locked) return false;
+  let row; try{ row=_driveRow(via); }catch(e){ return false; }
+  (async()=>{
+    try{
+      const r=await fetch(SHEET.url,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(row)});
+      const txt=await r.text(); let j;
+      try{ j=JSON.parse(txt); }catch(e){ throw new Error(/doPost/.test(txt)?'NO_DOPOST':'NOT_JSON'); }
+      if(j.error) throw new Error(j.error==='forbidden'?'合言葉が違います':j.error);
+      DRIVE.last=new Date().toISOString(); DRIVE.err='';
+    }catch(e){
+      const m=String(e&&e.message||e);
+      DRIVE.err=m==='NO_DOPOST'?'Apps Scriptに見積り保存（doPost）がまだありません。スクリプトを更新して新しいバージョンでデプロイしてください'
+        :m==='NOT_JSON'?'Apps Scriptの返事が読めません。スクリプトの更新後に「新しいバージョン」でデプロイしたか確認してください':_sheetErr(e);
+      toast('Googleドライブに保存できませんでした：'+DRIVE.err+(CLOUD.started?'（チームの履歴には保存済み）':''),9000);
+    }finally{ try{renderDriveUI();}catch(e){} }
+  })();
+  return true;
+}
+function renderDriveUI(){
+  const el=document.getElementById('drive-status'); if(!el) return;
+  el.textContent=!SHEET.url?'見積りのGoogleドライブ保存：上のURLを設定すると使えます'
+    :DRIVE.err?'見積りのGoogleドライブ保存：失敗 '+DRIVE.err
+    :DRIVE.last?`見積りのGoogleドライブ保存：OK（最後の保存 ${new Date(DRIVE.last).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}）`
+    :'見積りのGoogleドライブ保存：同じURLを使います（LINE送信・履歴に保存のとき）';
+}
+function renderTeamHistory(){
+  const box=document.getElementById('team-hist'); if(!box) return;
+  const st=document.getElementById('team-hist-status');
+  if(!CLOUD.started){ box.innerHTML=''; st.textContent=CLOUD.user?'ロック解除後に表示されます':'「⚙️設定」→「チーム共有」でログインすると、スタッフ全員の見積りが見られます。'; return; }
+  st.textContent=TEAM_ERR||(TEAM_EST.length?`直近${TEAM_KEEP_DAYS}日・${TEAM_EST.length}件（${TEAM_KEEP_DAYS}日を過ぎると自動で削除）`:`まだありません（LINE送信・履歴に保存すると、ここに残ります。${TEAM_KEEP_DAYS}日で自動削除）`);
+  box.innerHTML='';
+  TEAM_EST.forEach(h=>{
+    const div=document.createElement('div'); div.className='hist-card';
+    const who=String(h.by||'').replace(/@.*/,'');
+    div.innerHTML=`<div class="hist-info"><b>${esc(h.customer.name||'（名前未入力）')} ／ ${esc(h.customer.car||'車種未入力')}</b>
+      <div class="hist-meta">${new Date(h.savedAt).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})} ／ 作成：${esc(who||'-')}${h.customer.staff?'（担当 '+esc(h.customer.staff)+'）':''} ／ ${h.via==='LINE'?'LINE送信':'履歴に保存'} ／ ${h.items.length}項目</div></div>
+      <div class="hist-total">${fmt((h.totals&&h.totals.grand)||0)}</div>
+      <div class="hist-actions"><button class="btn">呼び出す</button><button class="btn" style="color:var(--muted);min-width:46px;min-height:46px;justify-content:center;touch-action:manipulation" aria-label="削除">✕</button></div>`;
+    div.querySelectorAll('.btn')[0].addEventListener('click',()=>{ loadEst(h); toast(`${who||'スタッフ'}さんの見積りを呼び出しました`); });
+    div.querySelectorAll('.btn')[1].addEventListener('click',async()=>{ if(!await askConfirm(`${h.customer.name||'（名前未入力）'} の見積りをチームの履歴から削除しますか？（全員の画面から消えます）`)) return; _cloudDel('estimates',h.id); });
+    box.appendChild(div);
+  });
 }
 // 初回の同期前に端末だけにあった分（共有に送る対象）
 function _cloudLocalOnly(name){ return CLOUD.first[name]?{}:(name==='models'?{...LEARNED_MODELS}:{...LEARNED_COLORS}); }
@@ -2112,9 +2119,7 @@ function cloudUploadLocal(manual){
   const has=(name,k)=>!manual&&CLOUD.keys[name]&&CLOUD.keys[name].has(_cloudKey(k));   // 自動のときは共有に無いものだけ送る
   for(const k in LEARNED_MODELS){ if(has('models',k)) continue; const v=LEARNED_MODELS[k]; _cloudPut('models',k,{name:v.name,shape:v.shape,kata:v.kata||'',typeNo:v.typeNo||'',count:v.count||1,updated:v.updated||''}); }
   for(const k in LEARNED_COLORS){ if(has('colors',k)) continue; _cloudPut('colors',k,{type:LEARNED_COLORS[k]}); }
-  const seen=_lbSeen(), lim62=_ymd(new Date(Date.now()-62*864e5));
-  const td=_ymd(new Date());
-  for(const b of LOANER_BOOK){ if(has('loaner',b.id)||(!manual&&(seen.has(b.id)||(b.to&&b.to<td)))) continue; _cloudPut('loaner',b.id,{car:b.car,from:b.from,to:b.to,name:b.name||'',kinds:_kinds(b),kind:b.kind||'',memo:b.memo||''}); }
+  for(const b of LOANER_BOOK){ if(has('loaner',b.id)) continue; _cloudPut('loaner',b.id,{car:b.car,from:b.from,to:b.to,name:b.name||'',kinds:_kinds(b),kind:b.kind||'',memo:b.memo||''}); }
   if(manual) toast('この端末の覚えた内容を共有に送りました');
 }
 // ─── スプレッドシート連動（入庫管理表 → 代車カレンダー、読み取りのみ） ─────────
@@ -2131,16 +2136,11 @@ function _sheetDate(v){
 function _sheetCar(v){
   const z=String(v||'').normalize('NFKC').replace(/\s/g,'').toUpperCase().replace(/[‐－−ー](?=BOX)/g,'-');
   if(!z||/^(なし|無|無し|-|×|X|✕|不要)$/.test(z)||/家まで|送迎|自宅|自走/.test(z)) return null;   // 代車なし（送迎などを含む）
-  // レンタカーの枠（10/31）：トヨレン①②＝レンタカー1・2、キンレン①②＝レンタカー3・4。番号がなければ空いている枠へ（T＝トヨレン・K＝キンレン・なし＝4枠のどれか）
-  if(/トヨレン|キンレン|レンタ|ニコニコ|オリックス|タイムズ|ニッポン/.test(z)){ const m=z.match(/([1-4])(?!\d)/), d=m?+m[1]:0;   // ①②→1・2（NFKCで数字になる）
-    if(/トヨレン|トヨタレンタ/.test(z)) return d===1||d===2?'レンタカー'+d:'レンタカーT';
-    if(/キンレン/.test(z)) return d===1||d===2?'レンタカー'+(d+2):'レンタカーK';
-    return d>=1&&d<=4?'レンタカー'+d:'レンタカー'; }
+  if(/トヨレン|キンレン|レンタ|ニコニコ|オリックス|タイムズ|ニッポン/.test(z)){ const m=z.match(/([1-3])(?!\d)/); return m?'レンタカー'+m[1]:'レンタカー'; }   // ①②③→1〜3（NFKCで数字になる）
   const T=[['フリード',/フリード/],['プリウス',/プリウス/],['フィット',/フィット/],['ミライース',/ミラ/],['ムーブ',/ムーヴ|ムーブ/],['ラパン',/ラパン/],['N-BOX',/N-?BOX|NBOX|エヌボックス|Nボックス/]];
   for(const [n,re] of T) if(re.test(z)) return n;
   return '?';
 }
-function _rentPool(c){ return c==='レンタカーT'?['レンタカー1','レンタカー2']:c==='レンタカーK'?['レンタカー3','レンタカー4']:RENTAL_ROWS.map(x=>x.n); }
 function _sheetKinds(v){ const z=String(v||''); const k=[]; if(/鈑|板/.test(z)) k.push('鈑金塗装'); if(/作|整/.test(z)) k.push('整備'); if(/車/.test(z)) k.push('車検点検'); return k; }
 async function sheetLoad(manual){
   if(!SHEET.url||SHEET.loading||SEC.locked) return;
@@ -2156,16 +2156,16 @@ async function sheetLoad(manual){
       const car=_sheetCar(x.car); if(car===null) continue;
       const from=_sheetDate(x.inDate); let to=_sheetDate(x.out)||_sheetDate(x.due), open=false;   // 返却：出庫日（C）→ なければ納期（B）
       if(!to && from){ to=OPEN_END; open=true; }   // 納期・出庫日が空欄：返却日が決まるまでずっと貸出中（二重貸し出し防止）
-      const name=[x.model,x.plate].filter(Boolean).join(' ');   // お客様名はスプレッドシートだけ
+      const name=[x.name,x.model].filter(Boolean).join(' ');
       const where=(x.tab?x.tab+' ':'')+x.row+'行目';
       if(car==='?'||!from){ bad.push(`${where}：${x.car||''} ${name}${!from?'（入庫日が読めません）':''}`); continue; }
-      rows.push({id:'sheet-'+(x.tab||'')+'-'+x.row,open,car,cust:'',plate:x.plate||'',model:x.model||'',from:from<=to?from:to,to:from<=to?to:from,name,kinds:_sheetKinds(x.kind),kind:_sheetKinds(x.kind).join('・'),memo:`入庫管理表 ${where}${x.car?'（'+x.car+'）':''}${open?'・返却日未定':''}`,src:'sheet'});
+      rows.push({id:'sheet-'+(x.tab||'')+'-'+x.row,open,car,cust:x.name||'',model:x.model||'',from:from<=to?from:to,to:from<=to?to:from,name,kinds:_sheetKinds(x.kind),kind:_sheetKinds(x.kind).join('・'),memo:`入庫管理表 ${where}${x.car?'（'+x.car+'）':''}${open?'・返却日未定':''}`,src:'sheet'});
     }
     // 他社レンタカー：番号がなければ、空いている枠（1→2→3）へ順に割り当て
     const rent=rows.filter(r=>/^レンタカー/.test(r.car)).sort((a,b)=>a.from<b.from?-1:1);
-    for(const r of rent){ if(!/^レンタカー[TK]?$/.test(r.car)) continue;
-      const pool=_rentPool(r.car), ok=n=>!rows.concat(LOANER_BOOK).some(x=>x!==r&&x.car===n&&x.from<=r.to&&r.from<=x.to);
-      r.car=pool.find(ok)||pool[pool.length-1]; }
+    for(const r of rent){ if(r.car!=='レンタカー') continue;
+      const ok=n=>!rows.concat(LOANER_BOOK).some(x=>x!==r&&x.car===n&&x.from<=r.to&&r.from<=x.to);
+      r.car=RENTAL_ROWS.map(x=>x.n).find(ok)||RENTAL_ROWS[RENTAL_ROWS.length-1].n; }
     SHEET.rows=rows; SHEET.bad=bad; SHEET.at=Date.now(); SHEET.err='';
     if(manual) toast(`入庫管理表から代車${rows.length}件を読み込みました`);
   }catch(e){ SHEET.err=_sheetErr(e); if(manual) toast('入庫管理表を読み込めませんでした：'+SHEET.err,7000); }
@@ -2179,16 +2179,22 @@ function _sheetErr(e){
   return m;
 }
 // 通信まわりのエラー文（文字認識用の文言を使わない）
-function _netMsg(e){ const m=String((e&&(e.code||e.message))||e||''); if(/resource-exhausted|quota/i.test(m)) return 'Firebaseの無料枠（1日の読み込み・書き込みの回数）を超えました。16〜17時ごろに自動で戻ります'; return /network|fetch|load failed|offline|unavailable/i.test(m)?'通信できませんでした（電波を確認してください）':m; }
+function _netMsg(e){ const m=String((e&&(e.code||e.message))||e||''); return /network|fetch|load failed|offline|unavailable/i.test(m)?'通信できませんでした（電波を確認してください）':m; }
+// 帯に出す名前：「様」と余分な空白を省き、お客様名と車種に分ける
+function _barNames(b){
+  const clean=t=>String(t||'').replace(/\s*様\s*/g,' ').replace(/[\s　]+/g,' ').trim();
+  if(b.src==='sheet') return [clean(b.cust),clean(b.model)];
+  const n=clean(b.name); const i=n.indexOf(' '); return i>0?[n.slice(0,i),n.slice(i+1)]:[n,''];
+}
+const OPEN_END='9999-12-31';
+const RENTAL_ROWS=[{n:'レンタカー1',lab:'他社レンタカー①',ext:1},{n:'レンタカー2',lab:'他社レンタカー②',ext:1},{n:'レンタカー3',lab:'他社レンタカー③',ext:1}];
 function _carLabel(n){ const r=RENTAL_ROWS.find(x=>x.n===n); return r?r.lab:n; }
-// 入出庫管理表（K列）が最優先（10/31）：表のK列に代車が書かれた車は、作業ボード・見積りツールで入れた同じ車の予約を出さない（表の予約📄だけ）
-//  同じ車＝作業指示がつながっている表の行が同じ（作業ボードの予約の skey）か、登録番号が同じで期間が重なる。代車の種類が違っても表が優先
-function _sheetFor(b){ if(b.src==='sheet'||b.src==='hist') return null; const no=_plateNo(b.plate||b.name);
-  return SHEET.rows.find(s=>(b.skey&&b.skey===String(s.id).replace(/^sheet-/,''))||(no&&_plateNo(s.plate)===no&&s.from<=b.to&&b.from<=s.to))||null; }
-function _allBookings(){ if(!SHEET.rows.length) return LOANER_BOOK; return [...LOANER_BOOK.filter(b=>!_sheetFor(b)),...SHEET.rows]; }
+function _toLabel(d){ return d===OPEN_END?'返却未定':d.slice(5).replace('-','/'); }
+function _allBookings(){ return SHEET.rows.length?[...LOANER_BOOK,...SHEET.rows]:LOANER_BOOK; }
 function renderSheetUI(){
   const st=document.getElementById('sheet-status'); if(!st) return;
   document.getElementById('sheet-url').value=SHEET.url?'（設定済み）':'';
+  try{renderDriveUI();}catch(e){}
   st.textContent=!SHEET.url?'未設定':SHEET.err?'読み込めません：'+SHEET.err:SHEET.at?`読み込み済み：代車${SHEET.rows.length}件（${new Date(SHEET.at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}）`:'設定済み';
 }
 function sheetSaveUrl(){
@@ -2202,6 +2208,7 @@ function sheetSaveUrl(){
 }
 // ─── 代車の車両とカレンダー ───────────────────────────────
 // low：全高1550mm以下（立体駐車場などの高さ制限に対応）
+const LOANER_CARS=[{n:'N-BOX'},{n:'ラパン',low:1},{n:'フィット',low:1},{n:'フリード'},{n:'プリウス',low:1},{n:'ミライース',low:1},{n:'ムーブ'}];
 let LOANER_BOOK=[];   // {id,car,from:'YYYY-MM-DD',to:'YYYY-MM-DD',name,memo}
 function _ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function _loanerBusy(car,day){ return _allBookings().find(b=>b.car===car&&b.from<=day&&day<=b.to); }
@@ -2212,9 +2219,6 @@ function renderLoanerCars(){
     return `<button type="button" class="selbtn lcar${c.low?' low':''}${customer.loanerVehicle===c.n?' on':''}" data-car="${c.n}" onclick="setLoanerVehicle('${c.n}')">${c.n}${c.low?'<small>1550mm以下</small>':''}${busy?'<small class="busy">本日使用中</small>':''}</button>`;}).join('');
 }
 function setLoanerVehicle(n){ customer.loanerVehicle = customer.loanerVehicle===n ? '' : n; renderLoanerCars(); }
-// 共有で一度でも見た予約のID（この端末に残っていても、共有から消えていれば送り直さない）
-function _lbSeen(){ try{ return new Set(JSON.parse(localStorage.getItem('est-loaner-seen')||'[]')); }catch(e){ return new Set(); } }
-function _lbSeenSave(st){ try{ localStorage.setItem('est-loaner-seen',JSON.stringify([...st].slice(-800))); }catch(e){} }
 function _saveLoanerBook(){
   if(!SEC.ok){ return _lsSet('est-loaner',JSON.stringify(LOANER_BOOK)); }
   if(!SEC.key) return false;
@@ -2222,33 +2226,145 @@ function _saveLoanerBook(){
   _saveChain=_saveChain.then(async()=>{ const box=await _enc(SEC.key,snap); if(!_lsSet('est-loaner-enc',JSON.stringify(box))) toast('代車予定の保存に失敗しました',6000); }).catch(()=>toast('代車予定の保存に失敗しました',6000));
   return true;
 }
-// ─── 代車カレンダー：共通ファイル（作業ボードの loaner-cal.js。作業ボードと同じもの）。ここでは見積りツールのデータの読み書きだけを渡す ───
+let _lcMonth=null;
+function openLoanerCal(){ const d=new Date(); _lcMonth=new Date(d.getFullYear(),d.getMonth(),1); _renderLoanerCal(); if(SHEET.url&&Date.now()-SHEET.at>60000) sheetLoad(false); }
+function _lcShift(n){ _lcMonth=new Date(_lcMonth.getFullYear(),_lcMonth.getMonth()+n,1); _renderLoanerCal(); }
+function _closeLoanerCal(){ const o=document.getElementById('lc-ov'); if(o) o.remove(); renderLoanerCars(); }
+// ─── 祝日（内閣府の祝日法に沿って計算：振替休日・国民の休日を含む） ───────────
+const _HOL_CACHE={};
+function jpHolidays(y){
+  if(_HOL_CACHE[y]) return _HOL_CACHE[y];
+  const H={}, k=(m,d)=>_ymd(new Date(y,m-1,d));
+  const nthMon=(m,n)=>{const f=new Date(y,m-1,1).getDay();return 1+((8-f)%7)+(n-1)*7;};
+  const add=(m,d,n)=>{H[k(m,d)]=n;};
+  add(1,1,'元日'); add(1,nthMon(1,2),'成人の日'); add(2,11,'建国記念の日');
+  if(y>=2020) add(2,23,'天皇誕生日');
+  const sp=Math.floor(20.8431+0.242194*(y-1980)-Math.floor((y-1980)/4)); add(3,sp,'春分の日');
+  add(4,29,'昭和の日'); add(5,3,'憲法記念日'); add(5,4,'みどりの日'); add(5,5,'こどもの日');
+  add(7,nthMon(7,3),'海の日'); add(8,11,'山の日'); add(9,nthMon(9,3),'敬老の日');
+  const au=Math.floor(23.2488+0.242194*(y-1980)-Math.floor((y-1980)/4)); add(9,au,'秋分の日');
+  add(10,nthMon(10,2),'スポーツの日'); add(11,3,'文化の日'); add(11,23,'勤労感謝の日');
+  // 国民の休日（祝日に挟まれた平日）
+  for(let d=new Date(y,0,2);d.getFullYear()===y;d.setDate(d.getDate()+1)){
+    const a=new Date(d);a.setDate(a.getDate()-1);const b=new Date(d);b.setDate(b.getDate()+1);
+    if(!H[_ymd(d)]&&d.getDay()!==0&&H[_ymd(a)]&&H[_ymd(b)]) H[_ymd(d)]='国民の休日';
+  }
+  // 振替休日（祝日が日曜なら、次の祝日でない日）
+  for(const ds of Object.keys(H).sort()){
+    const d=new Date(ds+'T00:00:00'); if(d.getDay()!==0) continue;
+    const n=new Date(d); do{ n.setDate(n.getDate()+1); }while(H[_ymd(n)]);
+    if(n.getFullYear()===y) H[_ymd(n)]='振替休日';
+  }
+  return _HOL_CACHE[y]=H;
+}
+// ─── 店休日（曜日・日付）：チーム共有（loaner の '_shop' に保存） ───────────
+let SHOP_CLOSED={w:[],d:[]};
 try{ SHOP_CLOSED={w:[],d:[],...JSON.parse(localStorage.getItem('est-shop-closed')||'{}')}; }catch(e){}
-window.LCAL={
-  shopKey:'est-shop-closed', other:'作業ボード',
-  all:()=>_allBookings(),
-  sheetGet:id=>SHEET.rows.find(x=>x.id===id)||null,
-  ownGet:id=>LOANER_BOOK.find(x=>x.id===id)||null,
-  label:n=>_carLabel(n),
-  name:b=>b.src==='sheet'?[b.model,b.plate].filter(Boolean).join(' '):(b.name||''),
-  put:(n,b)=>{ LOANER_BOOK=LOANER_BOOK.filter(x=>x.id!==n.id); LOANER_BOOK.push({...(b||{}),...n}); if(!_saveLoanerBook()) toast('ロック中のため、この端末には保存できませんでした',5000);
-    _cloudPut('loaner',n.id,{car:n.car,from:n.from,to:n.to,name:n.name,kinds:n.kinds,kind:n.kind,memo:n.memo}); return true; },
-  del:b=>{ LOANER_BOOK=LOANER_BOOK.filter(x=>x.id!==b.id); _saveLoanerBook(); _cloudDel('loaner',b.id); },
-  saveShop:sc=>{ try{ _cloudPut('loaner','_shop',{shop:true,closedW:sc.w,closedD:sc.d}); }catch(e){} },
-  newId:()=>genId(),
-  curName:()=>[customer.car,customer.plate].filter(Boolean).join(' '),   // お客様名は共有しない（スプレッドシートだけ）
-  defCar:()=>customer.loanerVehicle||'',
-  reloadBtn:()=>SHEET.url?`<button class="btn" type="button" onclick="sheetLoad(true)" title="入出庫管理表（スプレッドシート）の代車（K列）を今すぐ読み直します">🔄 再読込${SHEET.loading?'（読込中）':''}</button>`:'',
-  warn:()=>'',
-  errs:()=>(SHEET.err?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">入庫管理表を読み込めません：${esc(SHEET.err)}</div>`:'')+(SHEET.bad&&SHEET.bad.length?`<div style="margin-top:8px;color:#ffb020;font-size:12px">入庫管理表で代車名か入庫日が読み取れない行：${esc(SHEET.bad.slice(0,10).join('／'))}${SHEET.bad.length>10?' ほか':''}</div>`:''),
-  onOpen:()=>{ if(SHEET.url&&Date.now()-SHEET.at>60000) sheetLoad(false); },
-  onClose:()=>renderLoanerCars()
-};
-// 共通ファイルが読めなかったとき（電波が弱いなど）：カレンダーの代わりにお知らせを出す。代車の車両一覧はここで用意して、見積りの代車欄は使えるようにする
-if(typeof _renderLoanerCal!=='function'){ window.openLoanerCal=()=>toast('代車カレンダーを読み込めませんでした。電波を確認して、見積りツールを開き直してください',7000); window._renderLoanerCal=()=>{};
-  window.OPEN_END='9999-12-31'; window.RENTAL_ROWS=[{n:'レンタカー1',lab:'トヨレン①',ext:1},{n:'レンタカー2',lab:'トヨレン②',ext:1},{n:'レンタカー3',lab:'キンレン①',ext:1},{n:'レンタカー4',lab:'キンレン②',ext:1}];
-  window.LOANER_CARS=[{n:'N-BOX'},{n:'ラパン',low:1},{n:'フィット',low:1},{n:'フリード'},{n:'プリウス',low:1},{n:'ミライース',low:1},{n:'ムーブ'}];
-  window.LOANER_KINDS=[{k:'鈑金塗装',c:'#E6FF1A'},{k:'整備',c:'#FF2BD6'},{k:'車検点検',c:'#00E5FF'}]; window._toLabel=d=>d===OPEN_END?'返却未定':d.slice(5).replace('-','/'); window._kinds=b=>Array.isArray(b.kinds)?b.kinds:[]; }
+function _isClosed(ds,w){ return SHOP_CLOSED.w.includes(w)||SHOP_CLOSED.d.includes(ds); }
+function _saveShopClosed(){ try{localStorage.setItem('est-shop-closed',JSON.stringify(SHOP_CLOSED));}catch(e){} try{_cloudPut('loaner','_shop',{shop:true,closedW:SHOP_CLOSED.w,closedD:SHOP_CLOSED.d});}catch(e){} }
+function _toggleClosedDay(ds){ const i=SHOP_CLOSED.d.indexOf(ds); if(i>=0) SHOP_CLOSED.d.splice(i,1); else SHOP_CLOSED.d.push(ds); _saveShopClosed(); _renderLoanerCal(); }
+function _shopClosedForm(){
+  const W='日月火水木金土';
+  const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9500;
+  const draw=()=>{ ov.innerHTML=`<div class="cf-box lc-form" style="max-width:380px"><div style="font-weight:700;margin-bottom:10px">店休日の設定</div>
+    <label>毎週の定休日</label><div class="check-group" style="margin-bottom:12px">${[...W].map((c,i)=>`<button type="button" class="selbtn${SHOP_CLOSED.w.includes(i)?' on':''}" data-w="${i}">${c}</button>`).join('')}</div>
+    <label>臨時休業・お盆・年末年始など</label><div style="display:flex;gap:6px;margin-bottom:8px"><input type="date" id="sc-date"><button type="button" class="btn" id="sc-add" style="white-space:nowrap;flex:none">追加</button></div>
+    <div style="font-size:13px;margin-bottom:12px">${SHOP_CLOSED.d.slice().sort().map(d=>`<span class="selbtn on" style="display:inline-flex;gap:6px;margin:2px">${d.slice(5).replace('-','/')}<b data-del="${d}" style="cursor:pointer">✕</b></span>`).join('')||'<span style="color:var(--muted)">まだありません（カレンダーの日付をタップしても切り替えられます）</span>'}</div>
+    <div class="cf-btns" style="grid-template-columns:1fr"><button type="button" class="btn btn-primary sc-close">閉じる</button></div></div>`;
+    ov.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{const w=+b.dataset.w;const i=SHOP_CLOSED.w.indexOf(w);if(i>=0)SHOP_CLOSED.w.splice(i,1);else SHOP_CLOSED.w.push(w);_saveShopClosed();draw();});
+    ov.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{SHOP_CLOSED.d=SHOP_CLOSED.d.filter(x=>x!==b.dataset.del);_saveShopClosed();draw();});
+    ov.querySelector('#sc-add').onclick=()=>{const v=ov.querySelector('#sc-date').value;if(v&&!SHOP_CLOSED.d.includes(v)){SHOP_CLOSED.d.push(v);_saveShopClosed();}draw();};
+    ov.querySelector('.sc-close').onclick=()=>{ov.remove();_renderLoanerCal();};
+  };
+  draw(); ov.addEventListener('click',e=>{if(e.target===ov){ov.remove();_renderLoanerCal();}}); document.body.appendChild(ov);
+}
+// 用途（メモの区分）と色
+const LOANER_KINDS=[{k:'鈑金塗装',c:'#E6FF1A'},{k:'整備',c:'#FF2BD6'},{k:'車検点検',c:'#00E5FF'}];   // ネオンイエロー／ネオンピンク／ネオンブルー
+function _kindColor(k){ const x=LOANER_KINDS.find(v=>v.k===k); return x?x.c:'#9AA4B2'; }
+// 作業区分（複数可）：kinds 配列。古いデータの kind（文字列）も読む
+function _kinds(b){ if(Array.isArray(b.kinds)&&b.kinds.length) return b.kinds.filter(k=>LOANER_KINDS.some(x=>x.k===k)); return String(b.kind||'').split('・').filter(k=>LOANER_KINDS.some(x=>x.k===k)); }
+function _kindBg(b,w=12){ const ks=_kinds(b); if(!ks.length) return '#9AA4B2'; if(ks.length===1) return _kindColor(ks[0]);
+  const n=ks.length; return 'linear-gradient(110deg,'+ks.map((k,i)=>`${_kindColor(k)} ${Math.round(i*100/n)}% ${Math.round((i+1)*100/n)}%`).join(',')+')'; }   // 複数は斜めに区切って各色1回ずつ
+function _renderLoanerCal(){
+  let ov=document.getElementById('lc-ov');
+  if(!ov){ ov=document.createElement('div'); ov.id='lc-ov'; ov.className='lc-ov'; ov.addEventListener('click',e=>{if(e.target===ov)_closeLoanerCal();}); document.body.appendChild(ov); }
+  const y=_lcMonth.getFullYear(), m=_lcMonth.getMonth(), N=new Date(y,m+1,0).getDate(), today=_ymd(new Date()), HOL=jpHolidays(y);
+  const days=[...Array(N)].map((_,i)=>{const d=new Date(y,m,i+1);const ds=_ymd(d);return {d:ds,n:i+1,w:d.getDay(),hol:HOL[ds]||'',closed:_isClosed(ds,d.getDay())};});
+  const W='日月火水木金土';
+  const cls=x=>[x.w===0||x.hol?'sun':x.w===6?'sat':'',x.closed?'closed':'',x.d===today?'today':''].filter(Boolean).join(' ');
+  let h=`<div class="lc-box"><div class="lc-head">
+    <button class="btn" type="button" onclick="_lcShift(-1)">◀</button><div class="lc-title">${y}年${m+1}月</div><button class="btn" type="button" onclick="_lcShift(1)">▶</button>
+    <button class="btn btn-primary lc-add-top" type="button" onclick="_loanerForm()">＋ 予約を追加</button>
+    <button class="btn" type="button" onclick="_shopClosedForm()">🏪 店休日</button>
+    ${SHEET.url?`<button class="btn" type="button" onclick="sheetLoad(true)">🔄 入庫管理表${SHEET.loading?'（読込中）':''}</button>`:''}
+    <button class="btn" type="button" style="margin-left:auto" onclick="_closeLoanerCal()">✕ 閉じる</button></div>
+    <div class="lc-legend">${LOANER_KINDS.map(x=>`<span><i style="background:${x.c}"></i>${x.k}</span>`).join('')}<span><i style="background:#9AA4B2"></i>その他</span><span><i class="lg-closed"></i>店休日</span><span style="color:#ff6b6b">赤字＝日曜・祝日</span></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px">空いているマスで予約、色の帯で変更・削除。日付をタップすると店休日に切り替わります。</div>
+    <div class="lc-scroll"><table class="lc-grid"><tr><th class="lc-car">車両</th>${days.map(x=>`<th class="${cls(x)}" onclick="_toggleClosedDay('${x.d}')" title="${x.hol?esc(x.hol):''}${x.closed?' 店休日':''}">${x.n}<br>${W[x.w]}${x.hol?'<span class="hol">祝</span>':x.closed?'<span class="hol cl">休</span>':''}</th>`).join('')}</tr>`;
+  const _rows=[...LOANER_CARS,...RENTAL_ROWS];
+  for(const c of _rows){
+    h+=`<tr><td class="lc-car${c.low?' low':''}${c.ext?' ext':''}">${c.lab||c.n}${c.low?'<small>1550mm以下</small>':''}</td>`;
+    for(let i=0;i<days.length;){
+      const x=days[i]; const b=_loanerBusy(c.n,x.d);
+      if(b){
+        let span=1; while(i+span<days.length && _loanerBusy(c.n,days[i+span].d)===b) span++;
+        const kt=_kinds(b).join('・'); const lab=[b.name||'予約',kt].filter(Boolean).join(' ');
+        const [cu,mo]=_barNames(b);
+        h+=`<td class="bk${b.src==='sheet'?' sh':''}${span<=2?' short':''}${b.to===OPEN_END?' open':''}" colspan="${span}" onclick="_loanerForm('${b.id}')" title="${esc(lab+(b.memo?' ／ '+b.memo:''))}"><div class="bk-bar" style="background:${_kindBg(b)}"><span class="bk-t"><span class="bk-n">${b.src==='sheet'?'<i class="shm">📄</i>':''}${esc(cu||'予約')}</span>${mo?`<span class="bk-m">${esc(mo)}</span>`:''}${kt&&span>=3?`<small>${esc(kt)}</small>`:''}</span></div></td>`;
+        i+=span;
+      } else { h+=`<td class="free ${cls(x)}" onclick="_loanerForm(null,'${c.n}','${x.d}')"></td>`; i++; }
+    }
+    h+='</tr>';
+  }
+  h+='</table></div>';
+  const from=days[0].d, to=days[N-1].d;
+  const list=_allBookings().filter(b=>b.to>=from&&b.from<=to).sort((a,b)=>a.from<b.from?-1:1);
+  const hols=days.filter(x=>x.hol).map(x=>`${x.n}日 ${x.hol}`);
+  h+=`<div class="lc-list">${list.length?list.map(b=>`<div class="lc-item" onclick="_loanerForm('${b.id}')"><i class="kd" style="background:${_kindBg(b,3)}"></i><b>${esc(_carLabel(b.car))}</b><span>${b.from.slice(5).replace('-','/')}〜${_toLabel(b.to)}</span><span>${esc(b.name||'')}</span><span>${esc(_kinds(b).join('・'))}</span><span style="color:var(--muted)">${esc(b.memo||'')}</span></div>`).join(''):'<div style="color:var(--muted)">この月の予約はありません</div>'}
+    ${hols.length?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">祝日：${hols.join('、')}</div>`:''}
+    ${SHEET.err?`<div style="margin-top:8px;color:#ff6b6b;font-size:12px">入庫管理表を読み込めません：${esc(SHEET.err)}</div>`:''}
+    ${SHEET.bad.length?`<div style="margin-top:8px;color:#ffb020;font-size:12px">入庫管理表で代車名か入庫日が読み取れない行：${esc(SHEET.bad.slice(0,10).join('／'))}${SHEET.bad.length>10?' ほか':''}</div>`:''}</div>
+    <button class="btn btn-primary lc-add-fab" type="button" onclick="_loanerForm()">＋ 予約を追加</button></div>`;
+  ov.innerHTML=h;
+  const sc=ov.querySelector('.lc-scroll'); const td=ov.querySelector('th.today'); if(sc&&td) sc.scrollLeft=Math.max(0,td.offsetLeft-140);
+}
+function _loanerForm(id,car,day){
+  const sb=id&&SHEET.rows.find(x=>x.id===id);
+  if(sb){ const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9500;
+    ov.innerHTML=`<div class="cf-box"><div style="font-weight:700;margin-bottom:8px">📄 入庫管理表の予約</div><div style="line-height:1.9;font-size:14px">車両：${esc(_carLabel(sb.car))}<br>入庫日（貸出）：${sb.from}<br>納期・出庫日（返却）：${sb.to===OPEN_END?'未定（決まるまで貸出中として表示）':sb.to}<br>お客様：${esc(sb.name)}<br>区分：${esc(sb.kind||'-')}<br><span style="color:var(--muted)">${esc(sb.memo)}</span></div><div style="font-size:12px;color:var(--muted);margin:8px 0">この予約はスプレッドシートから読み込んでいます。変更はシートで行ってください。</div><div class="cf-btns" style="grid-template-columns:1fr"><button type="button" class="btn btn-primary">閉じる</button></div></div>`;
+    ov.querySelector('button').onclick=()=>ov.remove(); ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();}); document.body.appendChild(ov); return; }
+  const b=id?LOANER_BOOK.find(x=>x.id===id):null;
+  const curName=[customer.name,customer.car,customer.plate].filter(Boolean).join(' ');
+  const d0=day||_ymd(new Date());
+  const v=b?{...b}:{car:car||customer.loanerVehicle||LOANER_CARS[0].n,from:d0,to:d0,name:curName,kind:'',memo:''};
+  const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9500;
+  ov.innerHTML=`<div class="cf-box lc-form" style="max-width:380px"><div style="font-weight:700;margin-bottom:10px">${b?'代車の予約を変更':'代車の予約を追加'}</div>
+    <div class="field"><label>車両</label><select id="lf-car">${[...LOANER_CARS,...RENTAL_ROWS].map(c=>`<option value="${c.n}"${c.n===v.car?' selected':''}>${c.lab||c.n}</option>`).join('')}</select></div>
+    <div class="field"><label>貸出日</label><input type="date" id="lf-from" value="${v.from}"></div>
+    <div class="field"><label>返却予定日</label><input type="date" id="lf-to" value="${v.to}"></div>
+    <div class="field"><label>お客様・車両</label><input id="lf-name" value="${esc(v.name||'')}" placeholder="例：山田様 プリウス 品川300あ1234"></div>
+    <div class="field"><label>メモ（作業の区分）</label><div class="check-group" id="lf-kind">${LOANER_KINDS.map(x=>`<button type="button" class="selbtn kd-btn${_kinds(v).includes(x.k)?' on':''}" data-k="${x.k}" style="--kc:${x.c}">${x.k}</button>`).join('')}</div><div style="font-size:11px;color:var(--muted);margin-top:3px">複数選べます</div>
+      <input id="lf-memo" value="${esc(v.memo||'')}" placeholder="例：保険会社手配／ガソリン満タン" style="margin-top:6px"></div>
+    <div class="cf-btns" style="grid-template-columns:${b?'1fr 1fr 1fr':'1fr 1fr'}">${b?'<button type="button" class="btn cf-yes lf-del">削除</button>':''}<button type="button" class="btn lf-cancel">キャンセル</button><button type="button" class="btn btn-primary lf-ok">保存</button></div></div>`;
+  let kinds=_kinds(v);
+  ov.querySelectorAll('.kd-btn').forEach(bt=>bt.onclick=()=>{ const k=bt.dataset.k; kinds=kinds.includes(k)?kinds.filter(x=>x!==k):LOANER_KINDS.map(x=>x.k).filter(x=>x===k||kinds.includes(x)); bt.classList.toggle('on',kinds.includes(k)); });
+  const close=()=>ov.remove();
+  ov.querySelector('.lf-cancel').onclick=close;
+  ov.addEventListener('click',e=>{if(e.target===ov)close();});
+  if(b) ov.querySelector('.lf-del').onclick=async()=>{ if(!await askConfirm(`${_carLabel(b.car)}（${b.from.slice(5)}〜${b.to.slice(5)}）の予約を削除しますか？`)) return; LOANER_BOOK=LOANER_BOOK.filter(x=>x.id!==b.id); _saveLoanerBook(); _cloudDel('loaner',b.id); close(); _renderLoanerCal(); };
+  ov.querySelector('.lf-ok').onclick=async()=>{
+    const n={id:b?b.id:genId(),car:ov.querySelector('#lf-car').value,from:ov.querySelector('#lf-from').value,to:ov.querySelector('#lf-to').value,name:ov.querySelector('#lf-name').value.trim(),kinds,kind:kinds.join('・'),memo:ov.querySelector('#lf-memo').value.trim()};
+    if(!n.from||!n.to){ toast('貸出日と返却予定日を入れてください'); return; }
+    if(n.to<n.from){ const t=n.from; n.from=n.to; n.to=t; }
+    const clash=_allBookings().find(x=>x.id!==n.id&&x.car===n.car&&x.from<=n.to&&n.from<=x.to);
+    if(clash && !await askConfirm(`${_carLabel(n.car)}は ${clash.from.slice(5)}〜${_toLabel(clash.to)}（${clash.name||'予約'}）と重なっています。このまま保存しますか？`,'保存する')) return;
+    LOANER_BOOK=LOANER_BOOK.filter(x=>x.id!==n.id); LOANER_BOOK.push(n);
+    if(!_saveLoanerBook()) toast('ロック中のため保存できませんでした',5000);
+    _cloudPut('loaner',n.id,{car:n.car,from:n.from,to:n.to,name:n.name,kinds:n.kinds,kind:n.kind,memo:n.memo});
+    close(); _renderLoanerCal();
+  };
+  document.body.appendChild(ov);
+}
 function setPayKind(btn){
   ['paySelf','payVehicle','payProperty'].forEach(k=>customer[k]=false);
   document.querySelectorAll('[data-pk]').forEach(b=>b.classList.remove('on'));
@@ -2516,7 +2632,10 @@ function _lineSendText(){
   // 送信後は端末に見積を残さない：車種・カラー番号の学習だけ行い、入力と写真を消す（LINE起動の後に実行）
   if(items.length||customer.name||customer.car){
     try{learnCurrentVehicle();}catch(e){}
-    setTimeout(()=>{resetEst(true);showMsg('print-msg','LINEに送信しました。この端末の見積内容と写真は削除しました。',6000);},300);
+    const shared=teamSaveEst('LINE');   // 送れなかったときに確かめられるよう、チームの履歴に残す（写真は除く）
+    const drive=driveSaveEst('LINE');   // Googleドライブの「見積り一覧」にも1行残す
+    const note=[shared?'チームの履歴':'',drive?'Googleドライブ':''].filter(Boolean).join('・');
+    setTimeout(()=>{resetEst(true);showMsg('print-msg','LINEに送信しました。この端末の見積内容と写真は削除しました。'+(note?`（${note}に保存）`:''),6000);},300);
   } else showMsg('print-msg','LINEアプリを起動しています…',5000);
 }
 async function dlFile(){
@@ -2540,65 +2659,9 @@ function saveEst(){
   const snap={id:genId(),savedAt:new Date().toISOString(),customer:{...customer},items:[...items.map(i=>({...i}))],settings:{...settings},totals:t,disc10:document.getElementById('disc10').checked,discountFree:document.getElementById('disc-free').value};
   try{learnCurrentVehicle();}catch(e){}
   history.unshift(snap);
-  showMsg('save-msg',_saveHistory()?'履歴に保存しました':'保存に失敗しました');
-  try{ _cloudPutEstimate(snap); }catch(e){}
-  try{ _estPhShare(); }catch(e){}
-}
-
-// ── 見積りの写真をチームで共有（11/7）──
-//  ・共有の photos に、登録番号ごと（jid＝estp-登録番号）に入れる。作業ボードの同じ車の作業指示・ほかの端末の見積りツールから見られる
-//  ・「車検証」の写真は共有しない（お名前・住所が写っているため）
-//  ・「💾 履歴に保存」と「LINEで送る」のときに自動で共有する。共有した写真は30日で自動で消える（Apps Script）
-function _estPlateKey(p){ return String(p||'').normalize('NFKC').replace(/[\s　]/g,'').replace(/[‐－−ー・.\-]/g,''); }
-function _estPhJid(){ const k=_estPlateKey(customer.plate); return _plateNo(customer.plate)&&k?'estp-'+k:''; }
-async function _estPhData(p){
-  let blob=p.blob;
-  if(blob.size>700000){ const c=await _fileToCanvas(blob,1280); blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.75)); }
-  return await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(blob); });
-}
-async function _estPhShare(manual){
-  if(!CLOUD.started){ if(manual) toast('チーム共有にログインすると共有できます（⚙️ 設定）',5000); return; }
-  const jid=_estPhJid(); if(!jid){ if(manual) toast('登録番号を入れてから共有してください',5000); return; }
-  const L=photos.filter(p=>p.tag!=='車検証'&&!p.shared&&!p.fromTeam);
-  if(!L.length){ if(manual) toast(photos.some(p=>p.tag==='車検証')&&!photos.some(p=>p.tag!=='車検証')?'車検証の写真は共有しません':'共有する写真はありません（共有済み・車検証は除く）',5000); return; }
-  const {fs}=CLOUD.fb; let n=0;
-  for(const p of L){
-    try{ const d=await _estPhData(p); if(d.length>950000) continue; p.pid=p.pid||('e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
-      await fs.setDoc(fs.doc(CLOUD.db,'photos',_cloudKey(jid+'_'+p.pid)),{jid,pid:p.pid,d,tag:p.tag||'',src:'est',by:(CLOUD.user&&CLOUD.user.email)||'',dev:'est',at:fs.serverTimestamp()});
-      p.shared=jid; n++; }
-    catch(e){ console.warn('写真の共有',e); if(manual){ toast('写真を共有できませんでした：'+_netMsg(e),6000); break; } }
-  }
-  if(manual&&n) toast(`写真${n}枚をチームで共有しました（作業ボードの同じ車からも見られます）`,5000);
-}
-function _estPhDel(p){ if(!CLOUD.started||!p.shared||!p.pid) return; const {fs}=CLOUD.fb; fs.deleteDoc(fs.doc(CLOUD.db,'photos',_cloudKey(p.shared+'_'+p.pid))).catch(()=>{}); }
-async function estTeamPhotos(){
-  if(!CLOUD.started){ toast('チーム共有にログインすると見られます（⚙️ 設定）',5000); return; }
-  const jid=_estPhJid(); if(!jid){ toast('登録番号を入れてください',4000); return; }
-  const {fs}=CLOUD.fb; let L=[];
-  try{ const sn=await fs.getDocs(fs.query(fs.collection(CLOUD.db,'photos'),fs.where('jid','==',jid))); sn.forEach(d=>{ const v=d.data()||{}; if(v.d&&/^data:image\//.test(v.d)) L.push(v); }); }
-  catch(e){ toast('チームの写真を読めませんでした：'+_netMsg(e),6000); return; }
-  if(!L.length){ toast('この車のチームの写真はありません',4000); return; }
-  const ov=document.createElement('div'); ov.className='cf-ov'; ov.style.zIndex=9600;
-  ov.innerHTML=`<div class="cf-box" style="max-width:560px;width:100%;max-height:88vh;overflow:auto"><div style="font-weight:700;margin-bottom:8px">👥 この車のチームの写真（${L.length}枚）</div>
-    ${L.map((v,i)=>`<div style="margin-bottom:10px"><img src="${v.d}" style="width:100%;border-radius:8px;display:block"><div style="display:flex;gap:6px;align-items:center;margin-top:4px"><span style="flex:1;font-size:12px;color:var(--muted)">${esc(v.tag||'写真')}</span><button type="button" class="btn" data-add="${i}">＋ この見積りに入れる</button></div></div>`).join('')}
-    <div class="cf-btns" style="grid-template-columns:1fr"><button type="button" class="btn tp-x">閉じる</button></div></div>`;
-  ov.querySelector('.tp-x').onclick=()=>ov.remove(); ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
-  ov.querySelectorAll('[data-add]').forEach(b=>b.onclick=async()=>{ const v=L[+b.dataset.add]; if(photos.length>=PHOTO_MAX){ toast(`写真は最大${PHOTO_MAX}枚までです`,4000); return; }
-    try{ const r=await fetch(v.d); const bl=await r.blob(); const p=await _photoFromFile(new File([bl],'team.jpg',{type:bl.type||'image/jpeg'}),v.tag||''); p.fromTeam=true; p.shared=jid; p.pid=v.pid; photos.push(p); renderPhotos(); b.disabled=true; b.textContent='✓ 入れました'; }
-    catch(e){ toast('写真を入れられませんでした',4000); } });
-  document.body.appendChild(ov);
-}
-// 入出庫管理表の「ARK通知」パネル向けに、見積りの要約だけを共有（お客様名・明細の金額は送らない）
-let _estCloudWarned=false;
-function _cloudPutEstimate(s){
-  if(!CLOUD.started) return;
-  const {fs}=CLOUD.fb; const c=s.customer||{}, t=s.totals||{};
-  fs.setDoc(fs.doc(CLOUD.db,'estimates',_cloudKey(s.id)),{
-    id:String(s.id), savedAt:s.savedAt, date:c.date||'', plate:c.plate||'', car:c.car||'', color:c.color||'', chassis:c.chassis||'', ptype:c.paintType||'', staff:c.staff||'',
-    parts:(s.items||[]).map(i=>i.part).filter(Boolean).slice(0,12), count:(s.items||[]).length,
-    grand:Math.round(+t.grand||0), loaner:c.loanerVehicle||'',
-    by:(CLOUD.user&&CLOUD.user.email)||'', at:fs.serverTimestamp()
-  }).catch(e=>{ if(!_estCloudWarned){ _estCloudWarned=true; toast('見積りの通知を共有できませんでした（Firestoreのルールにestimatesを追加してください）',7000); } });
+  const shared=teamSaveEst('保存'), drive=driveSaveEst('保存');
+  const note=[shared?'チーム':'',drive?'Googleドライブ':''].filter(Boolean).join('・');
+  showMsg('save-msg',_saveHistory()?('履歴に保存しました'+(note?`（${note}にも保存）`:'')):'保存に失敗しました');
 }
 function loadEst(h){
   customer={...newCust(),...h.customer};
@@ -2656,6 +2719,7 @@ async function deleteEst(id){
   toast('削除しました');
 }
 function renderHistory(){
+  try{renderTeamHistory();}catch(e){}
   const list=document.getElementById('history-list');
   const empty=document.getElementById('history-empty');
   list.innerHTML='';
@@ -13563,7 +13627,7 @@ async function photoAttachDoc(f,tag){
     renderPhotos();
   }catch(e){ console.warn(e); }
 }
-function photoRemove(id){ const p=photos.find(x=>x.id===id); if(p&&p.shared&&!p.fromTeam) _estPhDel(p); photos=photos.filter(p=>p.id!==id); renderPhotos(); }
+function photoRemove(id){ photos=photos.filter(p=>p.id!==id); renderPhotos(); }
 function photoTag(id,v){
   const p=photos.find(x=>x.id===id); if(!p) return;
   p.tag=v; _shareFiles=null;
@@ -13662,7 +13726,7 @@ function lineShareWithPhotos(){
       return;
     }
     const ok=await photoShare(); if(ok){ bp.textContent='① ✓ 写真を送りました'; bp.classList.add('done'); } bt.disabled=false; });
-  bt.addEventListener('click',()=>{ ov.remove(); try{ _estPhShare(); }catch(e){} _lineSendText(); });
+  bt.addEventListener('click',()=>{ ov.remove(); _lineSendText(); });
   ov.querySelector('.ls-cancel').addEventListener('click',()=>ov.remove());
   document.body.appendChild(ov);
 }
@@ -13719,7 +13783,7 @@ async function _setupPin(pin){
 function _failState(){try{return JSON.parse(_lsGet('est-lock-fail')||'{"n":0,"until":0}');}catch(e){return {n:0,until:0};}}
 function lockNow(){
   if(!SEC.ok||!_lockInfo()) return;
-  cloudStop(); SEC.key=null; SEC.locked=true; history=[]; LOANER_BOOK=[]; SHEET.rows=[]; SHEET.bad=[]; try{renderHistory();}catch(e){}
+  cloudStop(); SEC.key=null; SEC.locked=true; history=[]; LOANER_BOOK=[]; TEAM_EST=[]; try{renderTeamHistory();}catch(e){} SHEET.rows=[]; SHEET.bad=[]; try{renderHistory();}catch(e){}
   try{const o=document.getElementById('lc-ov'); if(o) o.remove();}catch(e){}
   try{renderLoanerCars();}catch(e){}
   document.querySelectorAll('.cf-ov:not(#lock-ov)').forEach(o=>{ if(o.id!=='busy') o.remove(); });
@@ -13882,35 +13946,6 @@ setCarType('国産車');
 buildPanelMap();
 render();
 document.getElementById('c-date').value=todayStr();
-</script>
-<script>
-// ── 新しい版のお知らせ：GitHubのファイルが新しくなったら、画面の下に「更新する」を出す ──
-(function(){
-  if(!/github\.io$/.test(location.hostname) || !window.fetch) return;
-  var base=null, shown=false;
-  function show(){
-    if(shown) return; shown=true;
-    var b=document.createElement('div');
-    b.setAttribute('style','position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:2147483000;background:#0b57d0;color:#fff;border-radius:22px;padding:8px 8px 8px 16px;font:700 14px/1.4 "Noto Sans JP",sans-serif;display:flex;gap:10px;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,.35);max-width:calc(100% - 24px)');
-    b.innerHTML='<span>新しい版があります</span><button type="button" style="border:0;border-radius:16px;background:#fff;color:#0b57d0;font:inherit;padding:6px 14px;cursor:pointer">更新する</button>';
-    b.querySelector('button').onclick=function(){ location.reload(); };
-    document.body.appendChild(b);
-  }
-  // 11/9：前は、GitHubの「最終更新の印」を比べていた。GitHubはどれか1つのファイルを入れ直すと全部の印が変わるため、
-  //  中身が変わっていないのに「新しい版」と何度も出ていた。→ ファイルの頭に書いた版の番号（ark-ver）だけを読んで比べる
-  var mine=(document.querySelector('meta[name="ark-ver"]')||{}).content||'';
-  function check(){
-    if(!mine) return;
-    fetch(location.pathname+'?v='+Date.now(),{cache:'no-store',headers:{Range:'bytes=0-4095'}}).then(function(r){
-      if(!r.ok) return null; return r.text();
-    }).then(function(t){
-      if(!t) return; var m=t.slice(0,8192).match(/<meta name="ark-ver" content="([^"]+)"/); if(!m) return;
-      if(m[1]!==mine) show();
-    }).catch(function(){});
-  }
-  check(); setInterval(check, 5*60*1000);
-  document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible') check(); });
-})();
 </script>
 </body>
 </html>
