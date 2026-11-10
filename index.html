@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta name="ark-ver" content="efe78e84ec">
+<meta name="ark-ver" content="0f2c3c935c">
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
@@ -192,6 +192,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .cs-shut:active{transform:scale(.92);}
 .cs-shut:disabled{opacity:.4;}
 .cs-ctrl .btn{justify-content:center;min-height:52px;}
+.lc-frame{position:absolute;left:7%;right:7%;top:40%;height:20%;border:3px solid var(--accent);border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,.45);pointer-events:none;}
+/* 覚えた車種：畳んで表示 */
+.lm-box summary{cursor:pointer;font-size:13px;font-weight:700;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);list-style:none;}
+.lm-box summary::-webkit-details-marker{display:none;}
+.lm-box summary::before{content:'▶ ';font-size:10px;}
+.lm-box[open] summary::before{content:'▼ ';}
+.lm-q{width:100%;margin:8px 0 6px;}
+.lm-list{max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:2px 8px;}
+.lm-list .tline{padding:3px 0;}
 .selbtn.lcar{display:inline-flex;flex-direction:column;align-items:center;line-height:1.2;}
 .selbtn.lcar small{font-size:10px;font-weight:700;}
 .selbtn.lcar.low{color:#FF2BD6;border-color:#FF2BD6;}
@@ -418,7 +427,7 @@ html.locked,html.locked body{overflow:hidden;}
           <div class="ph-sub">車検証・コーションラベルは撮影すると、お名前・登録番号・車種・車台番号・カラー番号を自動入力します</div>
           <div class="scan-row">
             <label class="btn">🪪 車検証<br>（撮影／写真）<input type="file" accept="image/*" style="display:none" onchange="shakenFromFile(this)"></label>
-            <label class="btn">🏷 コーションラベル<br>（撮影／写真）<input type="file" accept="image/*" style="display:none" onchange="labelFromFile(this)"></label>
+            <button type="button" class="btn" onclick="labelCam()">🏷 コーションラベル<br>（枠に合わせて撮影）</button>
             <button type="button" class="btn" onclick="openQRScanner()">📷 車検証QRを<br>カメラで読む</button>
             <input type="file" id="qr-photo-input" accept="image/*" capture="environment" style="display:none" onchange="shakenFromFile(this)">
           </div>
@@ -605,7 +614,10 @@ html.locked,html.locked body{overflow:hidden;}
     <div class="card-title"><span class="bar"></span>単価・会社情報設定</div>
     <div class="sg"><h3>覚えた車種 <span id="learned-count" style="color:var(--muted)"></span></h3>
       <div class="sg-note">見積りを保存すると、車台番号（または車種欄の末尾のコード）と車種名・ボディ形状を覚え、次回の読み取りで自動入力します。内蔵の車種表より優先されます。</div>
-      <div id="learned-list"></div>
+      <details id="learned-box" class="lm-box"><summary>一覧を開く（<span id="learned-count2">0件</span>）</summary>
+        <input id="learned-q" class="lm-q" placeholder="🔍 車台番号・車種で探す" oninput="renderLearned()">
+        <div id="learned-list" class="lm-list"></div>
+      </details>
     </div>
     <div class="sg" id="cloud-sec"><h3>チーム共有 <span id="cloud-badge" style="font-size:12px;color:var(--muted)">（未設定）</span></h3>
       <div class="sg-note">ログインすると「覚えた車種」「カラー番号の塗装タイプ」「代車カレンダー」を、同じチームの全端末で共有します。LINE送信・履歴に保存した見積りは「チームの見積り」（30日）とGoogleドライブにも残ります（写真はドライブのみ）。</div>
@@ -2106,7 +2118,8 @@ function cloudStart(){
   };
   listen('models',m=>{ const L={}; for(const k in m){ const v=m[k]; L[v.code||k]={name:v.name,shape:v.shape,kata:v.kata||'',typeNo:v.typeNo||'',count:v.count||1,updated:v.updated||''}; }
     LEARNED_MODELS={..._cloudLocalOnly('models'),...L}; _saveLearned(); try{renderLearned();}catch(e){} });
-  listen('colors',m=>{ const L={}; for(const k in m){ const v=m[k]; if(v&&v.type) L[v.code||k]=v.type; }
+  listen('colors',m=>{ const L={}, F={}; for(const k in m){ const v=m[k]; if(v&&v.type) L[String(v.code||k).toUpperCase()]=v.type; if(v&&v.fix) F[String(v.code||k).replace(/^fix\|/i,'').toUpperCase()]=v.fix; }
+    OCR_FIX={...OCR_FIX,...F}; try{localStorage.setItem('est-ocrfix',JSON.stringify(OCR_FIX));}catch(e){}
     LEARNED_COLORS={..._cloudLocalOnly('colors'),...L}; try{localStorage.setItem('est-colors',JSON.stringify(LEARNED_COLORS));}catch(e){} });
   listen('loaner',m=>{ const L=[]; for(const k in m){ const v=m[k]; if(v&&v.sheet){ if(v.url!==SHEET.url){ SHEET.url=v.url||''; try{ SHEET.url?localStorage.setItem('est-sheet-url',SHEET.url):localStorage.removeItem('est-sheet-url'); }catch(e){} SHEET.rows=[]; if(SHEET.url) setTimeout(()=>sheetLoad(false),0); try{renderSheetUI();}catch(e){} } continue; } if(v&&v.shop){ SHOP_CLOSED={w:v.closedW||[],d:v.closedD||[]}; try{localStorage.setItem('est-shop-closed',JSON.stringify(SHOP_CLOSED));}catch(e){} continue; } if(v&&v.car&&v.from&&v.to) L.push({id:k,car:v.car,from:v.from,to:v.to,name:v.name||'',src:v.src||'',skey:v.skey||'',plate:v.plate||'',returned:!!v.returned,kinds:Array.isArray(v.kinds)?v.kinds:[],kind:v.kind||'',memo:v.memo||''}); }
     // 11/4：この端末にだけある予約のうち、前に共有で見たことがあるもの（ほかの端末で削除・古くなって整理されたもの）と、返却から2か月たったものは戻さない
@@ -13295,22 +13308,101 @@ const PSA_COLORS = {
   'KCH':['マティヴォワール（ベージュ）','メタリック'],
   'KEB':['ノッチョーラ（ベージュ）','メタリック'],
 };
+// ─── カラー番号の共通部品（見積りツール・作業ボードで同じもの）11/11 ───────────────
+//  ・車種名からメーカー（色番号の付け方）を判定：OEM車は作ったメーカーの番号の付け方に合わせる（例：ルーミー→ダイハツ、フレア→スズキ）
+//  ・カラー番号→塗装タイプは「メーカー|番号」で覚える（メーカーが分からないときは番号だけ。前の記録＝番号だけ も読む）
+//  ・CK_DB は主な番号の出発点。チームで覚えた番号は自動で照合の対象に加わる
+const CK_MAKERS={TOYOTA:'トヨタ・レクサス',DAIHATSU:'ダイハツ',HONDA:'ホンダ',NISSAN:'日産',MAZDA:'マツダ',SUBARU:'スバル',MITSUBISHI:'三菱',SUZUKI:'スズキ',PSA:'シトロエン・プジョー・DS'};
+const CK_CARS=[
+  ['DAIHATSU','ピクシス,ライズ,ルーミー,タンク,パッソ,ブーン,トール,タント,ムーヴ,ムーブ,ミラ,ウェイク,キャスト,ロッキー,タフト,コペン,ハイゼット,アトレー,ソニカ,エッセ,ネイキッド,テリオス,ビーゴ,グランマックス,ステラ,プレオ,シフォン,ディアス,サンバー'],
+  ['SUZUKI','フレア,キャロル,スクラム,モコ,NV100,ワゴンR,スペーシア,ハスラー,アルト,ラパン,ジムニー,スイフト,ソリオ,クロスビー,エブリ,キャリ,MRワゴン,パレット,セルボ,SX4,エスクード,バレーノ,イグニス,キザシ,ランディ,ツイン,KEI,ケイ,フロンクス,ミニキャブ'],
+  ['MITSUBISHI','デイズ,ルークス,オッティ,デリカ,アウトランダー,エクリプス,EKワゴン,EKクロス,EKスペース,ミラージュ,パジェロ,RVR,ランサー,コルト,I-MIEV,タウンボックス,トッポ,ギャラン'],
+  ['TOYOTA','レクサス,LEXUS,プリウス,アクア,ヤリス,カローラ,クラウン,カムリ,ハリアー,RAV4,ランドクルーザー,ランクル,プラド,アルファード,ヴェルファイア,ヴォクシー,ノア,エスクァイア,シエンタ,ヴィッツ,ハイエース,レジアス,プロボックス,サクシード,タウンエース,ライトエース,C-HR,CHR,ハイラックス,86,スープラ,マークX,エスティマ,アイシス,ウィッシュ,オーリス,ポルテ,スペイド,ラクティス,ラッシュ,BB,BZ4X,ミライ,MIRAI,センチュリー,ダイナ,トヨエース,コースター,クラウン'],
+  ['HONDA','フィット,フリード,N-BOX,NBOX,N-WGN,NWGN,N-ONE,NONE,N-VAN,NVAN,ヴェゼル,ステップワゴン,ステップ,オデッセイ,シビック,アコード,インサイト,シャトル,グレイス,ジェイド,CR-V,CRV,ZR-V,ZRV,WR-V,WRV,S660,ライフ,ゼスト,バモス,アクティ,ストリーム,エリシオン,モビリオ,レジェンド,クロスロード,エアウェイブ,ザッツ,ビート'],
+  ['NISSAN','ノート,セレナ,エクストレイル,エルグランド,キックス,リーフ,スカイライン,フェアレディ,GT-R,ティーダ,マーチ,キューブ,ジューク,ラフェスタ,ウイングロード,NV200,NV350,キャラバン,クリッパー,サクラ,アリア,フーガ,シルフィ,ブルーバード,ティアナ,デュアリス,ムラーノ,バネット,ADバン,AD-VAN'],
+  ['MAZDA','デミオ,MAZDA2,マツダ2,アクセラ,MAZDA3,マツダ3,CX-3,CX-30,CX-5,CX-60,CX-8,CX-80,CX3,CX30,CX5,CX60,CX8,ロードスター,アテンザ,MAZDA6,プレマシー,ビアンテ,MPV,ボンゴ,ベリーサ,RX-8,タイタン'],
+  ['SUBARU','インプレッサ,レガシィ,フォレスター,レヴォーグ,XV,クロストレック,BRZ,WRX,エクシーガ,アウトバック,ルクラ,ジャスティ,トレジア,ソルテラ,レイバック'],
+  ['PSA','シトロエン,CITROEN,プジョー,PEUGEOT,DS'],
+];
+function ckNorm(s){ return String(s||'').normalize('NFKC').toUpperCase().replace(/\s/g,''); }
+function ckMaker(car,hint){
+  const z=ckNorm(car);
+  if(z) for(const [mk,list] of CK_CARS){ for(const w of list.split(',')){ if(w&&z.includes(ckNorm(w))) return mk; } }
+  return hint&&CK_MAKERS[hint]?hint:'';
+}
+function ckKey(maker,code){ const c=ckNorm(code); return maker&&c?maker+'|'+c:c; }
+// 主な色番号（メーカーごと。番号の付け方の形もここで確かめる）
+const CK_DB={
+  TOYOTA:{re:/^[0-9][0-9A-Z][0-9]$/,codes:'040,041,045,056,057,058,062,070,077,083,085,086,089,090,1C0,1D4,1D6,1E7,1F7,1F9,1G3,1G6,1H5,1H9,1J2,1J4,1J6,1J9,1K0,1K3,1K6,1L0,1L1,1L5,202,205,209,212,214,217,218,219,220,221,223,3P0,3Q3,3R3,3R9,3T3,3T7,3U5,4R8,4T3,4U7,4V8,4W9,4X1,4Y1,6W2,6X3,6X4,776,8P4,8R3,8S6,8T5,8V5,8W2,8W7,8X2,8X8,8Y5'},
+  DAIHATSU:{re:/^[A-Z][0-9]{2}$/,codes:'W09,W24,W25,W19,X07,X13,X12,S28,S43,T23,T27,R67,R75,B82,G59,L24,N54,P13'},
+  HONDA:{re:/^(NH|YR|BG|PB|RP|GY|YG|R|B|G|Y)[0-9]{2,3}[A-Z]?$/,codes:'NH578,NH624P,NH700M,NH731P,NH788P,NH797M,NH821M,NH830M,NH875P,NH883P,NH904M,NH0,R81,R513H,R565M,R569M,B588P,B593M,B607M,YR615M,Y70P,G543P'},
+  NISSAN:{re:/^[A-Z][A-Z0-9]{2}$/,codes:'QAB,QAC,QAA,QM1,QX1,KAD,KH3,K23,KAB,KAY,KY0,G41,GAG,GAT,B51,BW9,RAQ,NAH,NAJ,NBF,NAR,Z11,AX6,CAS,HAJ'},
+  MAZDA:{re:/^([0-9]{2}[A-Z]|[A-Z][0-9][A-Z])$/,codes:'41W,41V,46V,46G,25D,34K,38P,42M,42S,45B,47A,47C,51K,51C,41G,42A,45P,48C,A4D'},
+  SUBARU:{re:/^[A-Z0-9]{3}$/,codes:'K1X,37J,D4S,G1U,61K,H6Q,E8H,K7X,C2P'},
+  MITSUBISHI:{re:/^[A-Z][0-9]{2}$/,codes:'W37,W13,W85,A31,A39,X42,U17,P26,P62'},
+  SUZUKI:{re:/^Z[A-Z0-9]{2}$/,codes:'Z2S,ZVR,ZNC,ZMV,ZJ3,ZWG,ZLB,ZPF,Z7T,ZUE'},
+};
+// 読み違いやすい文字（OCR）
+const CK_CONF={'0':'OQD','O':'0Q','Q':'0O','D':'0','1':'IL7','I':'1L','L':'1I','5':'S','S':'5','8':'B','B':'8','2':'Z','Z':'2','6':'G','G':'6','7':'T1','T':'7','4':'A','A':'4'};
+function _ckVariants(t){
+  let L=['']; for(const ch of t){ const alt=[ch,...(CK_CONF[ch]||'')]; const n=[]; for(const p of L) for(const a of alt){ n.push(p+a); if(n.length>400) break; } L=n; if(L.length>400) break; }
+  return L;
+}
+// OCRの文字からカラー番号の候補を出す（known：チームで覚えた番号 {key:type}、fix：直した読み違い {maker|raw: 正しい番号}）
+function ckCandidates(text,maker,first,known,fix){
+  const T=ckNorm(String(text||'').replace(/\n/g,' ')).replace(/[^A-Z0-9\-]/g,' ');
+  const toks=new Set(); String(text||'').toUpperCase().split(/[^A-Z0-9\-]+/).forEach(w=>{ w=w.replace(/^-+|-+$/g,''); if(w.length>=2&&w.length<=8) toks.add(w); w.split('-').forEach(x=>{ if(x.length>=2&&x.length<=7) toks.add(x); }); });
+  if(first) toks.add(ckNorm(first));
+  const mk=maker&&CK_DB[maker]?[maker]:Object.keys(CK_DB);
+  const kn=new Set(Object.keys(known||{}).map(k=>k.includes('|')?(k.startsWith((maker||'')+'|')?k.split('|')[1]:''):k).filter(Boolean));
+  const sc={};
+  const add=(c,s,why)=>{ if(!c) return; if(!sc[c]||sc[c].s<s) sc[c]={c,s,why}; };
+  for(const t of toks){
+    const fx=fix&&(fix[ckKey(maker,t)]||fix[t]); if(fx) add(fx,20,'fix');
+    if(t.length<2||t.length>7) continue;
+    for(const v of _ckVariants(t)){
+      const d=[...v].reduce((n,ch,i)=>n+(ch!==t[i]?1:0),0); if(d>2) continue;
+      let s=0, why='';
+      if(kn.has(v)){ s+=8; why='team'; }
+      for(const m of mk){ const db=CK_DB[m]; if(db.codes.split(',').includes(v)){ s+=(m===maker?7:3); why=why||'db'; } if(db.re.test(v)&&m===maker) s+=2; }
+      if(maker==='PSA'&&typeof PSA_COLORS!=='undefined'&&PSA_COLORS[v]){ s+=7; why=why||'db'; }
+      if(first&&v===ckNorm(first)) s+=3;
+      if(!s) continue;
+      s-=d*1.5; if(s>0) add(v,s,why);
+    }
+  }
+  return Object.values(sc).sort((a,b)=>b.s-a.s).filter((x,i)=>i===0||x.s>=4).slice(0,3);
+}
+
 // 保存した見積から覚えたカラー番号 → 塗装タイプ（端末内に保存。表に無い色も2回目から自動で入る）
 let LEARNED_COLORS={};
 try{LEARNED_COLORS=JSON.parse(localStorage.getItem('est-colors')||'{}')||{};}catch(e){LEARNED_COLORS={};}
-function _colorInfo(code){
+let OCR_FIX={}; try{ OCR_FIX=JSON.parse(localStorage.getItem('est-ocrfix')||'{}')||{}; }catch(e){ OCR_FIX={}; }
+function _curMaker(hint){ return ckMaker((document.getElementById('c-car')||{}).value||customer.car,hint||customer.labelMaker); }
+function _colorInfo(code,maker){
   const c=String(code||'').toUpperCase().replace(/\s/g,'');
   if(!c) return null;
+  if(maker===undefined) maker=_curMaker();
+  const k=ckKey(maker,c);
+  if(maker&&LEARNED_COLORS[k]) return {name:(PSA_COLORS[c]||[])[0]||'',type:LEARNED_COLORS[k],learned:true};
   if(LEARNED_COLORS[c]) return {name:(PSA_COLORS[c]||[])[0]||'',type:LEARNED_COLORS[c],learned:true};
+  if(!maker){ const t=[...new Set(Object.keys(LEARNED_COLORS).filter(x=>x.endsWith('|'+c)).map(x=>LEARNED_COLORS[x]))]; if(t.length===1) return {name:'',type:t[0],learned:true}; }   // 車種からメーカーが分からないとき：どのメーカーでも同じ塗装タイプなら使う
   if(PSA_COLORS[c]) return {name:PSA_COLORS[c][0],type:PSA_COLORS[c][1]};
   return null;
 }
 function learnCurrentColor(){
   const c=String(customer.color||'').toUpperCase().replace(/\s/g,'');
-  if(!/^[A-Z0-9-]{2,8}$/.test(c)||!customer.paintType) return;
-  if(PSA_COLORS[c]&&PSA_COLORS[c][1]===customer.paintType&&!LEARNED_COLORS[c]) return;
-  LEARNED_COLORS[c]=customer.paintType;
-  try{_cloudPut('colors',c,{type:customer.paintType});}catch(e){}
+  if(!/^[A-Z0-9-]{2,8}$/.test(c)) return;
+  const maker=_curMaker(), k=ckKey(maker,c);
+  // 読み取りの読み違いを手で直した（候補を選んだ）とき：読んだ文字 → 正しい番号 をチームで覚える
+  const o=window._ocrColor;
+  if(o&&o.raw&&o.raw!==c&&/^[A-Z0-9-]{2,8}$/.test(o.raw)){ const fk=ckKey(maker||o.maker,o.raw); OCR_FIX[fk]=c; try{localStorage.setItem('est-ocrfix',JSON.stringify(OCR_FIX));}catch(e){} try{_cloudPut('colors','fix|'+fk,{fix:c,raw:o.raw,maker:maker||o.maker||''});}catch(e){} }
+  window._ocrColor=null;
+  if(!customer.paintType) return;
+  if(PSA_COLORS[c]&&PSA_COLORS[c][1]===customer.paintType&&!LEARNED_COLORS[k]) return;
+  if(LEARNED_COLORS[k]===customer.paintType) return;
+  LEARNED_COLORS[k]=customer.paintType;
+  try{_cloudPut('colors',k,{type:customer.paintType,cc:c,maker:maker||''});}catch(e){}
   try{localStorage.setItem('est-colors',JSON.stringify(LEARNED_COLORS));}catch(e){}
 }
 // ホンダのカラー番号（NH812P, R81, B593M, YR615M など）：数字部分の読み違い（B→8, O→0 など）を補正
@@ -13420,6 +13512,13 @@ function _setCarFrom(name,code,shape){
   return {carName,shapeLabel:b?b.textContent.trim():''};
 }
 // 候補が複数ある型式（ホンダとスバルで同じ記号など）は選べるようにする
+// カラー番号の候補を押した
+function chooseColor(c){
+  document.getElementById('c-color').value=c; document.querySelectorAll('.col-cand').forEach(b=>b.classList.toggle('on',b.textContent.replace(' ✓','')===c));
+  updateCust(); const ci=_colorInfo(c);
+  if(ci){ setPaintTypeAll(ci.type); const ps=document.getElementById('c-ptype'); if(ps) ps.value=ci.type; toast(`カラー ${c} → 塗装タイプ ${ci.type}`); } else toast(`カラー ${c} にしました（塗装タイプを選んで保存すると次回から自動で入ります）`,4000);
+  updateCust();
+}
 function chooseCandidate(i){
   const st=window._candState; if(!st) return;
   const c=st.cands[i]; const r=_setCarFrom(c[0],st.code,c[1]);
@@ -13449,6 +13548,20 @@ function applyVehicleInfo(info,source){
     const car=document.getElementById('c-car'); if(!car.value && source!=='コーションラベル') car.value=_codeFrom(info.chassis)||info.kata||'';
     msgs.push(`型式 ${info.kata||info.chassis}（車種表に未登録：車種名を入力して保存すると次回から自動で入ります）`);
   }
+  let colCand='';
+  if(info.color||info._text){
+    const maker=_curMaker(info._maker); if(info._maker) customer.labelMaker=info._maker;
+    const raw=info.color?ckNorm(info.color):'';
+    const fixed=raw&&(OCR_FIX[ckKey(maker,raw)]||OCR_FIX[raw]);
+    const cands=ckCandidates(info._text||raw,maker,fixed||raw,LEARNED_COLORS,OCR_FIX);
+    let use=fixed||raw;
+    // 読んだ文字が実在しない番号で、実在する番号の候補があれば、そちらを使う
+    if(cands.length&&cands[0].c!==use&&(cands[0].why||!use)&&!(_colorInfo(use,maker))) use=cands[0].c;
+    info.color=use||'';
+    window._ocrColor={raw:raw||use,maker};
+    if(fixed) msgs.push(`（前に直した読み違い ${raw}→${fixed} を補正）`);
+    if(cands.length>1||(cands.length===1&&cands[0].c!==info.color)) colCand='<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span style="color:var(--muted)">カラー番号の候補'+(maker?'（'+esc(CK_MAKERS[maker])+'）':'')+'：</span>'+cands.map(x=>`<button type="button" class="selbtn rbtn col-cand${x.c===info.color?' on':''}" onclick="chooseColor('${esc(x.c)}')">${esc(x.c)}${x.why==='team'?' ✓':''}</button>`).join('')+'</div>';
+  }
   if(info.color){
     document.getElementById('c-color').value=info.color;
     const ci=_colorInfo(info.color);
@@ -13460,15 +13573,19 @@ function applyVehicleInfo(info,source){
   if(info.expiry) msgs.push('車検満了 '+info.expiry);
   updateCust();
   const box=document.getElementById('scan-result');
-  if(box){ box.innerHTML = esc(msgs.length ? `読み取り（${source}）：`+msgs.join(' ／ ') : `${source}から読み取れませんでした`)+candHtml; }
+  if(box){ box.innerHTML = esc(msgs.length ? `読み取り（${source}）：`+msgs.join(' ／ ') : `${source}から読み取れませんでした`)+candHtml+colCand; }
   toast(msgs.length? '読み取りました：'+msgs.slice(0,4).join('、') : '読み取れませんでした。明るい場所で近づけて撮影してください', 5000);
   return msgs.length;
 }
 // 設定画面：覚えた車種の一覧
 function renderLearned(){
   const el=document.getElementById('learned-list'); if(!el) return;
-  const keys=Object.keys(LEARNED_MODELS).sort();
-  document.getElementById('learned-count').textContent=keys.length+'件';
+  const all=Object.keys(LEARNED_MODELS).sort();
+  document.getElementById('learned-count').textContent=all.length+'件';
+  const c2=document.getElementById('learned-count2'); if(c2) c2.textContent=all.length+'件';
+  const box=document.getElementById('learned-box'); if(box&&!box.open){ el.innerHTML=''; if(!box._t){ box._t=1; box.addEventListener('toggle',()=>{ if(box.open) renderLearned(); }); } return; }   // 畳んでいる間は作らない（件数が多くても重くならない）
+  const q=((document.getElementById('learned-q')||{}).value||'').normalize('NFKC').toUpperCase().replace(/\s/g,'');
+  const keys=q?all.filter(k=>(k+(LEARNED_MODELS[k].name||'')).normalize('NFKC').toUpperCase().replace(/\s/g,'').includes(q)):all;
   el.innerHTML=keys.length?keys.map(k=>{const L=LEARNED_MODELS[k];const lab=(document.querySelector(`[data-shape="${L.shape}"]`)||{}).textContent||L.shape;return `<div class="tline" style="font-size:12px"><span>${esc(k)}　${esc(L.name)}（${esc(lab)}）</span><button type="button" class="btn" style="padding:4px 10px;min-height:32px" onclick="forgetLearned('${esc(k)}')">✕</button></div>`;}).join(''):'<div style="font-size:12px;color:var(--muted)">まだありません（見積りを保存すると、その車種を覚えます）</div>';
 }
 async function forgetLearned(k){ if(!await askConfirm(`${k} の登録を削除しますか？`)) return; delete LEARNED_MODELS[k]; _saveLearned(); try{_cloudDel('models',k);}catch(e){} renderLearned(); }
@@ -13668,6 +13785,83 @@ function _loadTesseract(){
   _tessLoading=new Promise((res,rej)=>{const s=document.createElement('script');s.src=TESS_URL+'tesseract.min.js';s.integrity=TESS_SRI.main;s.crossOrigin='anonymous';s.onload=()=>res();s.onerror=()=>{_tessLoading=null;rej(new Error('文字認識の読み込みに失敗しました（通信を確認してください）'));};document.head.appendChild(s);});
   return _tessLoading;
 }
+// ─── Google の画像認識（Apps Script 経由。設定がなければ使わない）───
+const VISION={off:false,warned:false};
+async function _visionOcr(canvas,what){
+  if(!SHEET.url||VISION.off||SEC.locked) return null;
+  try{
+    let c=canvas; const mx=1600; if(Math.max(c.width,c.height)>mx){ const k=mx/Math.max(c.width,c.height); const d=document.createElement('canvas'); d.width=Math.round(c.width*k); d.height=Math.round(c.height*k); d.getContext('2d').drawImage(c,0,0,d.width,d.height); c=d; }
+    const b64=c.toDataURL('image/jpeg',0.85).split(',')[1];
+    _busy(`${what||'文字'}をGoogleで読み取っています…`);
+    const r=await fetch(SHEET.url,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'ocr',b64})});
+    const j=JSON.parse(await r.text());
+    if(j.error==='novision'||j.error==='unknown action'){ VISION.off=true; return null; }   // まだ設定していない
+    if(j.error){ if(!VISION.warned){ VISION.warned=true; toast(j.error==='limit'?'Googleの画像認識は今月の上限に達したため、端末の文字認識で読みます':'Googleの画像認識でエラー：'+j.error,6000); } return null; }
+    return String(j.text||'');
+  }catch(e){ console.warn('vision',e); return null; }
+}
+// ─── コーションラベル：枠に合わせて撮る（カラー番号の行だけを大きくして読む）───
+let _lcCam=null;
+async function labelCam(){
+  const ov=document.createElement('div'); ov.className='cam-ov'; ov.id='lc-cam';
+  ov.innerHTML=`<div class="cam-head">カラー番号の行を枠に入れて撮影してください<br><small>トヨタ等は「C/TR」の行、ホンダは「…-NH883P-…」の行、シトロエン等は灰色の枠の英字3文字</small></div>
+    <div class="cam-wrap cs-wrap"><video playsinline muted autoplay></video><div class="lc-frame"></div><div class="cs-flash"></div></div>
+    <div class="cam-status" id="lc-st"></div>
+    <div class="cs-ctrl"><label class="btn">🖼 写真から<input type="file" accept="image/*" style="display:none" onchange="document.getElementById('lc-cam')._close();labelFromFile(this)"></label><button type="button" class="cs-shut" id="lc-shut" aria-label="撮影"></button><button type="button" class="btn" id="lc-x">閉じる</button></div>`;
+  document.body.appendChild(ov);
+  const video=ov.querySelector('video'), fr=ov.querySelector('.lc-frame');
+  const close=()=>{ if(_lcCam){ _lcCam.getTracks().forEach(t=>t.stop()); _lcCam=null; } ov.remove(); };
+  ov._close=close; ov.querySelector('#lc-x').onclick=close;
+  try{
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error('unsupported');
+    _lcCam=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:2560},height:{ideal:1920}},audio:false});
+  }catch(e){ close(); toast('カメラを使えないため、写真から読み取ります',4000); const i=document.createElement('input'); i.type='file'; i.accept='image/*'; i.onchange=()=>labelFromFile(i); i.click(); return; }
+  video.srcObject=_lcCam; await video.play().catch(()=>{});
+  ov.querySelector('#lc-shut').onclick=async()=>{
+    if(!video.videoWidth) return;
+    const vw=video.videoWidth, vh=video.videoHeight, vr=video.getBoundingClientRect(), frr=fr.getBoundingClientRect();
+    // 画面の枠 → 映像の座標（object-fit:contain）
+    const k=Math.min(vr.width/vw,vr.height/vh), ox=vr.left+(vr.width-vw*k)/2, oy=vr.top+(vr.height-vh*k)/2;
+    const sx=Math.max(0,(frr.left-ox)/k), sy=Math.max(0,(frr.top-oy)/k), sw=Math.min(vw-sx,frr.width/k), sh=Math.min(vh-sy,frr.height/k);
+    const full=document.createElement('canvas'); full.width=vw; full.height=vh; full.getContext('2d').drawImage(video,0,0);
+    const crop=document.createElement('canvas'); const up=Math.max(1,Math.min(3,1400/sw)); crop.width=Math.round(sw*up); crop.height=Math.round(sh*up);
+    const cx=crop.getContext('2d'); cx.imageSmoothingQuality='high'; cx.drawImage(full,sx,sy,sw,sh,0,0,crop.width,crop.height);
+    close();
+    try{ const b=await new Promise(r=>full.toBlob(r,'image/jpeg',0.9)); photoAttachDoc(new File([b],'label.jpg',{type:'image/jpeg'}),'コーションラベル'); }catch(e){}
+    await labelFromCrop(crop,full);
+  };
+}
+function _lcPrep(crop){
+  // 白黒にして2通り（そのまま・反転）。黒いラベルにも対応
+  const out=[]; const w=crop.width,h=crop.height; const d=crop.getContext('2d').getImageData(0,0,w,h); const g=new Uint8ClampedArray(w*h); let sum=0;
+  for(let i=0;i<w*h;i++){ const v=0.299*d.data[i*4]+0.587*d.data[i*4+1]+0.114*d.data[i*4+2]; g[i]=v; sum+=v; }
+  const avg=sum/(w*h);
+  for(const inv of [false,true]){ const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d'); const o=x.createImageData(w,h);
+    for(let i=0;i<w*h;i++){ let v=g[i]<avg*0.85?0:255; if(inv) v=255-v; o.data[i*4]=o.data[i*4+1]=o.data[i*4+2]=v; o.data[i*4+3]=255; } x.putImageData(o,0,0); out.push(c); }
+  return avg<110?out.reverse():out;   // 暗いラベルなら反転を先に
+}
+async function labelFromCrop(crop,full){
+  const texts=[]; let best={};
+  const gv=await _visionOcr(crop,'カラー番号');
+  if(gv){ texts.push(gv); best=parseLabelText(gv); }
+  if(!best.color){
+    let worker=null;
+    try{
+      _busy('文字認識を準備しています…（初回は少し時間がかかります）');
+      await _loadTesseract(); worker=await _newWorker('eng');
+      await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-./: ',tessedit_pageseg_mode:'6'});
+      const L=[crop,..._lcPrep(crop)];
+      for(let i=0;i<L.length;i++){ _busy(`カラー番号を読み取っています…（${i+1}/${L.length}）`); const {data}=await worker.recognize(L[i]); texts.push(data.text); const p=parseLabelText(data.text); if(p.color){ best=p; break; } }
+    }catch(e){ toast('エラー：'+_errMsg(e),6000); }
+    finally{ if(worker) worker.terminate(); _busy(null); }
+  }
+  _busy(null);
+  const maker=best.maker||'';
+  const info={color:best.color||'',_text:texts.join('\n'),_maker:maker};
+  if(!info.color){ const c=ckCandidates(info._text,_curMaker(maker),'',LEARNED_COLORS,OCR_FIX); if(c.length) info.color=c[0].c; }
+  if(!info.color&&full){ toast('枠の中から読めませんでした。ラベル全体から読み直します',4000); const b=await new Promise(r=>full.toBlob(r,'image/jpeg',0.9)); return labelFromBlob(new File([b],'label.jpg',{type:'image/jpeg'})); }
+  applyVehicleInfo(info,'コーションラベル');
+}
 async function labelFromFile(input){
   const f=input.files&&input.files[0]; input.value=''; if(!f) return;
   photoAttachDoc(f,'コーションラベル');
@@ -13698,11 +13892,13 @@ async function labelFromBlob(f){
     const base=_labelPrep(src); const vertical=base[0].height>base[0].width;
     let dens=[]; try{dens=_labelPrepDensity(src);}catch(e){}
     const cands=[...dens.slice(0,1),...base,...dens.slice(1)];
-    let best={}, psa=false, psaDone=false;
-    for(let i=0;i<cands.length;i++){
+    let best={}, psa=false, psaDone=false, texts=[];
+    const gv=await _visionOcr(src,'コーションラベル');
+    if(gv){ const p=parseLabelText(gv); texts.push(gv); if(p.color){ best={...p,_s:9}; } }
+    for(let i=0;i<cands.length&&!best.color;i++){
       _busy(`コーションラベルを読み取っています…（${i+1}/${cands.length}）`);
       const {data}=await worker.recognize(cands[i]);
-      const p=parseLabelText(data.text);
+      const p=parseLabelText(data.text); texts.push(data.text);
       if(p.psa||p.maker==='PSA') psa=true;
       // 読めた内容の確からしさ：車種表に載っている型式・車台番号が読めていれば高得点
       const score=(p.color?2:0)+(p.kata?1:0)+(p.chassis?1:0)+((p.chassis&&lookupChassis(p.chassis))||(p.kata&&lookupChassis(p.kata))?2:0)+(/COLOR|FRAME|MODEL/.test(data.text)?1:0);
@@ -13717,7 +13913,7 @@ async function labelFromBlob(f){
       for(let j=0;j<ad.length&&!best.color;j++){
         _busy(`もう一度読み取っています…（${j+1}/${ad.length}）`);
         const {data}=await worker.recognize(ad[j]);
-        const p=parseLabelText(data.text);
+        const p=parseLabelText(data.text); texts.push(data.text);
         if(p.color){ best={...best,color:p.color}; if(best.chassis&&!lookupChassis(best.chassis)) delete best.chassis; if(best.kata&&!lookupChassis(best.kata)) delete best.kata; }
       }
     }
@@ -13729,7 +13925,7 @@ async function labelFromBlob(f){
     if(document.getElementById('c-car').value){ delete best.chassis; delete best.kata; }
     // ラベルの車台番号は読み違いがあり得るので、車種の判定にだけ使い、車台番号欄には入れない
     if(best.chassis){ if(lookupChassis(best.chassis)||!best.kata||!lookupChassis(best.kata)) best.kata=best.chassis; delete best.chassis; }
-    delete best.maker;
+    best._maker=best.maker||(psa?'PSA':''); delete best.maker; best._text=texts.join('\n');
     applyVehicleInfo(best,'コーションラベル');
   }catch(e){ _busy(null); toast('エラー：'+_errMsg(e),7000); }
   finally{ if(worker) worker.terminate(); }
