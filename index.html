@@ -560,7 +560,7 @@ html.locked,html.locked body{overflow:hidden;}
       <div id="learned-list"></div>
     </div>
     <div class="sg" id="cloud-sec"><h3>チーム共有 <span id="cloud-badge" style="font-size:12px;color:var(--muted)">（未設定）</span></h3>
-      <div class="sg-note">ログインすると「覚えた車種」「カラー番号の塗装タイプ」「代車カレンダー」を、同じチームの全端末で共有します。見積の内容・写真は共有しません。</div>
+      <div class="sg-note">ログインすると「覚えた車種」「カラー番号の塗装タイプ」「代車カレンダー」を、同じチームの全端末で共有します。LINE送信・履歴に保存した見積りは「チームの見積り」（30日）とGoogleドライブにも残ります（写真はドライブのみ）。</div>
       <div id="cloud-cfg-box">
         <div class="field"><label>共有の設定（Firebaseの設定を貼り付け：最初の1回だけ）</label><textarea id="cloud-cfg" rows="4" placeholder="const firebaseConfig = { apiKey: &quot;…&quot;, authDomain: &quot;…&quot;, projectId: &quot;…&quot;, … };"></textarea></div>
         <button type="button" class="btn" onclick="cloudSaveCfg()">設定を保存</button>
@@ -575,7 +575,8 @@ html.locked,html.locked body{overflow:hidden;}
       <div class="sg-note" style="margin-top:10px"><b>入庫管理表（スプレッドシート）との連動</b>：代車（K列）が入っている行を代車カレンダーに表示します（読み取りのみ）。</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input id="sheet-url" placeholder="Apps Script のウェブアプリURL" style="flex:1;min-width:200px" onfocus="if(this.value==='（設定済み）')this.value=''"><button type="button" class="btn" onclick="sheetSaveUrl()">保存</button><button type="button" class="btn" onclick="sheetLoad(true)">今すぐ読み込む</button></div>
       <div id="sheet-status" style="font-size:12px;color:var(--muted);margin:4px 0 2px">未設定</div>
-      <div id="drive-status" style="font-size:12px;color:var(--muted);margin:0 0 10px">見積りのGoogleドライブ保存：同じURLを使います（LINE送信・履歴に保存のとき）</div>
+      <div id="drive-status" style="font-size:12px;color:var(--muted);margin:0 0 4px">見積りのGoogleドライブ保存：同じURLを使います（LINE送信・履歴に保存のとき）</div>
+      <div style="margin:0 0 10px"><button type="button" class="btn" onclick="driveTest()">📁 ドライブ保存を確認</button></div>
       <div id="cloud-user-box" style="display:none">
         <div style="margin-bottom:8px">ログイン中：<b id="cloud-user"></b></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" onclick="cloudLogout()">ログアウト</button><button type="button" class="btn" onclick="cloudUploadLocal(true)">この端末の覚えた内容を共有に送る</button></div>
@@ -2081,6 +2082,33 @@ function _estDocHtml(meta,phList){
    +`<h2>備考</h2><div class="box">${e(c.note)}</div>${ph}`
    +`<div class="foot">保存した日時：${when}　／　保存のきっかけ：${meta.via==='LINE'?'LINE送信':'履歴に保存'}　／　作成者：${e(meta.by)||'—'}<br>見積りの番号：${e(meta.id)}</div><button class="pbtn" onclick="print()">🖨 印刷</button></body></html>`;
 }
+// PDF用（Googleの変換は表だけを使う簡単なレイアウトのほうが崩れにくい）
+function _estPdfHtml(meta,phList){
+  const c=customer, t=calcTotals(), e=x=>esc(String(x==null?'':x));
+  const td='border:1px solid #666;padding:4px 6px;font-size:10pt;vertical-align:top;', th=td+'background:#eeeeee;font-weight:bold;';
+  const info=[['お客様名',c.name?e(c.name)+' 様':''],['見積日',e(c.date)],['車種',e(c.car)+(c.carType?'（'+e(c.carType)+'）':'')],['登録番号',e(c.plate)],['車台番号',e(c.chassis)],
+    ['カラー・塗装',[e(c.color),e(c.paintType)].filter(Boolean).join('　')],['ボディ形状',e(currentBodyShape||c.bodyShape)],['走行距離',c.mileage?(+c.mileage).toLocaleString()+' km':''],
+    ['代車',e(loanerSummary())],['支払区分',e(paySummary())],['担当',e(c.staff)],['作成者',e(meta.by)]];
+  const infoRows=[]; for(let i=0;i<info.length;i+=2){ const a=info[i],b=info[i+1]||['',''];
+    infoRows.push(`<tr><td style="${th}width:16%">${a[0]}</td><td style="${td}width:34%">${a[1]||'—'}</td><td style="${th}width:16%">${b[0]}</td><td style="${td}width:34%">${b[1]||(b[0]?'—':'')}</td></tr>`); }
+  const rows=items.map(it=>{ const b=calcRow(it); return `<tr><td style="${td}">${e(it.part)||'-'}</td><td style="${td}background:${EST_TYPE_COLOR[it.type]||'#e5e7eb'};font-weight:bold;white-space:nowrap">${e(it.type)}</td><td style="${td}">${e(b.desc)||'-'}</td><td style="${td}text-align:right">${it.qty}</td><td style="${td}text-align:right;white-space:nowrap">${fmt(b.amount)}</td></tr>`; }).join('')||`<tr><td colspan="5" style="${td}text-align:center">項目がありません</td></tr>`;
+  const tr=(k,v,red,big)=>`<tr><td style="padding:2px 8px;font-size:${big?'13pt;font-weight:bold;border-top:2px solid #111':'10pt'}">${k}</td><td style="padding:2px 8px;text-align:right;font-size:${big?'13pt;font-weight:bold;border-top:2px solid #111':'10pt'}${red?';color:#cc0000':''}">${v}</td></tr>`;
+  const tots=(t.parts>0?tr('うち部品代'+(t.partsRef>0?'（目安含む）':''),fmt(t.parts)):'')+tr('作業小計',fmt(t.sub))+(c.noExpense?'':tr(`諸経費（${e(settings.expenseRate)}%）`,fmt(t.exp)))
+    +(t.cutPre>0?tr('端数調整（税抜）','－'+fmt(t.cutPre),1):'')+tr(`消費税（${e(settings.taxRate)}%）`,fmt(t.tax))+(t.cutPost>0?tr('端数調整（税込）','－'+fmt(t.cutPost),1):'')
+    +(t.disc10>0?tr('10%値引き','－'+fmt(t.disc10),1):'')+(t.discFree>0?tr('自由値引き','－'+fmt(t.discFree),1):'')+tr('合計金額（税込）',fmt(t.grand),0,1);
+  const photoRows=[]; for(let i=0;i<phList.length;i+=2){ photoRows.push('<tr>'+[phList[i],phList[i+1]].map(p=>p?`<td style="width:50%;padding:4px;vertical-align:top;border:1px solid #999"><img src="${p.name}" style="width:330px"><br><span style="font-size:9pt">${e(p.cap)}</span></td>`:'<td style="width:50%"></td>').join('')+'</tr>'); }
+  const d=new Date(meta.savedAt), when=`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  const h2=x=>`<p style="font-size:12pt;font-weight:bold;margin:12px 0 4px;border-left:5px solid #111;padding-left:6px">${x}</p>`;
+  return `<html><head><meta charset="utf-8"><title>御見積書</title></head><body style="font-family:sans-serif;color:#111;font-size:10pt">`
+   +`<table style="width:100%;border-collapse:collapse;border-bottom:3px solid #111"><tr><td style="font-size:18pt;font-weight:bold;letter-spacing:6px">御見積書</td><td style="text-align:right;font-size:9pt">${e(settings.shopName||'')}　見積りの記録</td></tr></table>`
+   +`<p style="margin:8px 0;font-size:16pt;font-weight:bold">${e(c.plate)}　${e(c.car)||'車種未入力'}　${c.name?e(c.name)+' 様':''}　<span style="background:#111;color:#fff;padding:2px 8px">${fmt(t.grand)}</span></p>`
+   +`<table style="width:100%;border-collapse:collapse">${infoRows.join('')}</table>`
+   +h2('作業内容')+`<table style="width:100%;border-collapse:collapse"><tr><td style="${th}width:20%">部位</td><td style="${th}width:11%">作業</td><td style="${th}">内容</td><td style="${th}width:6%">数量</td><td style="${th}width:13%">金額</td></tr>${rows}</table>`
+   +`<table style="margin:8px 0 0 auto;border-collapse:collapse">${tots}</table>`
+   +(c.note?h2('備考')+`<div style="border:2px solid #111;padding:6px;white-space:pre-wrap">${e(c.note)}</div>`:'')
+   +(phList.length?h2(`写真（${phList.length}枚）`)+`<table style="width:100%;border-collapse:collapse">${photoRows.join('')}</table>`:'')
+   +`<p style="margin-top:12px;border-top:1px solid #999;padding-top:4px;color:#555;font-size:8pt">保存した日時：${when}　／　保存のきっかけ：${meta.via==='LINE'?'LINE送信':'履歴に保存'}　／　作成者：${e(meta.by)||'—'}　／　見積りの番号：${e(meta.id)}</p></body></html>`;
+}
 const _blobB64=b=>new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(String(fr.result).split(',')[1]);fr.onerror=rej;fr.readAsDataURL(b);});
 function _driveRow(via,id){
   const t=calcTotals(), c=customer;
@@ -2090,7 +2118,7 @@ function _driveRow(via,id){
   let json=JSON.stringify(data); if(json.length>45000) json='';
   const ph=photos.map((p,i)=>({p,i,name:String(i+1).padStart(2,'0')+'.jpg',cap:`${i+1}. ${p.tag||'写真'}`}));
   return {row:{action:'saveEstimate',...meta,date:c.date||'',name:c.name||'',car:c.car||'',plate:c.plate||'',chassis:c.chassis||'',color:c.color||'',total:Math.round(t.grand||0),
-    detail:lines.join('\n'),json,html:_estDocHtml(meta,ph)}, ph};
+    detail:lines.join('\n'),json,html:_estDocHtml(meta,ph),pdfHtml:_estPdfHtml(meta,ph),base:String(SHEET.url||'').split('?')[0]}, ph};
 }
 // 送る中身はその場で作る（LINE送信後に入力が消えても大丈夫）。写真はあとから文字入れして送る
 function driveSaveEst(via,id){
@@ -2111,31 +2139,52 @@ async function _driveFlush(){
     while(DRIVE.queue.length){
       const row=DRIVE.queue[0];
       try{
+        DRIVE.sending=true; try{renderDriveUI();}catch(e){}
         const r=await fetch(SHEET.url,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(row)});
         const txt=await r.text(); let j;
-        try{ j=JSON.parse(txt); }catch(e){ throw Object.assign(new Error(/doPost/.test(txt)?'NO_DOPOST':'NOT_JSON'),{hard:1}); }
+        try{ j=JSON.parse(txt); }catch(e){ DRIVE.raw=_gasText(txt); throw Object.assign(new Error(/doPost/.test(txt)?'NO_DOPOST':'NOT_JSON'),{hard:1}); }
         if(j.error) throw Object.assign(new Error(j.error==='forbidden'?'合言葉が違います':j.error),{hard:1});
         DRIVE.queue.shift(); DRIVE.last=new Date().toISOString(); DRIVE.err='';
-        if(j.folderUrl&&CLOUD.started) try{ _cloudPut('estimates',row.id,{driveUrl:j.folderUrl}); }catch(e){}
+        if(j.folderUrl&&CLOUD.started) try{ _cloudPut('estimates',row.id,{driveUrl:j.folderUrl,viewUrl:j.viewUrl||'',pdfUrl:j.pdfUrl||''}); }catch(e){}
       }catch(e){
         const m=String(e&&e.message||e);
         DRIVE.err=m==='NO_DOPOST'?'Apps Scriptに見積り保存（doPost）がまだありません。スクリプトを更新して新しいバージョンでデプロイしてください'
-          :m==='NOT_JSON'?'Apps Scriptの返事が読めません。スクリプトの更新後に「新しいバージョン」でデプロイしたか確認してください':_sheetErr(e);
+          :m==='NOT_JSON'?'Apps Scriptでエラー：'+(DRIVE.raw||'（内容なし）'):_sheetErr(e);
         if(e&&e.hard){ DRIVE.queue.shift(); toast('Googleドライブに保存できませんでした：'+DRIVE.err+(CLOUD.started?'（チームの履歴には保存済み）':''),9000); }
         else { toast('Googleドライブへの保存を待っています（アプリに戻ったとき・電波が戻ったときに送り直します）',6000); break; }
       }
     }
-  }finally{ DRIVE.busy=false; try{renderDriveUI();}catch(e){} }
+  }finally{ DRIVE.busy=false; DRIVE.sending=false; try{renderDriveUI();}catch(e){} }
 }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') setTimeout(_driveFlush,800); });
 window.addEventListener('online',()=>setTimeout(_driveFlush,800));
+// Apps Scriptのエラーページから本文だけ取り出す（例：「Exception: …」）
+function _gasText(t){ const d=document.createElement('div'); d.innerHTML=String(t||'').replace(/<(script|style)[\s\S]*?<\/\1>/gi,''); return (d.textContent||'').replace(/\s+/g,' ').trim().slice(0,200); }
+// 設定画面のボタン：写真なしの小さな確認を送り、つながるか・doPostがあるかを確かめる
+async function driveTest(){
+  const el=document.getElementById('drive-status');
+  if(!SHEET.url){ toast('先に入庫管理表のURLを設定してください',5000); return; }
+  el.textContent='見積りのGoogleドライブ保存：確認しています…';
+  try{
+    const r=await fetch(SHEET.url,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'ping'})});
+    const txt=await r.text(); let j=null; try{ j=JSON.parse(txt); }catch(e){}
+    if(j&&(j.ok||j.error==='unknown action')){ DRIVE.err=''; el.textContent='見積りのGoogleドライブ保存：接続OK（Apps Scriptの見積り保存が使えます）'; toast('ドライブ保存の接続はOKです',4000); return; }
+    const msg=j&&j.error?(j.error==='forbidden'?'合言葉が違います':j.error):/doPost/.test(txt)?'Apps Scriptに見積り保存（doPost）がありません。新しいバージョンでデプロイしてください':'Apps Scriptでエラー：'+_gasText(txt);
+    DRIVE.err=msg; el.textContent='見積りのGoogleドライブ保存：失敗 '+msg; toast(msg,9000);
+  }catch(e){ DRIVE.err=_sheetErr(e); el.textContent='見積りのGoogleドライブ保存：失敗 '+DRIVE.err; toast(DRIVE.err,9000); }
+}
 function renderDriveUI(){
   const el=document.getElementById('drive-status'); if(!el) return;
   el.textContent=!SHEET.url?'見積りのGoogleドライブ保存：上のURLを設定すると使えます'
+    :DRIVE.sending?'見積りのGoogleドライブ保存：送信中…（写真が多いと少し時間がかかります）'
     :DRIVE.queue.length?`見積りのGoogleドライブ保存：送信待ち ${DRIVE.queue.length}件`
     :DRIVE.err?'見積りのGoogleドライブ保存：失敗 '+DRIVE.err
     :DRIVE.last?`見積りのGoogleドライブ保存：OK（最後の保存 ${new Date(DRIVE.last).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})}）`
     :'見積りのGoogleドライブ保存：同じURLを使います（LINE送信・履歴に保存のとき）';
+}
+function _teamLinks(h){
+  const L=[[h.viewUrl,/^https:\/\/script\.google(usercontent)?\.com\//,'📄見積書'],[h.pdfUrl,/^https:\/\/drive\.google\.com\//,'PDF'],[h.driveUrl,/^https:\/\/drive\.google\.com\//,'📁ドライブ']];
+  return L.filter(([u,re])=>re.test(u||'')).map(([u,,n])=>` ／ <a href="${esc(u)}" target="_blank" rel="noopener" style="color:var(--accent)">${n}</a>`).join('');
 }
 function renderTeamHistory(){
   const box=document.getElementById('team-hist'); if(!box) return;
@@ -2147,7 +2196,7 @@ function renderTeamHistory(){
     const div=document.createElement('div'); div.className='hist-card';
     const who=String(h.by||'').replace(/@.*/,'');
     div.innerHTML=`<div class="hist-info"><b>${esc(h.customer.name||'（名前未入力）')} ／ ${esc(h.customer.car||'車種未入力')}</b>
-      <div class="hist-meta">${new Date(h.savedAt).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})} ／ 作成：${esc(who||'-')}${h.customer.staff?'（担当 '+esc(h.customer.staff)+'）':''} ／ ${h.via==='LINE'?'LINE送信':'履歴に保存'} ／ ${h.items.length}項目${/^https:\/\/drive\.google\.com\//.test(h.driveUrl||'')?` ／ <a href="${esc(h.driveUrl)}" target="_blank" rel="noopener" style="color:var(--accent)">📁ドライブ</a>`:''}</div></div>
+      <div class="hist-meta">${new Date(h.savedAt).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})} ／ 作成：${esc(who||'-')}${h.customer.staff?'（担当 '+esc(h.customer.staff)+'）':''} ／ ${h.via==='LINE'?'LINE送信':'履歴に保存'} ／ ${h.items.length}項目${_teamLinks(h)}</div></div>
       <div class="hist-total">${fmt((h.totals&&h.totals.grand)||0)}</div>
       <div class="hist-actions"><button class="btn">呼び出す</button><button class="btn" style="color:var(--muted);min-width:46px;min-height:46px;justify-content:center;touch-action:manipulation" aria-label="削除">✕</button></div>`;
     div.querySelectorAll('.btn')[0].addEventListener('click',()=>{ loadEst(h); toast(`${who||'スタッフ'}さんの見積りを呼び出しました`); });
