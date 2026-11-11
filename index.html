@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta name="ark-ver" content="0f2c3c935c">
+<meta name="ark-ver" content="c7a7db9ebf">
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
@@ -192,6 +192,28 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .cs-shut:active{transform:scale(.92);}
 .cs-shut:disabled{opacity:.4;}
 .cs-ctrl .btn{justify-content:center;min-height:52px;}
+.cam-ov.cs{padding:0;gap:0;}
+.cam-ov.cs .cam-wrap{flex:1;border-radius:0;background:#000;}
+.cam-ov.cs .cs-bar,.cam-ov.cs .cam-head{position:absolute;top:calc(10px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));right:calc(12px + env(safe-area-inset-right));z-index:3;text-shadow:0 1px 3px #000;}
+.cam-ov.cs .cs-bar .cam-status{background:rgba(0,0,0,.55);border-radius:14px;padding:4px 12px;color:var(--accent);}
+.cam-ov.cs .cs-bar select{background:rgba(255,255,255,.92);}
+.cam-ov.cs .cam-status:empty{display:none;}
+.cam-ov.cs .cs-thumbs{background:#000;padding:6px 10px;}
+.cam-ov.cs .cs-ctrl{background:#000;padding:10px 16px calc(14px + env(safe-area-inset-bottom));}
+/* 横向き：映像を大きく、シャッターは右（作業ボードと同じ） */
+@media (orientation:landscape) and (max-height:600px){
+  .cam-ov.cs{flex-direction:row;}
+  .cam-ov.cs .cam-wrap{height:100%;}
+  .cam-ov.cs .cs-thumbs{position:absolute;left:calc(8px + env(safe-area-inset-left));bottom:8px;right:150px;min-height:0;background:rgba(0,0,0,.35);border-radius:8px;padding:4px;z-index:3;}
+  .cam-ov.cs .cs-thumbs img{height:40px;width:40px;}
+  .cam-ov.cs .cs-thumbs:empty{display:none;}
+  .cam-ov.cs .cs-bar,.cam-ov.cs .cam-head{right:150px;}
+  .cam-ov.cs .cam-head{font-size:12px;}
+  .cam-ov.cs .cs-ctrl{display:flex;flex-direction:column-reverse;justify-content:space-between;align-items:stretch;width:130px;flex:none;padding:calc(12px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 14px 10px;}
+  .cam-ov.cs .cs-ctrl .btn{min-height:46px;font-size:13px;padding:6px;}
+  .cam-ov.cs .cs-shut{width:84px;height:84px;}
+  .cam-ov.cs #lc-st{display:none;}
+}
 .lc-frame{position:absolute;left:7%;right:7%;top:40%;height:20%;border:3px solid var(--accent);border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,.45);pointer-events:none;}
 /* 覚えた車種：畳んで表示 */
 .lm-box summary{cursor:pointer;font-size:13px;font-weight:700;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);list-style:none;}
@@ -13635,7 +13657,7 @@ let _qrCam=null;
 let _csCam=null;
 async function camShoot(){
   if(photos.length>=PHOTO_MAX){ toast(`写真は最大${PHOTO_MAX}枚までです`,4000); return; }
-  const ov=document.createElement('div'); ov.className='cam-ov'; ov.id='cs-ov';
+  const ov=document.createElement('div'); ov.className='cam-ov cs'; ov.id='cs-ov';
   ov.innerHTML=`<div class="cs-bar"><span class="cam-status" id="cs-count" style="min-width:86px;text-align:left"></span><select id="cs-tag" aria-label="次に撮る写真の項目">${_photoTagOptions('')}</select></div>
     <div class="cam-wrap cs-wrap"><video playsinline muted autoplay></video><div class="cs-flash"></div></div>
     <div class="cs-thumbs" id="cs-thumbs"></div>
@@ -13803,7 +13825,7 @@ async function _visionOcr(canvas,what){
 // ─── コーションラベル：枠に合わせて撮る（カラー番号の行だけを大きくして読む）───
 let _lcCam=null;
 async function labelCam(){
-  const ov=document.createElement('div'); ov.className='cam-ov'; ov.id='lc-cam';
+  const ov=document.createElement('div'); ov.className='cam-ov cs'; ov.id='lc-cam';
   ov.innerHTML=`<div class="cam-head">カラー番号の行を枠に入れて撮影してください<br><small>トヨタ等は「C/TR」の行、ホンダは「…-NH883P-…」の行、シトロエン等は灰色の枠の英字3文字</small></div>
     <div class="cam-wrap cs-wrap"><video playsinline muted autoplay></video><div class="lc-frame"></div><div class="cs-flash"></div></div>
     <div class="cam-status" id="lc-st"></div>
