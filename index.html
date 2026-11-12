@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta name="ark-ver" content="daa1612fc4">
+<meta name="ark-ver" content="1c7329d77a">
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
@@ -3551,7 +3551,7 @@ let _srP=null;
 function _estSR(){
   if(window.SHAKEN&&window.SHAKEN.scan) return Promise.resolve(window.SHAKEN);
   if(_srP) return _srP;
-  _srP=new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='../work-board/shaken-read.js?v=2026-11-12';
+  _srP=new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='../work-board/shaken-read.js?v=2026-11-13';
     s.onload=()=>window.SHAKEN&&window.SHAKEN.scan?res(window.SHAKEN):rej(new Error('読み取りの部品を読み込めませんでした'));
     s.onerror=()=>{ _srP=null; rej(new Error('読み取りの部品を読み込めませんでした。電波の良い所で、もう一度押してください')); }; document.head.appendChild(s); });
   return _srP;
