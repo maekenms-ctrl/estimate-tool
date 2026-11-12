@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta name="ark-ver" content="a1186dc236">
+<meta name="ark-ver" content="daa1612fc4">
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
@@ -2339,11 +2339,12 @@ function renderTeamHistory(){
   TEAM_EST.forEach(h=>{
     const div=document.createElement('div'); div.className='hist-card';
     const who=String(h.by||'').replace(/@.*/,'');
-    div.innerHTML=`<div class="hist-info"><b>${esc(h.customer.name||'（名前未入力）')} ／ ${esc(h.customer.car||'車種未入力')}</b>
+    div.innerHTML=`<div class="hist-info"><b>${esc(h.customer.name||h.customer.plate||'（番号未入力）')} ／ ${esc(h.customer.car||'車種未入力')}</b>
       <div class="hist-meta">${new Date(h.savedAt).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})} ／ 作成：${esc(who||'-')}${h.customer.staff?'（担当 '+esc(h.customer.staff)+'）':''} ／ ${h.via==='LINE'?'LINE送信':'履歴に保存'} ／ ${h.items.length}項目${_teamLinks(h)}</div></div>
       <div class="hist-total">${fmt((h.totals&&h.totals.grand)||0)}</div>
       <div class="hist-actions"><button class="btn">呼び出す</button><button class="btn" style="color:var(--muted);min-width:46px;min-height:46px;justify-content:center;touch-action:manipulation" aria-label="削除">✕</button></div>`;
-    div.querySelectorAll('.btn')[0].addEventListener('click',()=>{ loadEst(h); toast(`${who||'スタッフ'}さんの見積りを呼び出しました`); });
+    div.querySelectorAll('.btn')[0].addEventListener('click',async()=>{ loadEst(h); toast(`${who||'スタッフ'}さんの見積りを呼び出しました`);
+      const n=await _estTeamLoadPhotos(h); if(n) toast(`${who||'スタッフ'}さんの見積りを呼び出しました（写真${n}枚）`,5000); });
     div.querySelectorAll('.btn')[1].addEventListener('click',async()=>{ if(!await askConfirm(`${h.customer.name||'（名前未入力）'} の見積りをチームの履歴から削除しますか？（全員の画面から消えます）`)) return; _cloudDel('estimates',h.id); _cloudDel('estimates','lk-'+h.id); });
     box.appendChild(div);
   });
@@ -2841,6 +2842,21 @@ async function _estPhShare(manual,sid){
   if(manual&&n) toast(`写真${n}枚をチームで共有しました（作業ボードの同じ車からも見られます）`,5000);
 }
 function _estPhDel(p){ if(!CLOUD.started||!p.shared||!p.pid) return; const {fs}=CLOUD.fb; fs.deleteDoc(fs.doc(CLOUD.db,'photos',_cloudKey(p.shared+'_'+p.pid))).catch(()=>{}); }
+// チームの見積りを呼び出したとき、その見積りで共有した写真も入れる（11/12：ほかの端末で撮った写真も見られるように。車検証の写真は共有していない）
+async function _estTeamLoadPhotos(h){
+  if(!CLOUD.started) return 0;
+  const k=_estPlateKey((h.customer||{}).plate), jid=(h.wb&&h.wb.phJid)||(_plateNo((h.customer||{}).plate)&&k?'estp-'+k:'')||('este-'+h.id);
+  const {fs}=CLOUD.fb; let L=[];
+  try{ const sn=await fs.getDocs(fs.query(fs.collection(CLOUD.db,'photos'),fs.where('jid','==',jid))); sn.forEach(d=>{ const v=d.data()||{}; if(v.d&&/^data:image\//.test(v.d)) L.push(v); }); }
+  catch(e){ toast('写真を読めませんでした：'+_netMsg(e),6000); return 0; }
+  let n=0;
+  for(const v of L){
+    if(photos.length>=PHOTO_MAX) break; if(photos.some(p=>p.pid&&p.pid===v.pid)) continue;
+    try{ const r=await fetch(v.d); const bl=await r.blob(); const p=await _photoFromFile(new File([bl],'team.jpg',{type:bl.type||'image/jpeg'}),v.tag||''); p.fromTeam=true; p.shared=jid; p.pid=v.pid; photos.push(p); n++; }catch(e){}
+  }
+  if(n) try{ renderPhotos(); }catch(e){}
+  return n;
+}
 async function estTeamPhotos(){
   if(!CLOUD.started){ toast('チーム共有にログインすると見られます（⚙️ 設定）',5000); return; }
   const jid=_estPhJid(); if(!jid){ toast('登録番号を入れてください',4000); return; }
