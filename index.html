@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta name="ark-ver" content="1c7329d77a">
+<meta name="ark-ver" content="e4fa8219f6">
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
@@ -2181,6 +2181,8 @@ function _estWbPart(sid){
   const tasks=items.filter(it=>it.part||it.panelArea).map(it=>({part:it.part||'',area:it.panelArea||'',types:[EST_WB_TYPE[it.type]||it.type||'その他'],note:it.type==='取付'?'取付':'',qty:+it.qty||1}));
   const phN=photos.filter(p=>p.tag!=='車検証').length;
   return {car:c.car||'',plate:c.plate||'',chassis:c.chassis||'',color:c.color||'',ptype:c.paintType||'',carType:c.carType||'',date:c.date||'',
+    lines:items.map(it=>{ const b=calcRow(it); return {part:it.part||'',type:it.type||'',desc:String(b.desc||'').slice(0,80),qty:+it.qty||1,amt:Math.round(+b.amount||0)}; }),   // 明細と金額（作業ボードで見られるように。11/13）
+    sub:Math.round(+t.sub||0),tax:Math.round(+t.tax||0),parts:Math.round(+t.parts||0),
     staff:c.staff||'',grand:Math.round(+t.grand||0),tasks,phJid:phN?(_estPhJid()||('este-'+sid)):'',phN,
     loaner:c.loanerVehicle||'',pay:[c.paySelf?'自費':'',c.payVehicle?'車両保険':'',c.payProperty?'対物保険':''].filter(Boolean)};
 }
