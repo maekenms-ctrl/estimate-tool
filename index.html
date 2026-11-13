@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta name="ark-ver" content="e4fa8219f6">
+<meta name="ark-ver" content="6538361478">
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
@@ -558,6 +558,7 @@ html.locked,html.locked body{overflow:hidden;}
       </div>
       <div id="items-empty" class="empty">パーツマップをタップするか、下のボタンで行を追加してください。</div>
       <button class="btn btn-add" onclick="addItem()">＋ 行を追加</button>
+      <button class="btn btn-add" style="border-color:#34d399;color:#34d399" onclick="estAimOpen()">🎯 エイミング工数表を見る（参考）</button>
     </div>
 
     <div class="card">
@@ -3550,6 +3551,13 @@ async function shakenFromFile(input){
 // ── 車検証QRの読み取り部品は、作業ボードの共通ファイル（shaken-read.js）を押したときだけ読む（11/11 軽くするため）──
 //  中身は作業ボードと同じ（jsQR・連結QRの組み立て・QRらしい所を探して読む）。見積りツールを開くときは読み込まない
 let _srP=null;
+// 11/14：エイミング工数表（作業ボードの aiming.js を押したときだけ読む。作業ボードと共通）
+let _estAimP=null;
+function estAimOpen(){
+  if(window.ARK_AIMING){ ARK_AIMING.open(); return; }
+  if(!_estAimP) _estAimP=new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='../work-board/aiming.js?v=2026-11-14'; s.onload=res; s.onerror=()=>{ _estAimP=null; rej(); }; document.head.appendChild(s); });
+  _estAimP.then(()=>ARK_AIMING.open()).catch(()=>toast('エイミング工数表を読み込めませんでした（電波を確かめてください）',5000));
+}
 function _estSR(){
   if(window.SHAKEN&&window.SHAKEN.scan) return Promise.resolve(window.SHAKEN);
   if(_srP) return _srP;
