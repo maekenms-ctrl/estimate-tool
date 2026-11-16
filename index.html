@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta name="ark-ver" content="6538361478">
+<meta name="ark-ver" content="5ca84af492">
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
@@ -753,7 +753,7 @@ html.locked,html.locked body{overflow:hidden;}
 </div>
 
 <!-- 代車カレンダー（作業ボード・見積りツールの共通ファイル。作業ボードのリポジトリにある。読めなくても見積りはふだんどおり使える） -->
-<script src="https://maekenms-ctrl.github.io/work-board/loaner-cal.js"></script>
+<script src="https://maekenms-ctrl.github.io/work-board/loaner-cal.js?v=2026-11-17"></script>
 <script>
 // ─── State ───────────────────────────────────────────────
 const DEF_SETTINGS = {
@@ -2410,10 +2410,10 @@ async function sheetLoad(manual){
       const car=_sheetCar(x.car); if(car===null) continue;
       const from=_sheetDate(x.inDate); let to=_sheetDate(x.out)||_sheetDate(x.due), open=false;   // 返却：出庫日（C）→ なければ納期（B）
       if(!to && from){ to=OPEN_END; open=true; }   // 納期・出庫日が空欄：返却日が決まるまでずっと貸出中（二重貸し出し防止）
-      const name=[x.model,x.plate].filter(Boolean).join(' ');   // お客様名はスプレッドシートだけ
+      const name=[x.model,x.plate].filter(Boolean).join(' ');   // お客様名はスプレッドシートだけ（カレンダーの表示用に cust へ。保存しない・11/17）
       const where=(x.tab?x.tab+' ':'')+x.row+'行目';
       if(car==='?'||!from){ bad.push(`${where}：${x.car||''} ${name}${!from?'（入庫日が読めません）':''}`); continue; }
-      rows.push({id:'sheet-'+(x.tab||'')+'-'+x.row,open,car,cust:'',plate:x.plate||'',model:x.model||'',from:from<=to?from:to,to:from<=to?to:from,name,kinds:_sheetKinds(x.kind),kind:_sheetKinds(x.kind).join('・'),memo:`入庫管理表 ${where}${x.car?'（'+x.car+'）':''}${open?'・返却日未定':''}`,src:'sheet'});
+      rows.push({id:'sheet-'+(x.tab||'')+'-'+x.row,open,car,cust:String(x.name||'').trim(),plate:x.plate||'',model:x.model||'',from:from<=to?from:to,to:from<=to?to:from,name,kinds:_sheetKinds(x.kind),kind:_sheetKinds(x.kind).join('・'),memo:`入庫管理表 ${where}${x.car?'（'+x.car+'）':''}${open?'・返却日未定':''}`,src:'sheet'});
     }
     // 他社レンタカー：番号がなければ、空いている枠（1→2→3）へ順に割り当て
     const rent=rows.filter(r=>/^レンタカー/.test(r.car)).sort((a,b)=>a.from<b.from?-1:1);
