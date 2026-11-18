@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta name="ark-ver" content="5ca84af492">
+<meta name="ark-ver" content="4064ba3eab">
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
@@ -441,6 +441,7 @@ html.locked,html.locked body{overflow:hidden;}
           <div class="cartype">
             <button class="selbtn on" id="btn-domestic" onclick="setCarType('国産車')">国産車</button>
             <button class="selbtn" id="btn-import" onclick="setCarType('輸入車')">輸入車</button>
+            <button class="selbtn" id="btn-special" onclick="setCarType('スペシャリティカー')">スペシャリティカー</button>
           </div>
           <div class="rate-hint" id="rate-hint">適用工賃：¥9,800／時間</div>
         </div>
@@ -498,6 +499,7 @@ html.locked,html.locked body{overflow:hidden;}
         <div class="field span2"><label>車台番号</label><input id="c-chassis" placeholder="例：ZVW30-5237294" autocapitalize="characters" oninput="updateCust()"></div>
         <div class="field"><label>型式指定番号</label><input id="c-typeno" inputmode="numeric" placeholder="例：12604" oninput="updateCust()"></div>
         <div class="field"><label>類別区分番号</label><input id="c-ruino" inputmode="numeric" placeholder="例：0042" oninput="updateCust()"></div>
+        <div class="field"><label>初度登録（年月）</label><input type="month" id="c-firstreg" onchange="updateCust();render()"><div class="rate-hint" id="c-firstreg-era" style="text-align:left;margin-top:3px"></div></div>
         <div class="field span2"><label>走行距離（km）</label><div style="display:flex;gap:8px"><input id="c-mileage" inputmode="numeric" pattern="[0-9]*" placeholder="例：45678" oninput="this.value=this.value.replace(/[^0-9]/g,'');updateCust()" style="flex:1"><label class="btn odo-btn">🚗 メーターから読む<input type="file" accept="image/*" style="display:none" onchange="odoFromFile(this)"></label></div></div>
         <div class="field span2"><label>登録番号</label><input id="c-plate" placeholder="品川 300 あ 12-34" oninput="updateCust()"><div id="c-wbhint"></div></div>
         <div class="field"><label>車体色（カラー番号）</label><input id="c-color" placeholder="例：070" oninput="updateCust()"></div>
@@ -684,6 +686,7 @@ html.locked,html.locked body{overflow:hidden;}
       <div class="fgrid">
         <div class="field"><label>国産車</label><input type="text" inputmode="numeric" pattern="[0-9]*" id="s-domestic" oninput="updateSettings()"></div>
         <div class="field"><label>輸入車</label><input type="text" inputmode="numeric" pattern="[0-9]*" id="s-import" oninput="updateSettings()"></div>
+        <div class="field"><label>スペシャリティカー</label><input type="text" inputmode="numeric" pattern="[0-9]*" id="s-special" oninput="updateSettings()"></div>
       </div>
     </div>
     <div class="sg"><h3>材料費率（%）</h3>
@@ -758,7 +761,7 @@ html.locked,html.locked body{overflow:hidden;}
 // ─── State ───────────────────────────────────────────────
 const DEF_SETTINGS = {
   shopName:'株式会社AUTO REPAIR KOBE', shopAddress:'〒657-0864　神戸市灘区新在家南町4丁目11-10', shopTel:'078-881-6678', shopRegNo:'',
-  laborRateDomestic:9800, laborRateImport:12000,
+  laborRateDomestic:9800, laborRateImport:12000, laborRateSpecial:15000,
   quarterPanelExtraHours:2.1, noQuarterPanelExtraHours:1.2,
   expenseRate:5, taxRate:10,
   // 材料費率(%) = 塗装工賃 × 材料費率 （ブロードリーフ準拠）
@@ -1293,7 +1296,7 @@ function getBaseHours(paintType, panelCount){
 
 // ─── Calc ─────────────────────────────────────────────────
 function calcRow(it){
-  const rate = customer.carType==='輸入車'?(settings.laborRateImport||0):(settings.laborRateDomestic||0);
+  const rate = _laborRate();
   const ph = +it.panelHours||0, rh = +it.replaceHours||0, bh = +it.paintHours||0, ah = +it.accessoryHours||0;
   const isCC = it.paintType==='カラークリアー';
   const isBump = it.part&&it.part.includes('バンパー');
@@ -1317,7 +1320,8 @@ function calcRow(it){
   // 部品代：入力があればその金額、なければ「取替」の目安（平均値）を使う
   // 部品代は作業区分「取替」のときだけ加算（脱着・鈑金などでは入力があっても加算しない）
   const partsIn = it.type==='取替' ? (+it.partsCost||0) : 0, partsRef = partsIn?0:_partsRef(it);
-  const partsCost = partsIn||partsRef;
+  const parts0 = partsIn||partsRef, old=_oldCar();
+  const partsCost = old&&parts0 ? Math.round(parts0*1.5) : parts0;   // 11/18：年式が平成28年以前は部品代×1.5
   const sealant = _sealant(it);
   const qty = +it.qty||0;
   const amount = (panelCost + replaceCost + paintLaborCost + paintMatCost + accessoryCost + partsCost + sealant) * qty;
@@ -1335,17 +1339,17 @@ function calcRow(it){
     dp.push(`材料代${Math.round(matRate*100)}%=${fmt(paintMatCost)}`);
   }
   if(ah) dp.push(`${_isGarnish(it)?(it.type==='取替'?'ガーニッシュ取替':'シルカバー・モール脱着'):'付属品脱着'} ${ah}h×${fmt(rate)}`);
-  if(partsCost) dp.push(`部品代${partsRef?'(目安)':''} ${fmt(partsCost)}`);
+  if(partsCost) dp.push(old?`部品代${partsRef?'(目安)':''} ${fmt(parts0)}×1.5（年式 平成28年以前）=${fmt(partsCost)}`:`部品代${partsRef?'(目安)':''} ${fmt(partsCost)}`);
   if(sealant) dp.push(`シーラントキット ${fmt(sealant)}`);
   let desc = dp.join(' + ');
   if(it.note) desc += desc?` ／ ${it.note}`:it.note;
-  return {amount, desc, rate, parts:(partsCost+sealant)*qty, partsRef:partsRef*qty, paintH:(manualPaint>0?0:tph)*qty, paintLabor:paintLaborCost*qty, paintMat:paintMatCost*qty};
+  return {amount, desc, rate, parts:(partsCost+sealant)*qty, partsRef:(partsRef&&old?Math.round(partsRef*1.5):partsRef)*qty, paintH:(manualPaint>0?0:tph)*qty, paintLabor:paintLaborCost*qty, paintMat:paintMatCost*qty};
 }
 
 // 加算基礎数値の計算（全パネルの塗装タイプ・枚数を集計）
 function calcBaseAmount(){
   if(!items.length) return {hours:0, labor:0, mat:0, lines:[], desc:''};
-  const rate = customer.carType==='輸入車'?(settings.laborRateImport||0):(settings.laborRateDomestic||0);
+  const rate = _laborRate();
   // 塗装タイプ別にパネル数を集計（塗装工数>0のもの）
   const typeCount = {};
   items.forEach(it=>{
@@ -1399,7 +1403,7 @@ function calcTotals(){
   // ボディコーティング加算：パーツマップで選んだパネル1枚につき1h（ルーフは2h）×工賃単価（ライト類は除く）
   const coat = {count:0, hours:0, labor:0};
   if(customer.bodyCoat){
-    const rate = customer.carType==='輸入車'?(settings.laborRateImport||0):(settings.laborRateDomestic||0);
+    const rate = _laborRate();
     items.forEach(it=>{
       if(!it.panelArea || ['lhead','rhead','ltail','rtail','fglass','rglass','lqglass','rqglass','lgarn','rgarn'].includes(it.panelArea)) return;
       coat.count++; coat.hours += it.panelArea==='roof' ? 2 : 1;
@@ -1440,7 +1444,7 @@ function recalc(){
   document.getElementById('t-item-sub').textContent = fmt(t.itemSub - t.parts);
   document.getElementById('t-parts-row').style.display = t.parts>0 ? 'flex' : 'none';
   document.getElementById('t-parts').textContent = fmt(t.parts);
-  document.getElementById('t-parts-note').textContent = t.partsRef>0 ? `うち目安 ${fmt(t.partsRef)}` : '';
+  document.getElementById('t-parts-note').textContent = [t.partsRef>0?`うち目安 ${fmt(t.partsRef)}`:'', _oldCar()?'年式 平成28年以前：×1.5':''].filter(Boolean).join(' ／ ');
   const coatRow=document.getElementById('t-coat-row');
   coatRow.style.display = t.coat.labor>0 ? 'flex' : 'none';
   document.getElementById('t-coat-label').textContent = `ボディコーティング加算（${t.coat.count}枚・${t.coat.hours}h）`;
@@ -1978,6 +1982,7 @@ function updateCust(){
   customer.mileage=document.getElementById('c-mileage').value;
   {const a=document.getElementById('c-typeno').value.trim(),b=document.getElementById('c-ruino').value.trim(); customer.typeNo=a||b?`${a}-${b}`:'';}
   customer.plate=document.getElementById('c-plate').value;
+  { const f=document.getElementById('c-firstreg'); if(f){ customer.firstReg=f.value; const e=document.getElementById('c-firstreg-era'); if(e) e.textContent=_ymEra(customer.firstReg)+(_oldCar()?' → 部品代×1.5':''); } }
   customer.color=document.getElementById('c-color').value;
   customer.date=document.getElementById('c-date').value;
   customer.staff=document.getElementById('c-staff').value;
@@ -2031,6 +2036,7 @@ function fillCustForm(){
   document.getElementById('c-chassis').value=customer.chassis||'';
   document.getElementById('c-mileage').value=customer.mileage||'';
   {const tn=String(customer.typeNo||'').split('-'); document.getElementById('c-typeno').value=tn[0]||''; document.getElementById('c-ruino').value=tn[1]||'';}
+  { const f=document.getElementById('c-firstreg'); if(f){ f.value=customer.firstReg||''; const e=document.getElementById('c-firstreg-era'); if(e) e.textContent=_ymEra(customer.firstReg)+(_oldCar()?' → 部品代×1.5':''); } }
   document.getElementById('c-plate').value=customer.plate||'';
   document.getElementById('c-color').value=customer.color||'';
   document.getElementById('c-date').value=customer.date||todayStr();
@@ -2038,11 +2044,19 @@ function fillCustForm(){
   document.getElementById('c-note').value=customer.note||'';
   try{renderLoanerCars();}catch(e){}
 }
+// 工賃単価（11/18：スペシャリティカー ¥15,000 を追加）
+// 初度登録（YYYY-MM）→「2015年3月（平成27年3月）」。年式が平成28年（2016年）以前なら古い車（部品代×1.5）
+function _ymEra(ym){ const m=String(ym||'').match(/^(\d{4})-(\d{1,2})/); if(!m) return ''; const y=+m[1], mo=+m[2], k=y*100+mo;
+  const [g,b]=k>=201905?['令和',2018]:k>=198902?['平成',1988]:k>=192601?['昭和',1925]:['',0]; if(!g) return `${y}年${mo}月`;
+  const n=y-b; return `${y}年${mo}月（${g}${n===1?'元':n}年${mo}月）`; }
+function _oldCar(){ const m=String(customer.firstReg||'').match(/^(\d{4})-/); return !!m&&+m[1]<=2016; }
+function _laborRate(t){ t=t||customer.carType; return t==='輸入車'?(+settings.laborRateImport||0):t==='スペシャリティカー'?(+settings.laborRateSpecial||15000):(+settings.laborRateDomestic||0); }
 function setCarType(t){
   customer.carType=t;
   document.getElementById('btn-domestic').classList.toggle('on',t==='国産車');
   document.getElementById('btn-import').classList.toggle('on',t==='輸入車');
-  const rate=t==='輸入車'?settings.laborRateImport:settings.laborRateDomestic;
+  { const b=document.getElementById('btn-special'); if(b) b.classList.toggle('on',t==='スペシャリティカー'); }
+  const rate=_laborRate(t);
   document.getElementById('rate-hint').textContent=`適用工賃：${fmt(rate)}／時間`;
   render();
 }
@@ -2530,6 +2544,7 @@ function updateSettings(){
   settings.shopRegNo=document.getElementById('s-shopRegNo').value;
   settings.laborRateDomestic=+document.getElementById('s-domestic').value||0;
   settings.laborRateImport=+document.getElementById('s-import').value||0;
+  settings.laborRateSpecial=+document.getElementById('s-special').value||0;
   settings.matRateGloss=+document.getElementById('s-matGloss').value||0;
   settings.matRateMetallic=+document.getElementById('s-matMetallic').value||0;
   settings.matRate2Pearl=+document.getElementById('s-mat2Pearl').value||0;
@@ -2569,6 +2584,7 @@ function fillSettingsForm(){
   document.getElementById('s-shopRegNo').value=settings.shopRegNo||'';
   document.getElementById('s-domestic').value=settings.laborRateDomestic||'';
   document.getElementById('s-import').value=settings.laborRateImport||'';
+  document.getElementById('s-special').value=settings.laborRateSpecial||15000;
   document.getElementById('s-matGloss').value=settings.matRateGloss||'';
   document.getElementById('s-matMetallic').value=settings.matRateMetallic||'';
   document.getElementById('s-mat2Pearl').value=settings.matRate2Pearl||'';
@@ -3510,7 +3526,8 @@ function applyVehicleInfo(info,source){
     } else msgs.push('カラー '+info.color+'（塗装タイプは未登録：選んで保存すると次回から自動で入ります）');
   }
   if(info.expiry) msgs.push('車検満了 '+info.expiry);
-  updateCust();
+  { const m=String(info.firstReg||'').match(/^(\d{4})\/(\d{2})$/); if(m&&+m[2]>=1&&+m[2]<=12){ const f=document.getElementById('c-firstreg'); if(f) f.value=m[1]+'-'+m[2]; customer.firstReg=m[1]+'-'+m[2]; msgs.push('初度登録 '+_ymEra(customer.firstReg)+(_oldCar()?'（平成28年以前：部品代×1.5）':'')); } }
+  updateCust(); try{ render(); }catch(e){}
   const box=document.getElementById('scan-result');
   if(box){ box.innerHTML = esc(msgs.length ? `読み取り（${source}）：`+msgs.join(' ／ ') : `${source}から読み取れませんでした`)+candHtml+colCand; }
   toast(msgs.length? '読み取りました：'+msgs.slice(0,4).join('、') : '読み取れませんでした。明るい場所で近づけて撮影してください', 5000);
@@ -3561,7 +3578,7 @@ function estAimOpen(){
 function _estSR(){
   if(window.SHAKEN&&window.SHAKEN.scan) return Promise.resolve(window.SHAKEN);
   if(_srP) return _srP;
-  _srP=new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='../work-board/shaken-read.js?v=2026-11-13';
+  _srP=new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='../work-board/shaken-read.js?v=2026-11-17';
     s.onload=()=>window.SHAKEN&&window.SHAKEN.scan?res(window.SHAKEN):rej(new Error('読み取りの部品を読み込めませんでした'));
     s.onerror=()=>{ _srP=null; rej(new Error('読み取りの部品を読み込めませんでした。電波の良い所で、もう一度押してください')); }; document.head.appendChild(s); });
   return _srP;
