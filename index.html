@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta name="ark-ver" content="43ad8f0c1f">
+<meta name="ark-ver" content="71f526af2e">
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
@@ -399,6 +399,21 @@ html.locked,html.locked body{overflow:hidden;}
 .lc-closed-soon{margin-top:8px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;padding:6px 8px;border-radius:8px;background:rgba(230,40,40,.12);}
 .lc-closed-soon span{background:#c62828;color:#fff;border-radius:4px;padding:1px 6px;font-weight:700;}
 .lc-closed-soon .btn{margin-left:auto;font-size:12px;padding:3px 10px;min-height:0;}
+/* 11/27 操作感の改善 */
+#sec-cust:not(.vd-open) .est-vd{display:none;}
+.est-vd-t{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 10px;text-align:left;width:100%;padding:10px 12px;border:1px dashed var(--border,#444);border-radius:12px;background:var(--surface2,#2a2e37);color:var(--text,#eee);cursor:pointer;font:inherit;}
+.est-vd-t b{font-size:14px;} .est-vd-t small{grid-column:1;font-size:11.5px;opacity:.75;line-height:1.4;} .est-vd-t i{grid-row:1/3;grid-column:2;font-style:normal;font-size:12px;font-weight:800;color:var(--accent,#e4ff1a);}
+.est-jump,.est-bar{display:none;}
+@media(max-width:900px){
+  body.est-create .est-jump{display:flex;position:sticky;top:0;z-index:50;gap:6px;overflow-x:auto;padding:8px 12px;margin:0 -12px 8px;background:var(--bg,#16181d);border-bottom:1px solid var(--border,#333);scrollbar-width:none;}
+  .est-jump::-webkit-scrollbar{display:none;}
+  .est-jump button{flex:1 0 auto;border:1px solid var(--border,#444);background:var(--surface2,#2a2e37);color:var(--text,#eee);border-radius:999px;padding:7px 8px;font-size:12px;font-weight:700;white-space:nowrap;}
+  body.est-create .est-bar{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;position:fixed;left:0;right:0;bottom:0;z-index:60;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:var(--bg,#16181d);border-top:2px solid var(--accent,#e4ff1a);}
+  .est-bar .btn{min-height:48px;justify-content:center;font-size:14px;padding:0 6px;}
+  .est-bar .eb-sum{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;background:none;border:0;color:var(--text,#eee);padding:0 4px;cursor:pointer;}
+  .est-bar .eb-sum small{font-size:10.5px;opacity:.7;} .est-bar .eb-sum b{font-size:20px;color:var(--accent,#e4ff1a);font-family:'JetBrains Mono',monospace;}
+  body.est-create{padding-bottom:calc(76px + env(safe-area-inset-bottom));}
+}
 </style>
 <style>html{touch-action:pan-x pan-y;}button,.btn,.selbtn,.tab-btn,.sw{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}</style>
 <script>
@@ -415,7 +430,7 @@ html.locked,html.locked body{overflow:hidden;}
 })();
 </script>
 </head>
-<body>
+<body class="est-create">
 
 <div class="title-row">
   <div>
@@ -430,10 +445,11 @@ html.locked,html.locked body{overflow:hidden;}
 </div>
 
 <!-- CREATE TAB -->
+<div class="est-jump" id="est-jump"><button type="button" onclick="estJump('sec-cust')">👤 顧客・車両</button><button type="button" onclick="estJump('sec-map')">🚗 パーツマップ</button><button type="button" onclick="estJump('sec-items')">📝 作業項目</button><button type="button" onclick="estJump('sec-sum')">💴 集計</button></div>
 <div id="tab-create" class="tab-panel-layout active">
   <!-- LEFT -->
   <div>
-    <div class="card">
+    <div class="card" id="sec-cust">
       <div class="card-title"><span class="bar"></span>顧客・車両情報</div>
       <div class="fgrid">
         <div class="field span2">
@@ -496,11 +512,12 @@ html.locked,html.locked body{overflow:hidden;}
         </div>
         <div class="field"><label>お客様名</label><input id="c-name" placeholder="山田 太郎" oninput="updateCust()"></div>
         <div class="field"><label>車種</label><input id="c-car" placeholder="プリウス ZVW30" oninput="updateCust()"></div>
-        <div class="field span2"><label>車台番号</label><input id="c-chassis" placeholder="例：ZVW30-5237294" autocapitalize="characters" oninput="updateCust()"></div>
-        <div class="field"><label>型式指定番号</label><input id="c-typeno" inputmode="numeric" placeholder="例：12604" oninput="updateCust()"></div>
-        <div class="field"><label>類別区分番号</label><input id="c-ruino" inputmode="numeric" placeholder="例：0042" oninput="updateCust()"></div>
-        <div class="field"><label>初度登録（年月）</label><input type="month" id="c-firstreg" onchange="updateCust();render()"><div class="rate-hint" id="c-firstreg-era" style="text-align:left;margin-top:3px"></div></div>
-        <div class="field span2"><label>走行距離（km）</label><div style="display:flex;gap:8px"><input id="c-mileage" inputmode="numeric" pattern="[0-9]*" placeholder="例：45678" oninput="this.value=this.value.replace(/[^0-9]/g,'');updateCust()" style="flex:1"><label class="btn odo-btn">🚗 メーターから読む<input type="file" accept="image/*" style="display:none" onchange="odoFromFile(this)"></label></div></div>
+        <button type="button" class="field span2 est-vd-t" id="est-vd-t" onclick="estVdFold()"><b>🚗 車両の詳細</b><small id="est-vd-sum">車台番号・型式指定番号・類別区分番号・初度登録・走行距離</small><i>▼ 開く</i></button>
+        <div class="field span2 est-vd"><label>車台番号</label><input id="c-chassis" placeholder="例：ZVW30-5237294" autocapitalize="characters" oninput="updateCust()"></div>
+        <div class="field est-vd"><label>型式指定番号</label><input id="c-typeno" inputmode="numeric" placeholder="例：12604" oninput="updateCust()"></div>
+        <div class="field est-vd"><label>類別区分番号</label><input id="c-ruino" inputmode="numeric" placeholder="例：0042" oninput="updateCust()"></div>
+        <div class="field est-vd"><label>初度登録（年月）</label><input type="month" id="c-firstreg" onchange="updateCust();render()"><div class="rate-hint" id="c-firstreg-era" style="text-align:left;margin-top:3px"></div></div>
+        <div class="field span2 est-vd"><label>走行距離（km）</label><div style="display:flex;gap:8px"><input id="c-mileage" inputmode="numeric" pattern="[0-9]*" placeholder="例：45678" oninput="this.value=this.value.replace(/[^0-9]/g,'');updateCust()" style="flex:1"><label class="btn odo-btn">🚗 メーターから読む<input type="file" accept="image/*" style="display:none" onchange="odoFromFile(this)"></label></div></div>
         <div class="field span2"><label>登録番号</label><input id="c-plate" placeholder="品川 300 あ 12-34" oninput="updateCust()"><div id="c-wbhint"></div></div>
         <div class="field"><label>車体色（カラー番号）</label><input id="c-color" placeholder="例：070" oninput="updateCust()"></div>
         <div class="field"><label>塗装タイプ（全部位一括）</label><select id="c-ptype" onchange="setPaintTypeAll(this.value)"></select></div>
@@ -537,7 +554,7 @@ html.locked,html.locked body{overflow:hidden;}
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="sec-map">
       <div class="card-title"><span class="bar"></span>パーツマップ（タップで追加）</div>
       <div class="panel-wrap">
         <div class="panel-map" id="panel-map"></div>
@@ -548,7 +565,7 @@ html.locked,html.locked body{overflow:hidden;}
 
   <!-- RIGHT -->
   <div>
-    <div class="card">
+    <div class="card" id="sec-items">
       <div class="card-title"><span class="bar"></span>作業項目</div>
       <div class="items-scroll">
         <div class="items-header">
@@ -563,7 +580,7 @@ html.locked,html.locked body{overflow:hidden;}
       <button class="btn btn-add" style="border-color:#34d399;color:#34d399" onclick="estAimOpen()">🎯 エイミング工数表を見る（参考）</button>
     </div>
 
-    <div class="card">
+    <div class="card" id="sec-sum">
       <div class="card-title"><span class="bar"></span>集計</div>
       <div class="totals-box">
         <div class="tline" style="flex-wrap:wrap;gap:14px;justify-content:flex-start;padding-bottom:8px;border-bottom:1px solid var(--surface3);margin-bottom:6px">
@@ -618,6 +635,7 @@ html.locked,html.locked body{overflow:hidden;}
     </div>
   </div>
 </div>
+<div class="est-bar" id="est-bar"><button type="button" class="eb-sum" onclick="estJump('sec-sum')"><small>合計（税込）</small><b id="eb-grand">¥0</b></button><button type="button" class="btn btn-primary" onclick="saveEst()">💾 保存</button><button type="button" class="btn btn-line" onclick="lineShare()">💬 LINE</button></div>
 
 <!-- HISTORY TAB -->
 <div id="tab-history" class="tab-panel">
@@ -1479,6 +1497,8 @@ function recalc(){
   document.getElementById('t-discfree').textContent = t.discFree>0?`－${fmt(t.discFree)}`:'－¥0';
   document.getElementById('t-discfree').style.color = t.discFree>0?'var(--accent)':'var(--muted)';
   document.getElementById('t-grand').textContent = fmt(t.grand);
+  { const eb=document.getElementById('eb-grand'); if(eb) eb.textContent=fmt(t.grand); }   // 11/27：下の帯の合計
+  try{ _estVdSum(); }catch(e){}
 }
 
 function renderItems(){
@@ -1909,6 +1929,17 @@ function _syncVanUI(){
 }
 function selectComMain(){ if(!/^(プロボックス|軽バン)$/.test(currentBodyShape)) setBodyShape(document.querySelector('[data-shape="プロボックス"]')); }
 function selectVanMain(){ if(!/^VAN/.test(currentBodyShape)) setBodyShape(document.querySelector('[data-shape="VAN"]')); }
+// ── 11/27 操作感：見出しへ飛ぶ・車両の詳細を畳む ──
+function estJump(id){ const el=document.getElementById(id); if(!el) return; const j=document.getElementById('est-jump'); const off=(j&&getComputedStyle(j).display!=='none'?j.offsetHeight:0)+8; window.scrollTo({top:el.getBoundingClientRect().top+scrollY-off,behavior:'smooth'}); }
+let EST_VD_OPEN=false; try{ EST_VD_OPEN=localStorage.getItem('est-vd-open')==='1'; }catch(e){}
+function estVdFold(v){ EST_VD_OPEN=v===undefined?!EST_VD_OPEN:!!v; try{ localStorage.setItem('est-vd-open',EST_VD_OPEN?'1':'0'); }catch(e){} _estVdPaint(); }
+function _estVdPaint(){ const c=document.getElementById('sec-cust'); if(c) c.classList.toggle('vd-open',EST_VD_OPEN); const t=document.querySelector('#est-vd-t i'); if(t) t.textContent=EST_VD_OPEN?'▲ 畳む':'▼ 開く'; _estVdSum(); }
+function _estVdSum(){ const g=id=>((document.getElementById(id)||{}).value||'').trim(); const e=document.getElementById('est-vd-sum'); if(!e) return;
+  const fr=g('c-firstreg'), era=((document.getElementById('c-firstreg-era')||{}).textContent||'').trim();
+  const L=[g('c-chassis')&&'車台 '+g('c-chassis'), (g('c-typeno')||g('c-ruino'))&&'型式指定 '+[g('c-typeno'),g('c-ruino')].filter(Boolean).join('-'), fr&&'初度 '+(era||fr), g('c-mileage')&&g('c-mileage')+'km'].filter(Boolean);
+  e.textContent=L.length?L.join('　'):'車台番号・型式指定番号・類別区分番号・初度登録・走行距離（車検証を読むと自動で入ります）'; }
+document.addEventListener('DOMContentLoaded',()=>{ try{ _estVdPaint(); }catch(e){} });
+document.addEventListener('click',e=>{ const t=e.target.closest&&e.target.closest('.tab-btn'); if(t) setTimeout(()=>document.body.classList.toggle('est-create',t.dataset.tab==='create'),0); });
 function setBodyShape(btn){
   currentBodyShape = btn.dataset.shape;
   document.querySelectorAll('[data-shape]').forEach(b=>b.classList.remove('on'));
@@ -3579,7 +3610,7 @@ function estAimOpen(){
 function _estSR(){
   if(window.SHAKEN&&window.SHAKEN.scan) return Promise.resolve(window.SHAKEN);
   if(_srP) return _srP;
-  _srP=new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='../work-board/shaken-read.js?v=2026-11-17';
+  _srP=new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='../work-board/shaken-read.js?v=2026-11-27';
     s.onload=()=>window.SHAKEN&&window.SHAKEN.scan?res(window.SHAKEN):rej(new Error('読み取りの部品を読み込めませんでした'));
     s.onerror=()=>{ _srP=null; rej(new Error('読み取りの部品を読み込めませんでした。電波の良い所で、もう一度押してください')); }; document.head.appendChild(s); });
   return _srP;
