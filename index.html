@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta name="ark-ver" content="71f526af2e">
+<meta name="ark-ver" content="42e994f4e5">
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
@@ -478,7 +478,7 @@ html.locked,html.locked body{overflow:hidden;}
           <div class="scan-result" id="scan-result"></div>
           <div id="photo-grid" class="ph-grid"></div>
           <div class="ph-btns" style="margin-top:6px"><button type="button" class="btn" onclick="_estPhShare(true)">👥 写真をチームで共有</button><button type="button" class="btn" onclick="estTeamPhotos()">👥 この車のチームの写真を見る</button></div>
-          <div class="ph-note">写真ごとに項目（車検証・コーションラベル・作業箇所など）を選べます。「車検証」「コーションラベル」を選ぶと、その写真から読み取って入力します。撮影した写真は端末の写真アプリには保存されず、LINE送信・新規見積りで消去されます。</div>
+          <div class="ph-note">写真ごとに項目（車検証・コーションラベル・作業箇所など）を選べます。「車検証」「コーションラベル」を選ぶと、その写真から読み取って入力します。撮影した写真は端末の写真アプリには保存されません。チーム共有にログインしていれば、撮ったらすぐチームで共有します（車検証も含む。作業ボードの同じ車からも見られます。30日たったらGoogleドライブ「ARK 見積りの写真」へ移します）。</div>
         </div>
         <div class="field span2">
           <label>ボディ形状（塗り数値の基準）</label>
@@ -1498,6 +1498,7 @@ function recalc(){
   document.getElementById('t-discfree').style.color = t.discFree>0?'var(--accent)':'var(--muted)';
   document.getElementById('t-grand').textContent = fmt(t.grand);
   { const eb=document.getElementById('eb-grand'); if(eb) eb.textContent=fmt(t.grand); }   // 11/27：下の帯の合計
+  try{ if(typeof _estDraftSave==='function') _estDraftSave(); }catch(e){}
   try{ _estVdSum(); }catch(e){}
 }
 
@@ -2225,11 +2226,11 @@ const EST_WB_TYPE={'付属脱着':'付属品脱着','取付':'その他'};
 function _estWbPart(sid){
   const c=customer, t=calcTotals();
   const tasks=items.filter(it=>it.part||it.panelArea).map(it=>({part:it.part||'',area:it.panelArea||'',types:[EST_WB_TYPE[it.type]||it.type||'その他'],note:it.type==='取付'?'取付':'',qty:+it.qty||1}));
-  const phN=photos.filter(p=>p.tag!=='車検証').length;
+  const phN=photos.length;   // 11/27：車検証の写真も共有する（ユーザー指示）
   return {car:c.car||'',plate:c.plate||'',chassis:c.chassis||'',color:c.color||'',ptype:c.paintType||'',carType:c.carType||'',date:c.date||'',
     lines:items.map(it=>{ const b=calcRow(it); return {part:it.part||'',type:it.type||'',desc:String(b.desc||'').slice(0,80),qty:+it.qty||1,amt:Math.round(+b.amount||0)}; }),   // 明細と金額（作業ボードで見られるように。11/13）
     sub:Math.round(+t.sub||0),tax:Math.round(+t.tax||0),parts:Math.round(+t.parts||0),
-    staff:c.staff||'',grand:Math.round(+t.grand||0),tasks,phJid:phN?(_estPhJid()||('este-'+sid)):'',phN,
+    staff:c.staff||'',grand:Math.round(+t.grand||0),tasks,phJid:phN?(_estPhJid()||('este-'+_estKey())):'',phN,
     loaner:c.loanerVehicle||'',pay:[c.paySelf?'自費':'',c.payVehicle?'車両保険':'',c.payProperty?'対物保険':''].filter(Boolean)};
 }
 function teamSaveEst(via,id){
@@ -2240,7 +2241,7 @@ function teamSaveEst(via,id){
     Object.assign(s,{date:c.date||'',plate:c.plate||'',car:c.car||'',color:c.color||'',chassis:c.chassis||'',ptype:c.paintType||'',staff:c.staff||'',
       parts:items.map(i=>i.part).filter(Boolean).slice(0,12),count:items.length,grand:w.grand,loaner:c.loanerVehicle||'',xfer:true,wb:w});
     _cloudPut('estimates',s.id,s);
-    try{ _estPhShare(false,s.id); }catch(e){}   // 写真（車検証以外）も共有 → 作業ボードの転送欄で見られる
+    try{ _estPhShare(false); }catch(e){}   // 写真（車検証も）も共有 → 作業ボードの転送欄で見られる
     return true; }catch(e){ console.warn(e); return false; }
 }
 // ─── Googleドライブ（Apps Script経由：見積書ページ＋写真をフォルダに保存し、一覧シートにも1行） ───
@@ -2858,11 +2859,13 @@ async function dlFile(){
 }
 
 function saveEst(){
+  try{ updateCust(); _estKey(); }catch(e){}
   const t=calcTotals();
   const snap={id:genId(),savedAt:new Date().toISOString(),customer:{...customer},items:[...items.map(i=>({...i}))],settings:{...settings},totals:t,disc10:document.getElementById('disc10').checked,discountFree:document.getElementById('disc-free').value};
   try{learnCurrentVehicle();}catch(e){}
+  const sid=genId(); snap.teamId=sid;   // 11/27夕：チームに入れた方のID（この端末の履歴から開いたときに、共有した写真を探すため）
   history.unshift(snap);
-  const sid=genId(), shared=teamSaveEst('保存',sid), drive=driveSaveEst('保存',sid);
+  const shared=teamSaveEst('保存',sid), drive=driveSaveEst('保存',sid);
   const note=[shared?'チーム・作業ボード':'',drive?'Googleドライブ':''].filter(Boolean).join('・');
   showMsg('save-msg',_saveHistory()?('履歴に保存しました'+(note?`（${note}にも保存）`:'')):'保存に失敗しました');
 }
@@ -2878,32 +2881,43 @@ async function _estPhData(p){
   if(blob.size>700000){ const c=await _fileToCanvas(blob,1280); blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.75)); }
   return await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(blob); });
 }
-async function _estPhShare(manual,sid){
+// 11/27：見積りごとの目印（登録番号がまだ無いときの共有の置き場所 este-目印。保存・履歴にも入る）
+function _estKey(){ if(!customer.estKey) customer.estKey=genId(); return customer.estKey; }
+let _estPhBusy=null;
+async function _estPhShare(manual){
   if(!CLOUD.started){ if(manual) toast('チーム共有にログインすると共有できます（⚙️ 設定）',5000); return; }
-  const jid=_estPhJid()||(sid?'este-'+sid:''); if(!jid){ if(manual) toast('登録番号を入れてから共有してください',5000); return; }
-  const L=photos.filter(p=>p.tag!=='車検証'&&!p.shared&&!p.fromTeam);
-  if(!L.length){ if(manual) toast(photos.some(p=>p.tag==='車検証')&&!photos.some(p=>p.tag!=='車検証')?'車検証の写真は共有しません':'共有する写真はありません（共有済み・車検証は除く）',5000); return; }
-  const {fs}=CLOUD.fb; let n=0;
-  for(const p of L){
-    try{ const d=await _estPhData(p); if(d.length>950000) continue; p.pid=p.pid||('e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
-      await fs.setDoc(fs.doc(CLOUD.db,'photos',_cloudKey(jid+'_'+p.pid)),{jid,pid:p.pid,d,tag:p.tag||'',src:'est',by:(CLOUD.user&&CLOUD.user.email)||'',dev:'est',at:fs.serverTimestamp()});
-      p.shared=jid; n++; }
-    catch(e){ console.warn('写真の共有',e); if(manual){ toast('写真を共有できませんでした：'+_netMsg(e),6000); break; } }
-  }
-  if(manual&&n) toast(`写真${n}枚をチームで共有しました（作業ボードの同じ車からも見られます）`,5000);
+  if(_estPhBusy){ await _estPhBusy.catch(()=>{}); }
+  const run=(async()=>{
+    const jid=_estPhJid()||('este-'+_estKey());
+    // まだ共有していない写真と、番号が入る前に este- に入れた写真（登録番号の置き場所へ移す）
+    const L=photos.filter(p=>p.shared!==jid&&(!p.fromTeam||p.shared));
+    if(!L.length){ if(manual) toast('この見積りの写真はすべて共有済みです',4000); return; }
+    const {fs}=CLOUD.fb; let n=0;
+    for(const p of L){
+      try{ const d=await _estPhData(p); if(d.length>950000) continue; const old=p.shared, oldPid=p.pid; p.pid=p.pid||('e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
+        await fs.setDoc(fs.doc(CLOUD.db,'photos',_cloudKey(jid+'_'+p.pid)),{jid,pid:p.pid,d,tag:p.tag||'',src:'est',by:(CLOUD.user&&CLOUD.user.email)||'',dev:'est',at:fs.serverTimestamp()});
+        p.shared=jid; n++;
+        if(old&&old!==jid&&oldPid) fs.deleteDoc(fs.doc(CLOUD.db,'photos',_cloudKey(old+'_'+oldPid))).catch(()=>{}); }
+      catch(e){ console.warn('写真の共有',e); if(manual){ toast('写真を共有できませんでした：'+_netMsg(e),6000); break; } }
+    }
+    if(manual&&n) toast(`写真${n}枚をチームで共有しました（作業ボードの同じ車からも見られます）`,5000);
+    try{ _estDraftSave(); }catch(e){}
+  })();
+  _estPhBusy=run; try{ await run; } finally{ if(_estPhBusy===run) _estPhBusy=null; }
 }
 function _estPhDel(p){ if(!CLOUD.started||!p.shared||!p.pid) return; const {fs}=CLOUD.fb; fs.deleteDoc(fs.doc(CLOUD.db,'photos',_cloudKey(p.shared+'_'+p.pid))).catch(()=>{}); }
 // チームの見積りを呼び出したとき、その見積りで共有した写真も入れる（11/12：ほかの端末で撮った写真も見られるように。車検証の写真は共有していない）
 async function _estTeamLoadPhotos(h){
   if(!CLOUD.started) return 0;
-  const k=_estPlateKey((h.customer||{}).plate), jid=(h.wb&&h.wb.phJid)||(_plateNo((h.customer||{}).plate)&&k?'estp-'+k:'')||('este-'+h.id);
+  const c=h.customer||{}, k=_estPlateKey(c.plate);
+  const jids=[...new Set([h.wb&&h.wb.phJid, _plateNo(c.plate)&&k?'estp-'+k:'', c.estKey?'este-'+c.estKey:'', h.teamId?'este-'+h.teamId:'', 'este-'+h.id].filter(Boolean))];   // 11/27：番号が入る前に共有した写真も探す
   const {fs}=CLOUD.fb; let L=[];
-  try{ const sn=await fs.getDocs(fs.query(fs.collection(CLOUD.db,'photos'),fs.where('jid','==',jid))); sn.forEach(d=>{ const v=d.data()||{}; if(v.d&&/^data:image\//.test(v.d)) L.push(v); }); }
+  try{ for(const jid of jids){ const sn=await fs.getDocs(fs.query(fs.collection(CLOUD.db,'photos'),fs.where('jid','==',jid))); sn.forEach(d=>{ const v=d.data()||{}; if(v.d&&/^data:image\//.test(v.d)&&!L.some(x=>x.pid===v.pid)) L.push({...v,_jid:jid}); }); } }
   catch(e){ toast('写真を読めませんでした：'+_netMsg(e),6000); return 0; }
   let n=0;
   for(const v of L){
     if(photos.length>=PHOTO_MAX) break; if(photos.some(p=>p.pid&&p.pid===v.pid)) continue;
-    try{ const r=await fetch(v.d); const bl=await r.blob(); const p=await _photoFromFile(new File([bl],'team.jpg',{type:bl.type||'image/jpeg'}),v.tag||''); p.fromTeam=true; p.shared=jid; p.pid=v.pid; photos.push(p); n++; }catch(e){}
+    try{ const r=await fetch(v.d); const bl=await r.blob(); const p=await _photoFromFile(new File([bl],'team.jpg',{type:bl.type||'image/jpeg'}),v.tag||''); p.fromTeam=true; p.shared=v._jid; p.pid=v.pid; photos.push(p); n++; }catch(e){}
   }
   if(n) try{ renderPhotos(); }catch(e){}
   return n;
@@ -2936,6 +2950,29 @@ function _cloudPutEstimate(s){
     grand:Math.round(+t.grand||0), loaner:c.loanerVehicle||'',
     by:(CLOUD.user&&CLOUD.user.email)||'', at:fs.serverTimestamp()
   }).catch(e=>{ if(!_estCloudWarned){ _estCloudWarned=true; toast('見積りの通知を共有できませんでした（Firestoreのルールにestimatesを追加してください）',7000); } });
+}
+// ── 11/27：作っている途中の見積り（車両情報・明細）をこの端末に自動で残す（暗号化）。画面が読み直されても消えない。写真はチームの共有から戻す ──
+let _estDraftT=null;
+function _estDraftSave(){ clearTimeout(_estDraftT); _estDraftT=setTimeout(_estDraftSaveNow,800); }
+let _estDraftReady=false;   // 起動して下書きを戻すまでは書かない（空の画面で下書きを消さないため）
+async function _estDraftSaveNow(){
+  if(!_estDraftReady||(SEC.ok&&!SEC.key)) return;
+  try{ updateCust(); }catch(e){}
+  const empty=!items.length&&!photos.length&&!customer.plate&&!customer.chassis&&!customer.car&&!customer.name;
+  if(empty){ _lsSet('est-draft-enc',''); _lsSet('est-draft',''); return; }
+  _estKey();
+  const d={savedAt:new Date().toISOString(),customer:{...customer},items:items.map(i=>({...i})),disc10:document.getElementById('disc10').checked,discountFree:document.getElementById('disc-free').value,phN:photos.length,
+    phJids:[...new Set(photos.map(p=>p.shared).filter(Boolean))]};
+  try{ if(SEC.ok){ if(!SEC.key) return; _lsSet('est-draft-enc',JSON.stringify(await _enc(SEC.key,d))); } else _lsSet('est-draft',JSON.stringify(d)); }catch(e){ console.warn('下書き',e); }
+}
+async function _estDraftRestore(){
+  if(_estDraftReady) return; _estDraftReady=true;
+  if(items.length||photos.length||customer.plate||customer.chassis||customer.car) return;   // 今入力中なら戻さない
+  let d=null; try{ if(SEC.ok){ const e=_lsGet('est-draft-enc'); if(e&&SEC.key) d=await _dec(SEC.key,JSON.parse(e)); } else { const e=_lsGet('est-draft'); if(e) d=JSON.parse(e); } }catch(e){ d=null; }
+  if(!d||!d.customer) return;
+  loadEst({...d,id:'draft',customer:d.customer,items:d.items||[]});
+  toast('作りかけの見積りを戻しました'+(d.phN?'（写真はチームの共有から戻します）':''),5000);
+  if(d.phN){ const tryPh=async(k)=>{ if(!CLOUD.started){ if(k<20) setTimeout(()=>tryPh(k+1),1500); return; } const jids=d.phJids||[]; let n=0; for(const j of jids){ n+=await _estTeamLoadPhotos({id:'draft',customer:d.customer,wb:{phJid:j}}); } if(!jids.length) n=await _estTeamLoadPhotos({id:'draft',customer:d.customer}); if(n) toast(`写真${n}枚を戻しました`,4000); }; tryPh(0); }
 }
 function loadEst(h){
   customer={...newCust(),...h.customer};
@@ -3011,7 +3048,8 @@ function renderHistory(){
         <button class="btn">呼び出す</button>
         <button class="btn" style="color:var(--muted);min-width:46px;min-height:46px;justify-content:center;touch-action:manipulation" aria-label="削除">✕</button>
       </div>`;
-    div.querySelectorAll('.btn')[0].addEventListener('click',()=>loadEst(h));
+    div.querySelectorAll('.btn')[0].addEventListener('click',async()=>{ loadEst(h);   // 11/27夕：この端末の履歴から開いたときも、チームで共有した写真（車検証以外）を戻す
+      const n=await _estTeamLoadPhotos(h.teamId?{...h,id:h.teamId}:h); if(n) toast(`見積りを開きました（共有していた写真${n}枚も戻しました）`,5000); });
     div.querySelectorAll('.btn')[1].addEventListener('click',()=>deleteEst(h.id));
     list.appendChild(div);
   });
@@ -3029,7 +3067,7 @@ function resetEst(skipConfirm){
     if(now-_resetArmed>3000){ _resetArmed=now; toast('もう一度押すと、すべて初期状態に戻します',3000); return; }
     _resetArmed=0;
   }
-  customer=newCust(); items=[]; photos=[]; renderPhotos();
+  customer=newCust(); items=[]; photos=[]; renderPhotos(); _lsSet('est-draft-enc',''); _lsSet('est-draft','');   // 新規見積り・LINE送信のあとは下書きも消す（写真・見積りはチーム共有・履歴に残っている）
   fillCustForm();
   setCarType('国産車');
   setLoaner(null);
@@ -3560,6 +3598,7 @@ function applyVehicleInfo(info,source){
   if(info.expiry) msgs.push('車検満了 '+info.expiry);
   { const m=String(info.firstReg||'').match(/^(\d{4})\/(\d{2})$/); if(m&&+m[2]>=1&&+m[2]<=12){ const f=document.getElementById('c-firstreg'); if(f) f.value=m[1]+'-'+m[2]; customer.firstReg=m[1]+'-'+m[2]; msgs.push('初度登録 '+_ymEra(customer.firstReg)+(_oldCar()?'（平成28年以前：部品代×1.5）':'')); } }
   updateCust(); try{ render(); }catch(e){}
+  if(info.chassis||info.typeNo||info.firstReg) try{ estVdFold(true); }catch(e){}   // 11/27夕：読み取った車両情報が見えるように「車両の詳細」を開く
   const box=document.getElementById('scan-result');
   if(box){ box.innerHTML = esc(msgs.length ? `読み取り（${source}）：`+msgs.join(' ／ ') : `${source}から読み取れませんでした`)+candHtml+colCand; }
   toast(msgs.length? '読み取りました：'+msgs.slice(0,4).join('、') : '読み取れませんでした。明るい場所で近づけて撮影してください', 5000);
@@ -4053,7 +4092,8 @@ async function photoAttachDoc(f,tag){
 function photoRemove(id){ const p=photos.find(x=>x.id===id); if(p&&p.shared&&!p.fromTeam) _estPhDel(p); photos=photos.filter(p=>p.id!==id); renderPhotos(); }
 function photoTag(id,v){
   const p=photos.find(x=>x.id===id); if(!p) return;
-  p.tag=v; _shareFiles=null;
+  p.tag=v; _shareFiles=null; if(p.shared) p.shared=null;   // 11/27：項目を変えたら共有もし直す（同じ写真を上書き）
+  clearTimeout(_estPhT); _estPhT=setTimeout(()=>{ try{ _estPhShare(false); }catch(e){} },1500);
   // 車検証・コーションラベルを選んだら、その写真から読み取ってアプリに反映
   if(v==='車検証') shakenFromBlob(p.file||p.blob);
   else if(v==='コーションラベル') labelFromBlob(p.file||p.blob);
@@ -4066,7 +4106,9 @@ function _photoTagOptions(cur){
   if(cur&&!opts.includes(cur)) opts.push(cur);
   return '<option value="">項目を選択</option>'+opts.map(o=>`<option${o===cur?' selected':''}>${esc(o)}</option>`).join('');
 }
+let _estPhT=null;
 function renderPhotos(){
+  clearTimeout(_estPhT); _estPhT=setTimeout(()=>{ try{ _estPhShare(false); }catch(e){} try{ _estDraftSave(); }catch(e){} },1500);   // 11/27：撮ったらすぐチームで共有（写真を消さないため）
   const g=document.getElementById('photo-grid'); if(!g) return;
   g.innerHTML=photos.map((p,i)=>`<div class="ph-item"><div class="ph-img"><img src="${p.thumb}" alt=""><span class="ph-no">${i+1}</span><button type="button" class="ph-del" onclick="photoRemove(${p.id})" aria-label="削除">✕</button></div><select onchange="photoTag(${p.id},this.value)">${_photoTagOptions(p.tag)}</select></div>`).join('');
   const n=document.getElementById('photo-count'); if(n) n.textContent=`${photos.length}／${PHOTO_MAX}枚`;
@@ -4187,6 +4229,7 @@ async function _unlockWith(pin){
   try{ history=enc?await _dec(key,JSON.parse(enc)):[]; }catch(e){ history=[]; toast('履歴を読み込めませんでした',6000); }
   try{ const le=_lsGet('est-loaner-enc'); LOANER_BOOK=le?await _dec(key,JSON.parse(le)):[]; }catch(e){ LOANER_BOOK=[]; }
   try{renderLoanerCars();}catch(e){}
+  setTimeout(()=>{ try{ _estDraftRestore(); }catch(e){} },300);
   return true;
 }
 async function _setupPin(pin){
@@ -4285,7 +4328,7 @@ function _secInit(){
   if(!SEC.ok){ // 暗号化が使えない画面（プレビュー等）
     try{const h=_lsGet('est-history');if(h)history=JSON.parse(h);}catch(e){}
     try{const l=_lsGet('est-loaner');if(l)LOANER_BOOK=JSON.parse(l);}catch(e){}
-    SEC.locked=false; try{renderLoanerCars();}catch(e){} try{cloudInit();}catch(e){} try{renderSheetUI(); sheetLoad(false);}catch(e){} return;
+    SEC.locked=false; try{renderLoanerCars();}catch(e){} try{cloudInit();}catch(e){} try{renderSheetUI(); sheetLoad(false);}catch(e){} setTimeout(()=>{ try{ _estDraftRestore(); }catch(e){} },300); return;
   }
   _showLock(_lockInfo()?'unlock':'setup');
   // 自動ロック：一定時間操作がない／アプリを離れて一定時間たったらロック
