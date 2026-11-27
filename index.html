@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta name="ark-ver" content="42e994f4e5">
+<meta name="ark-ver" content="ca7642eb88">
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
@@ -2228,6 +2228,7 @@ function _estWbPart(sid){
   const tasks=items.filter(it=>it.part||it.panelArea).map(it=>({part:it.part||'',area:it.panelArea||'',types:[EST_WB_TYPE[it.type]||it.type||'その他'],note:it.type==='取付'?'取付':'',qty:+it.qty||1}));
   const phN=photos.length;   // 11/27：車検証の写真も共有する（ユーザー指示）
   return {car:c.car||'',plate:c.plate||'',chassis:c.chassis||'',color:c.color||'',ptype:c.paintType||'',carType:c.carType||'',date:c.date||'',
+    typeNo:c.typeNo||'',firstReg:c.firstReg||'',mileage:c.mileage||'',note:String(c.note||'').slice(0,300),loanerYes:c.loanerCar===true,   // 11/27夜：入力したものは全部、作業ボードへ（お客様名だけは入れない）
     lines:items.map(it=>{ const b=calcRow(it); return {part:it.part||'',type:it.type||'',desc:String(b.desc||'').slice(0,80),qty:+it.qty||1,amt:Math.round(+b.amount||0)}; }),   // 明細と金額（作業ボードで見られるように。11/13）
     sub:Math.round(+t.sub||0),tax:Math.round(+t.tax||0),parts:Math.round(+t.parts||0),
     staff:c.staff||'',grand:Math.round(+t.grand||0),tasks,phJid:phN?(_estPhJid()||('este-'+_estKey())):'',phN,
